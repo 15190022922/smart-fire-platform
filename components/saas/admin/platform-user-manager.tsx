@@ -1,0 +1,157 @@
+"use client";
+
+import { useState } from "react";
+import { Dialog } from "@/components/ui/dialog";
+import { PageHeader } from "@/components/page-header";
+import { SectionCard } from "@/components/section-card";
+import { FeatureGuard } from "@/components/saas/feature-guard";
+import { useSaaSDemo } from "@/components/saas/saas-demo-provider";
+import { PlatformRoleKey, PlatformUserRecord, UserStatus } from "@/types/saas";
+
+const inputClassName =
+  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+
+type PlatformUserFormState = Omit<PlatformUserRecord, "id">;
+
+const roleOptions: PlatformRoleKey[] = [
+  "platform_super_admin",
+  "platform_ops_admin",
+  "platform_finance_admin",
+];
+
+export function PlatformUserManager() {
+  const { platformUsers, setPlatformUsers, roles } = useSaaSDemo();
+  const [dialogMode, setDialogMode] = useState<"create" | "edit" | null>(null);
+  const [selectedUser, setSelectedUser] = useState<PlatformUserRecord | null>(null);
+  const [formState, setFormState] = useState<PlatformUserFormState>({
+    username: "",
+    phone: "",
+    roleKey: "platform_ops_admin",
+    status: "启用",
+    note: "",
+  });
+
+  function openCreate() {
+    setSelectedUser(null);
+    setDialogMode("create");
+  }
+
+  function openEdit(user: PlatformUserRecord) {
+    setSelectedUser(user);
+    setFormState({ ...user });
+    setDialogMode("edit");
+  }
+
+  function closeDialog() {
+    setDialogMode(null);
+    setSelectedUser(null);
+  }
+
+  function saveUser() {
+    if (!formState.username || !formState.phone) {
+      return;
+    }
+
+    if (dialogMode === "create") {
+      setPlatformUsers((current) => [{ id: `platform-user-${Date.now()}`, ...formState }, ...current]);
+    }
+
+    if (dialogMode === "edit" && selectedUser) {
+      setPlatformUsers((current) =>
+        current.map((item) => (item.id === selectedUser.id ? { ...selectedUser, ...formState } : item)),
+      );
+    }
+
+    closeDialog();
+  }
+
+  function removeUser(user: PlatformUserRecord) {
+    if (!window.confirm(`确认删除平台用户“${user.username}”吗？`)) {
+      return;
+    }
+    setPlatformUsers((current) => current.filter((item) => item.id !== user.id));
+  }
+
+  return (
+    <FeatureGuard title="平台用户管理" permissionKey="platform.users.manage">
+      <div className="space-y-6">
+      <PageHeader
+        title="平台用户管理"
+        subtitle="平台级角色可跨租户管理企业、套餐与订阅，权限范围与企业角色隔离。"
+        aside={
+          <button type="button" onClick={openCreate} className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700">
+            新增平台用户
+          </button>
+        }
+      />
+
+      <SectionCard title="平台用户列表" description="平台用户不属于具体企业，权限作用域覆盖整个平台。">
+        <div className="space-y-3">
+          {platformUsers.map((user) => {
+            const role = roles.find((item) => item.key === user.roleKey);
+            return (
+              <div key={user.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[color:var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--panel-shadow)]">
+                <div>
+                  <p className="text-sm font-semibold text-[color:var(--text-primary)]">{user.username}</p>
+                  <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{role?.name} / {user.phone}</p>
+                  <p className="mt-1 text-xs text-[color:var(--text-muted)]">{user.note}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`rounded-full border px-3 py-1 text-xs ${user.status === "启用" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-100 text-slate-700"}`}>
+                    {user.status}
+                  </span>
+                  <button type="button" onClick={() => openEdit(user)} className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs text-sky-700">编辑</button>
+                  <button type="button" onClick={() => removeUser(user)} className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700">删除</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </SectionCard>
+
+      <Dialog
+        open={dialogMode === "create" || dialogMode === "edit"}
+        onClose={closeDialog}
+        title={dialogMode === "create" ? "新增平台用户" : "编辑平台用户"}
+        footer={
+          <>
+            <button type="button" onClick={closeDialog} className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)]">取消</button>
+            <button type="button" onClick={saveUser} className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700">保存</button>
+          </>
+        }
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="space-y-2">
+            <span className="text-sm text-[color:var(--text-secondary)]">用户名</span>
+            <input value={formState.username} onChange={(event) => setFormState((current) => ({ ...current, username: event.target.value }))} className={inputClassName} />
+          </label>
+          <label className="space-y-2">
+            <span className="text-sm text-[color:var(--text-secondary)]">手机号</span>
+            <input value={formState.phone} onChange={(event) => setFormState((current) => ({ ...current, phone: event.target.value }))} className={inputClassName} />
+          </label>
+          <label className="space-y-2">
+            <span className="text-sm text-[color:var(--text-secondary)]">角色</span>
+            <select value={formState.roleKey} onChange={(event) => setFormState((current) => ({ ...current, roleKey: event.target.value as PlatformRoleKey }))} className={inputClassName}>
+              {roleOptions.map((item) => {
+                const role = roles.find((roleItem) => roleItem.key === item);
+                return <option key={item} value={item}>{role?.name}</option>;
+              })}
+            </select>
+          </label>
+          <label className="space-y-2">
+            <span className="text-sm text-[color:var(--text-secondary)]">状态</span>
+            <select value={formState.status} onChange={(event) => setFormState((current) => ({ ...current, status: event.target.value as UserStatus }))} className={inputClassName}>
+              <option>启用</option>
+              <option>停用</option>
+            </select>
+          </label>
+          <label className="space-y-2 md:col-span-2">
+            <span className="text-sm text-[color:var(--text-secondary)]">备注</span>
+            <textarea value={formState.note} onChange={(event) => setFormState((current) => ({ ...current, note: event.target.value }))} className={`${inputClassName} min-h-24`} />
+          </label>
+        </div>
+      </Dialog>
+      </div>
+    </FeatureGuard>
+  );
+}
