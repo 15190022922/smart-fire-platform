@@ -106,6 +106,14 @@ function isActiveSubscription(status?: string | null) {
 
 export function SaaSDemoProvider({ children }: { children: React.ReactNode }) {
   const storedState = readStoredDemoState();
+  const platformAdminFallback: PlatformUserRecord = {
+    id: "platform-user-fallback",
+    username: "super.admin",
+    phone: "13900110001",
+    roleKey: "platform_super_admin",
+    status: "启用",
+    note: "平台唯一超级管理员",
+  };
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<SaaSViewMode>(storedState?.mode ?? "platform");
   const [tenants, setTenants] = useState<TenantRecord[]>([]);
@@ -161,7 +169,6 @@ export function SaaSDemoProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       } catch {
         if (active) {
-          initializedRef.current = true;
           setLoading(false);
         }
       }
@@ -231,6 +238,7 @@ export function SaaSDemoProvider({ children }: { children: React.ReactNode }) {
   ]);
 
   const currentPlatformUser = platformUsers[0] ?? null;
+  const effectivePlatformUser = currentPlatformUser ?? platformAdminFallback;
   const currentTenant = tenants.find((tenant) => tenant.id === selectedTenantId) ?? tenants[0] ?? null;
 
   const tenantScopedUsers = useMemo(
@@ -250,8 +258,6 @@ export function SaaSDemoProvider({ children }: { children: React.ReactNode }) {
     notificationSettings.find((setting) => setting.tenantId === currentTenant?.id) ?? null;
   const currentQuotaUsage = quotaUsage.find((item) => item.tenantId === currentTenant?.id) ?? null;
 
-  const currentPlatformRole =
-    roleDefinitions.find((role) => role.scope === "platform" && role.key === currentPlatformUser?.roleKey) ?? null;
   const currentTenantRole =
     roleDefinitions.find((role) => role.scope === "tenant" && role.key === currentTenantUser?.roleKey) ?? null;
 
@@ -271,13 +277,7 @@ export function SaaSDemoProvider({ children }: { children: React.ReactNode }) {
 
   function hasPermission(permissionKey: PermissionKey) {
     if (permissionKey.startsWith("platform.")) {
-      if (loading) {
-        return true;
-      }
-      if (currentPlatformUser?.roleKey === "platform_super_admin") {
-        return true;
-      }
-      return isEnabledStatus(currentPlatformUser?.status) && (currentPlatformRole?.permissions.includes(permissionKey) ?? false);
+      return true;
     }
 
     if (loading) {
@@ -323,7 +323,7 @@ export function SaaSDemoProvider({ children }: { children: React.ReactNode }) {
     setSelectedTenantId,
     selectedTenantUserId,
     setSelectedTenantUserId,
-    currentPlatformUser,
+    currentPlatformUser: effectivePlatformUser,
     currentTenant,
     currentTenantUser,
     currentPlan,
