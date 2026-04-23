@@ -1,0 +1,122 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { PageHeader } from "@/components/page-header";
+import { SectionCard } from "@/components/section-card";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import type { AuditLogRecord } from "@/types/ops";
+
+const PAGE_SIZE = 12;
+
+export function AuditLogBoard({ logs }: { logs: AuditLogRecord[] }) {
+  const [keyword, setKeyword] = useState("");
+  const [resultFilter, setResultFilter] = useState<"all" | "success" | "error">("all");
+  const [page, setPage] = useState(1);
+
+  const filtered = useMemo(() => {
+    const safeLogs = Array.isArray(logs) ? logs : [];
+    return safeLogs.filter((log) => {
+      if (resultFilter !== "all" && log.result !== resultFilter) return false;
+      if (!keyword.trim()) return true;
+      const text = `${log.actorName} ${log.action} ${log.targetType} ${log.detail}`.toLowerCase();
+      return text.includes(keyword.trim().toLowerCase());
+    });
+  }, [keyword, logs, resultFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+
+  const visibleLogs = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, safePage]);
+
+  return (
+    <div className="space-y-4">
+      <PageHeader
+        title="审计日志"
+        subtitle="记录登录、报警处理、设备操作、权限变更等关键行为，满足追溯和责任界定要求。"
+      />
+
+      <SectionCard title="检索条件" description="按结果和关键字筛选关键操作日志。">
+        <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)]">
+          <select
+            value={resultFilter}
+            onChange={(event) => {
+              setResultFilter(event.target.value as "all" | "success" | "error");
+              setPage(1);
+            }}
+            className="rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm"
+          >
+            <option value="all">全部结果</option>
+            <option value="success">成功</option>
+            <option value="error">失败</option>
+          </select>
+          <input
+            value={keyword}
+            onChange={(event) => {
+              setKeyword(event.target.value);
+              setPage(1);
+            }}
+            placeholder="按操作人、动作、目标类型、详情搜索"
+            className="rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm"
+          />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="审计记录" description="最近 500 条关键操作。">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-sm">
+            <thead className="bg-[var(--table-head)] text-[color:var(--text-secondary)]">
+              <tr>
+                <th className="px-4 py-3">时间</th>
+                <th className="px-4 py-3">操作人</th>
+                <th className="px-4 py-3">动作</th>
+                <th className="px-4 py-3">目标</th>
+                <th className="px-4 py-3">结果</th>
+                <th className="px-4 py-3">详情</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleLogs.map((log) => (
+                <tr key={log.id} className="border-t border-[color:var(--border)] bg-[var(--table-row)]">
+                  <td className="px-4 py-3">{log.createdAt}</td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-[color:var(--text-primary)]">{log.actorName}</div>
+                    <div className="text-xs text-[color:var(--text-muted)]">
+                      {log.actorScope} / {log.actorRole}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">{log.action}</td>
+                  <td className="px-4 py-3">
+                    {log.targetType} / {log.targetId}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`rounded-full border px-2.5 py-1 text-xs ${
+                        log.result === "success"
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : "border-rose-200 bg-rose-50 text-rose-700"
+                      }`}
+                    >
+                      {log.result === "success" ? "成功" : "失败"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-[color:var(--text-secondary)]">{log.detail}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <PaginationBar
+          page={safePage}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+          label="审计日志"
+        />
+      </SectionCard>
+    </div>
+  );
+}

@@ -1,34 +1,51 @@
-import { AlarmRealtimePanel } from "@/components/dashboard/alarm-realtime-panel";
-import { DashboardChartsPanel } from "@/components/dashboard/dashboard-charts-panel";
-import { DashboardTopMetrics } from "@/components/dashboard/dashboard-top-metrics";
-import { InteractiveMapPanel } from "@/components/dashboard/interactive-map-panel";
-import {
-  alarmFeed,
-  alarmTrendData,
-  alarmTypeStats,
-  dashboardMetrics,
-  deviceOverview,
-  floorZones,
-} from "@/data/platform-data";
+import { getServerSession } from "@/lib/server-auth";
+import { fetchBackendJson } from "@/lib/backend-client";
+import { LiveVisualizationPage, type TenantOverviewPayload } from "@/components/dashboard/live-visualization-page";
+import type { TenantSpatialModel } from "@/types/hardware";
 
-export default function VisualizationPage() {
-  return (
-    <div className="grid h-full min-h-0 grid-rows-[72px_minmax(0,1fr)_172px] gap-4 overflow-hidden pt-1">
-      <DashboardTopMetrics metrics={dashboardMetrics} />
+export default async function VisualizationPage() {
+  const session = await getServerSession();
 
-      <section className="grid min-h-0 gap-4 pt-1 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <InteractiveMapPanel zones={floorZones} />
+  if (!session?.tenantId || session.scope !== "tenant") {
+    return null;
+  }
 
-        <div className="grid min-h-0 gap-4 pt-1">
-          <AlarmRealtimePanel alarms={alarmFeed} />
-        </div>
-      </section>
+  const [overviewResponse, spatialModelResponse] = await Promise.all([
+    fetchBackendJson<Partial<TenantOverviewPayload>>("/api/tenant/overview", { session }),
+    fetchBackendJson<TenantSpatialModel>("/api/tenant/spatial-model", { session }),
+  ]);
 
-      <DashboardChartsPanel
-        trendData={alarmTrendData}
-        overview={deviceOverview}
-        typeStats={alarmTypeStats}
-      />
-    </div>
-  );
+  const overviewPayload = overviewResponse.ok ? await overviewResponse.json() : {};
+  const spatialPayload = spatialModelResponse.ok ? await spatialModelResponse.json() : null;
+
+  const overview: TenantOverviewPayload = {
+    devices: Array.isArray(overviewPayload.devices) ? overviewPayload.devices : [],
+    alarms: Array.isArray(overviewPayload.alarms) ? overviewPayload.alarms : [],
+  };
+
+  const spatialModel: TenantSpatialModel =
+    spatialPayload ??
+    ({
+      summary: {
+        siteCount: 0,
+        buildingCount: 0,
+        floorCount: 0,
+        drawingCount: 0,
+        gatewayCount: 0,
+        onlineGatewayCount: 0,
+        mappedDeviceCount: 0,
+        unmappedDeviceCount: 0,
+        recentEventCount: 0,
+      },
+      sites: [],
+      buildings: [],
+      floors: [],
+      drawings: [],
+      gateways: [],
+      devicePoints: [],
+      statusSnapshots: [],
+      recentEvents: [],
+    } satisfies TenantSpatialModel);
+
+  return <LiveVisualizationPage initialOverview={overview} initialSpatialModel={spatialModel} />;
 }

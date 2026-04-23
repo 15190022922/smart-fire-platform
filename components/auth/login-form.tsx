@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const demoAccounts = [
   { scope: "平台管理端", username: "platform_admin", password: "Admin123456" },
@@ -10,8 +9,7 @@ const demoAccounts = [
 ];
 
 export function LoginForm() {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
   const [username, setUsername] = useState("hx_admin");
   const [password, setPassword] = useState("Hx123456");
   const [error, setError] = useState("");
@@ -19,24 +17,35 @@ export function LoginForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    setIsPending(true);
 
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-    const result = (await response.json()) as { message?: string; redirectTo?: string };
+      const rawText = await response.text();
+      let result: { message?: string; redirectTo?: string } = {};
 
-    if (!response.ok) {
-      setError(result.message ?? "登录失败");
-      return;
+      try {
+        result = rawText ? (JSON.parse(rawText) as { message?: string; redirectTo?: string }) : {};
+      } catch {
+        result = {};
+      }
+
+      if (!response.ok) {
+        setError(result.message ?? `登录失败（HTTP ${response.status}）`);
+        setIsPending(false);
+        return;
+      }
+
+      window.location.assign(result.redirectTo ?? "/");
+    } catch {
+      setError("登录请求失败，请检查服务器日志");
+      setIsPending(false);
     }
-
-    startTransition(() => {
-      router.push(result.redirectTo ?? "/");
-      router.refresh();
-    });
   }
 
   return (
@@ -47,8 +56,11 @@ export function LoginForm() {
           智慧消防平台登录
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-8 text-[color:var(--text-secondary)]">
-          当前保留两个正式端口：平台管理端走 <code className="rounded bg-[var(--surface-muted)] px-2 py-1">/admin</code>
-          ，企业端走 <code className="rounded bg-[var(--surface-muted)] px-2 py-1">/</code>。企业账号登录后只会进入自己的企业工作台。
+          当前保留两个正式入口：平台管理端入口
+          <code className="rounded bg-[var(--surface-muted)] px-2 py-1">/admin</code>
+          ，企业端入口
+          <code className="rounded bg-[var(--surface-muted)] px-2 py-1">/</code>。
+          企业账号登录后只会进入自己的企业工作台。
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -73,7 +85,7 @@ export function LoginForm() {
       <section className="rounded-[32px] border border-[color:var(--border)] bg-[var(--surface)] p-8 shadow-[var(--panel-shadow)]">
         <h2 className="text-2xl font-semibold text-[color:var(--text-primary)]">账号登录</h2>
         <p className="mt-2 text-sm text-[color:var(--text-muted)]">
-          当前后端为 mock API，会话使用 httpOnly Cookie，便于先把多端路由和权限流程跑通。
+          当前后端使用 httpOnly Cookie 保存会话，登录成功后会自动进入对应端口。
         </p>
 
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>

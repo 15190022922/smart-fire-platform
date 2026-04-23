@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
 import { useSaaSDemo } from "@/components/saas/saas-demo-provider";
+import { DeviceSimulatorConsole } from "@/components/simulator/device-simulator-console";
 
 export function PlatformDashboard() {
   const { tenants, plans, subscriptions, platformUsers, quotaUsage } = useSaaSDemo();
@@ -15,27 +16,27 @@ export function PlatformDashboard() {
 
   return (
     <FeatureGuard title="平台首页" permissionKey="platform.dashboard.view">
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
       <PageHeader
         title="平台总览"
         subtitle="统一查看企业数量、套餐状态、订阅运行情况和平台级运营指标。"
       />
 
-      <div className="grid gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         {[
           { label: "企业总数", value: String(tenants.length), tone: "text-sky-700 bg-sky-50 border-sky-200" },
           { label: "启用企业", value: String(activeTenants), tone: "text-emerald-700 bg-emerald-50 border-emerald-200" },
           { label: "生效订阅", value: String(activeSubscriptions), tone: "text-amber-700 bg-amber-50 border-amber-200" },
           { label: "短信已用量", value: `${totalSmsUsed}`, tone: "text-rose-700 bg-rose-50 border-rose-200" },
         ].map((item) => (
-          <div key={item.label} className={`rounded-[24px] border p-5 shadow-[var(--panel-shadow)] ${item.tone}`}>
-            <p className="text-sm">{item.label}</p>
-            <p className="mt-3 text-3xl font-semibold">{item.value}</p>
-          </div>
+            <div key={item.label} className={`rounded-[24px] border p-4 sm:p-5 shadow-[var(--panel-shadow)] ${item.tone}`}>
+              <p className="text-sm">{item.label}</p>
+            <p className="mt-3 text-2xl font-semibold sm:text-3xl">{item.value}</p>
+            </div>
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <SectionCard
           title="企业订阅动态"
           description="当前平台上的企业订阅、试用和停用情况一览。"
@@ -91,6 +92,16 @@ export function PlatformDashboard() {
           </div>
         </SectionCard>
       </div>
+
+      <SectionCard
+        title="设备模拟测试台"
+        description="这里直接内嵌平台侧测试控制台。你可以在平台首页直接选择企业、设备并发送火警、故障、离线、恢复、心跳事件，企业端首页和空间页会通过实时通道自动更新。"
+      >
+        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          测试注意：平台管理员和企业用户不能共用同一个浏览器会话。请用当前浏览器登录平台端，再用无痕窗口或另一浏览器登录企业端，否则同一个登录 cookie 会互相覆盖。
+        </div>
+        <DeviceSimulatorConsole tenants={tenants} initialScene={null} embedded />
+      </SectionCard>
       </div>
     </FeatureGuard>
   );

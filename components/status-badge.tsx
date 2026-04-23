@@ -10,6 +10,7 @@ const badgeStyles: Record<string, string> = {
   维修中: "border-cyan-200 bg-cyan-50 text-cyan-700",
   停用: "border-slate-200 bg-slate-100 text-slate-700",
   已处理: "border-sky-200 bg-sky-50 text-sky-700",
+
   "姝ｅ父": "border-emerald-200 bg-emerald-50 text-emerald-700",
   "鍦ㄧ嚎": "border-emerald-200 bg-emerald-50 text-emerald-700",
   "鍚敤": "border-emerald-200 bg-emerald-50 text-emerald-700",

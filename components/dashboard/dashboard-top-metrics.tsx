@@ -9,16 +9,16 @@ const toneClassMap = {
 
 export function DashboardTopMetrics({ metrics }: { metrics: DashboardMetric[] }) {
   return (
-    <section className="grid h-full gap-2 xl:grid-cols-5">
+    <section className="grid h-full grid-cols-2 gap-2 xl:grid-cols-5">
       {metrics.map((metric) => (
         <article
           key={metric.title}
-          className="flex min-w-0 items-center justify-between rounded-2xl border border-[color:var(--border)] bg-[var(--surface)] px-4 py-3 shadow-[var(--panel-shadow)]"
+          className="flex min-w-0 flex-col items-start justify-between gap-2 rounded-2xl border border-[color:var(--border)] bg-[var(--surface)] px-3 py-3 shadow-[var(--panel-shadow)] sm:flex-row sm:items-center sm:px-4"
         >
           <div className="min-w-0">
             <p className="truncate text-xs text-[color:var(--text-muted)]">{metric.title}</p>
             <div className="mt-1 flex items-end gap-1.5">
-              <span className="text-2xl font-semibold text-[color:var(--text-primary)]">{metric.value}</span>
+              <span className="text-xl font-semibold text-[color:var(--text-primary)] sm:text-2xl">{metric.value}</span>
               {metric.unit ? <span className="pb-0.5 text-xs text-[color:var(--text-muted)]">{metric.unit}</span> : null}
             </div>
           </div>

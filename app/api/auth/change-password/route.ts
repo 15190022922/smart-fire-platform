@@ -5,8 +5,8 @@ import { findLoginAccount, updateLoginPassword } from "@/lib/db";
 export async function POST(request: Request) {
   const session = await getServerSession();
 
-  if (!session || session.scope !== "platform") {
-    return NextResponse.json({ message: "无权修改管理员密码" }, { status: 403 });
+  if (!session) {
+    return NextResponse.json({ message: "未登录或会话已失效" }, { status: 401 });
   }
 
   const body = (await request.json()) as {
@@ -16,6 +16,10 @@ export async function POST(request: Request) {
 
   if (!body.currentPassword || !body.nextPassword) {
     return NextResponse.json({ message: "请输入当前密码和新密码" }, { status: 400 });
+  }
+
+  if (body.nextPassword.length < 6) {
+    return NextResponse.json({ message: "新密码长度至少 6 位" }, { status: 400 });
   }
 
   const account = await findLoginAccount(session.username, body.currentPassword);

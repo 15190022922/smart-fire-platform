@@ -37,6 +37,11 @@ type AdminStatePayload = {
   quotaUsage: TenantQuotaUsage[];
 };
 
+type SaaSDemoProviderProps = {
+  children: React.ReactNode;
+  initialAdminState?: AdminStatePayload | null;
+};
+
 type SaaSDemoContextValue = {
   loading: boolean;
   mode: SaaSViewMode;
@@ -104,7 +109,7 @@ function isActiveSubscription(status?: string | null) {
   return status === "已生效" || status === "试用中" || status === "宸茬敓鏁?" || status === "璇曠敤涓?";
 }
 
-export function SaaSDemoProvider({ children }: { children: React.ReactNode }) {
+export function SaaSDemoProvider({ children, initialAdminState = null }: SaaSDemoProviderProps) {
   const storedState = readStoredDemoState();
   const platformAdminFallback: PlatformUserRecord = {
     id: "platform-user-fallback",
@@ -114,62 +119,85 @@ export function SaaSDemoProvider({ children }: { children: React.ReactNode }) {
     status: "启用",
     note: "平台唯一超级管理员",
   };
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialAdminState);
   const [mode, setMode] = useState<SaaSViewMode>(storedState?.mode ?? "platform");
-  const [tenants, setTenants] = useState<TenantRecord[]>([]);
-  const [plans, setPlans] = useState<PlanRecord[]>([]);
-  const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>([]);
-  const [platformUsers, setPlatformUsers] = useState<PlatformUserRecord[]>([]);
-  const [tenantUsers, setTenantUsers] = useState<TenantUserRecord[]>([]);
-  const [tenantDevices, setTenantDevices] = useState<TenantDeviceRecord[]>([]);
-  const [tenantAlarms, setTenantAlarms] = useState<TenantAlarmRecord[]>([]);
-  const [notificationSettings, setNotificationSettings] = useState<TenantNotificationSetting[]>([]);
-  const [quotaUsage, setQuotaUsage] = useState<TenantQuotaUsage[]>([]);
-  const [selectedTenantId, setSelectedTenantId] = useState(storedState?.selectedTenantId ?? "");
-  const [selectedTenantUserIdState, setSelectedTenantUserId] = useState(storedState?.selectedTenantUserId ?? "");
+  const [tenants, setTenants] = useState<TenantRecord[]>(initialAdminState?.tenants ?? []);
+  const [plans, setPlans] = useState<PlanRecord[]>(initialAdminState?.plans ?? []);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>(initialAdminState?.subscriptions ?? []);
+  const [platformUsers, setPlatformUsers] = useState<PlatformUserRecord[]>(initialAdminState?.platformUsers ?? []);
+  const [tenantUsers, setTenantUsers] = useState<TenantUserRecord[]>(initialAdminState?.tenantUsers ?? []);
+  const [tenantDevices, setTenantDevices] = useState<TenantDeviceRecord[]>(initialAdminState?.tenantDevices ?? []);
+  const [tenantAlarms, setTenantAlarms] = useState<TenantAlarmRecord[]>(initialAdminState?.tenantAlarms ?? []);
+  const [notificationSettings, setNotificationSettings] = useState<TenantNotificationSetting[]>(
+    initialAdminState?.notificationSettings ?? [],
+  );
+  const [quotaUsage, setQuotaUsage] = useState<TenantQuotaUsage[]>(initialAdminState?.quotaUsage ?? []);
+  const [selectedTenantId, setSelectedTenantId] = useState(
+    storedState?.selectedTenantId ?? initialAdminState?.tenants?.[0]?.id ?? "",
+  );
+  const [selectedTenantUserIdState, setSelectedTenantUserId] = useState(
+    storedState?.selectedTenantUserId ?? initialAdminState?.tenantUsers?.[0]?.id ?? "",
+  );
   const initializedRef = useRef(false);
   const persistTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (initialAdminState) {
+      initializedRef.current = true;
+    }
+  }, [initialAdminState]);
 
   useEffect(() => {
     let active = true;
 
     async function loadState() {
-      try {
-        const response = await fetch("/api/admin/state", { cache: "no-store" });
-        if (!response.ok) {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const response = await fetch("/api/admin/state", { cache: "no-store" });
+          if (!response.ok) {
+            if (attempt < 2) {
+              await new Promise((resolve) => window.setTimeout(resolve, 250));
+              continue;
+            }
+            if (active) {
+              setLoading(false);
+            }
+            return;
+          }
+
+          const result = (await response.json()) as AdminStatePayload;
+          if (!active) {
+            return;
+          }
+
+          setTenants(result.tenants ?? []);
+          setPlans(result.plans ?? []);
+          setSubscriptions(result.subscriptions ?? []);
+          setPlatformUsers(result.platformUsers ?? []);
+          setTenantUsers(result.tenantUsers ?? []);
+          setTenantDevices(result.tenantDevices ?? []);
+          setTenantAlarms(result.tenantAlarms ?? []);
+          setNotificationSettings(result.notificationSettings ?? []);
+          setQuotaUsage(result.quotaUsage ?? []);
+
+          if (!selectedTenantId && result.tenants?.[0]?.id) {
+            setSelectedTenantId(result.tenants[0].id);
+          }
+          if (!selectedTenantUserIdState && result.tenantUsers?.[0]?.id) {
+            setSelectedTenantUserId(result.tenantUsers[0].id);
+          }
+
+          initializedRef.current = true;
+          setLoading(false);
+          return;
+        } catch {
+          if (attempt < 2) {
+            await new Promise((resolve) => window.setTimeout(resolve, 250));
+            continue;
+          }
           if (active) {
             setLoading(false);
           }
-          return;
-        }
-
-        const result = (await response.json()) as AdminStatePayload;
-        if (!active) {
-          return;
-        }
-
-        setTenants(result.tenants ?? []);
-        setPlans(result.plans ?? []);
-        setSubscriptions(result.subscriptions ?? []);
-        setPlatformUsers(result.platformUsers ?? []);
-        setTenantUsers(result.tenantUsers ?? []);
-        setTenantDevices(result.tenantDevices ?? []);
-        setTenantAlarms(result.tenantAlarms ?? []);
-        setNotificationSettings(result.notificationSettings ?? []);
-        setQuotaUsage(result.quotaUsage ?? []);
-
-        if (!selectedTenantId && result.tenants?.[0]?.id) {
-          setSelectedTenantId(result.tenants[0].id);
-        }
-        if (!selectedTenantUserIdState && result.tenantUsers?.[0]?.id) {
-          setSelectedTenantUserId(result.tenantUsers[0].id);
-        }
-
-        initializedRef.current = true;
-        setLoading(false);
-      } catch {
-        if (active) {
-          setLoading(false);
         }
       }
     }

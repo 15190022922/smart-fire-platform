@@ -1,0 +1,9 @@
+{
+  "name": "@smart-fire/web",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "npm run dev:web --prefix ../..",
+    "build": "npm run build --prefix ../.."
+  }
+}

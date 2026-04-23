@@ -5,11 +5,13 @@ export type AuthScope = "platform" | "tenant";
 export type LoginAccount = {
   id: string;
   username: string;
-  password: string;
+  password?: string;
+  passwordHash?: string;
   displayName: string;
   scope: AuthScope;
   roleKey: PlatformRoleKey | TenantRoleKey;
   tenantId?: string;
+  mustChangePassword?: boolean;
 };
 
 export type AuthSession = {
@@ -21,4 +23,5 @@ export type AuthSession = {
   tenantId?: string;
   tenantName?: string;
   defaultView: SaaSViewMode;
+  mustChangePassword?: boolean;
 };

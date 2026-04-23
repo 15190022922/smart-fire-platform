@@ -27,7 +27,15 @@ export type AlarmTypeStat = {
   colorClass: string;
 };
 
-export type AlarmPointStatus = "正常" | "报警" | "故障" | "离线";
+export type AlarmPointStatus =
+  | "正常"
+  | "报警"
+  | "故障"
+  | "离线"
+  | "濮濓絽鐖?"
+  | "閹躱儴顒?"
+  | "閺佸懘娈?"
+  | "缁傝崵鍤?";
 
 export type AlarmPoint = {
   id: string;
@@ -49,7 +57,7 @@ export type FloorZone = {
   points: AlarmPoint[];
 };
 
-export type ProcessStatus = "未处理" | "处理中" | "已处理";
+export type ProcessStatus = string;
 
 export type AlarmRecord = {
   id: string;
@@ -58,9 +66,22 @@ export type AlarmRecord = {
   location: string;
   alarmType: string;
   processStatus: ProcessStatus;
+  isCarryover?: boolean;
+  isActive?: boolean;
 };
 
-export type DeviceStatus = "正常" | "报警" | "故障" | "离线" | "维修中";
+export type DeviceStatus =
+  | "正常"
+  | "报警"
+  | "故障"
+  | "离线"
+  | "维修中"
+  | "濮濓絽鐖?"
+  | "閹躱儴顒?"
+  | "閺佸懘娈?"
+  | "缁傝崵鍤?"
+  | "缂佺繝鎱ㄦ稉?";
+
 export type DeviceStatusFilter = DeviceStatus | "全部";
 
 export type DeviceRecord = {
@@ -105,9 +126,21 @@ export type StatusSummaryItem = {
   tone: "success" | "danger" | "warning" | "muted" | "info";
 };
 
-export type UserStatus = "启用" | "停用";
-export type UserLevel = "一级用户" | "二级用户" | "三级用户";
-export type NotificationMessageType = "报警信息" | "故障信息";
+export type UserStatus = "启用" | "停用" | "閸氼垳鏁?" | "閸嬫粎鏁?";
+
+export type UserLevel =
+  | "一级用户"
+  | "二级用户"
+  | "三级用户"
+  | "娑撯偓缁狙呮暏閹?"
+  | "娴滃瞼楠囬悽銊﹀煕"
+  | "娑撳楠囬悽銊﹀煕";
+
+export type NotificationMessageType =
+  | "报警信息"
+  | "故障信息"
+  | "閹躱儴顒熸穱鈩冧紖"
+  | "閺佸懘娈版穱鈩冧紖";
 
 export type UserRecord = {
   id: string;

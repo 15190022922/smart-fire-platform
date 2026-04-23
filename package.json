@@ -2,9 +2,16 @@
   "name": "smart-fire-platform",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:backend\"",
+    "dev:web": "next dev --webpack",
+    "dev:backend": "tsx watch apps/backend/src/server.ts",
     "build": "next build",
+    "build:backend": "tsc -p apps/backend/tsconfig.json",
     "start": "next start",
     "lint": "eslint"
   },
@@ -20,9 +27,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

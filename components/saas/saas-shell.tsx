@@ -16,11 +16,18 @@ const adminNavigationLinks = [
 ];
 
 function isEnabledStatus(status?: string | null) {
-  return status === "启用" || status === "鍚敤";
+  return status === "启用" || status === "鍚敤" || status === "閸氼垳鏁?";
 }
 
 function isActiveSubscription(status?: string | null) {
-  return status === "已生效" || status === "试用中" || status === "宸茬敓鏁?" || status === "璇曠敤涓?";
+  return (
+    status === "已生效" ||
+    status === "试用中" ||
+    status === "宸茬敓鏁?" ||
+    status === "璇曠敤涓?" ||
+    status === "瀹歌尙鏁撻弫?" ||
+    status === "鐠囨洜鏁ゆ稉?"
+  );
 }
 
 export function SaaSShell({ children }: { children: React.ReactNode }) {
@@ -32,9 +39,9 @@ export function SaaSShell({ children }: { children: React.ReactNode }) {
   const enterprisePlanCount = plans.length;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[linear-gradient(180deg,#f8fbfd_0%,#f2f6fb_100%)]">
-      <aside className="hidden w-72 shrink-0 border-r border-[color:var(--border)] bg-[var(--surface)] px-4 py-4 lg:flex lg:flex-col">
-        <div className="rounded-[24px] border border-[color:var(--border)] bg-[var(--surface-strong)] px-4 py-4 shadow-[var(--panel-shadow)]">
+    <div className="flex min-h-screen bg-[linear-gradient(180deg,#f8fbfd_0%,#f2f6fb_100%)] lg:h-screen lg:overflow-hidden">
+      <aside className="hidden min-h-0 w-72 shrink-0 border-r border-[color:var(--border)] bg-[var(--surface)] px-4 py-4 lg:flex lg:flex-col">
+        <div className="shrink-0 rounded-[24px] border border-[color:var(--border)] bg-[var(--surface-strong)] px-4 py-4 shadow-[var(--panel-shadow)]">
           <p className="text-xs uppercase tracking-[0.28em] text-sky-700">Platform SaaS</p>
           <h1 className="mt-3 text-xl font-semibold text-[color:var(--text-primary)]">平台管理端</h1>
           <p className="mt-2 text-sm text-[color:var(--text-muted)]">
@@ -42,7 +49,7 @@ export function SaaSShell({ children }: { children: React.ReactNode }) {
           </p>
         </div>
 
-        <div className="mt-4 grid gap-3">
+        <div className="mt-4 shrink-0 grid gap-3">
           {[
             { label: "启用企业", value: activeTenants.length },
             { label: "有效订阅", value: activeSubscriptions.length },
@@ -58,33 +65,35 @@ export function SaaSShell({ children }: { children: React.ReactNode }) {
           ))}
         </div>
 
-        <nav className="mt-4 space-y-2">
-          {adminNavigationLinks.map((link) => {
-            const active = pathname === link.href;
+        <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+          <nav className="space-y-2">
+            {adminNavigationLinks.map((link) => {
+              const active = pathname === link.href;
 
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition",
-                  active
-                    ? "border-sky-200 bg-sky-50 text-sky-700"
-                    : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)] hover:bg-[var(--surface-muted)]",
-                )}
-              >
-                <span>{link.label}</span>
-                <span className="text-[11px] text-[color:var(--text-muted)]">管理</span>
-              </Link>
-            );
-          })}
-        </nav>
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition",
+                    active
+                      ? "border-sky-200 bg-sky-50 text-sky-700"
+                      : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)] hover:bg-[var(--surface-muted)]",
+                  )}
+                >
+                  <span>{link.label}</span>
+                  <span className="text-[11px] text-[color:var(--text-muted)]">管理</span>
+                </Link>
+              );
+            })}
+          </nav>
 
-        <div className="mt-auto rounded-[24px] border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4">
-          <p className="text-sm font-semibold text-[color:var(--text-primary)]">管理员说明</p>
-          <p className="mt-3 text-sm leading-6 text-[color:var(--text-secondary)]">
-            当前平台端不再支持多管理员切换，平台唯一账号固定为超级管理员。
-          </p>
+          <div className="mt-4 rounded-[24px] border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4">
+            <p className="text-sm font-semibold text-[color:var(--text-primary)]">说明</p>
+            <p className="mt-3 text-sm leading-6 text-[color:var(--text-secondary)]">
+              左侧导航区域现在支持独立滚动。即使后续继续增加菜单和平台工具，也不会再把“我的”下面的内容截断。
+            </p>
+          </div>
         </div>
       </aside>
 
@@ -94,14 +103,36 @@ export function SaaSShell({ children }: { children: React.ReactNode }) {
             <div>
               <p className="text-sm font-semibold text-[color:var(--text-primary)]">平台总览控制台</p>
               <p className="mt-1 text-xs text-[color:var(--text-muted)]">
-                唯一超级管理员统一管理企业、套餐、订阅和平台配置。
+                唯一超级管理员统一管理企业、套餐、订阅、模拟测试和平台配置。
               </p>
             </div>
             <LogoutButton />
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">{children}</main>
+        <div className="border-b border-[color:var(--border)] bg-[var(--surface)] px-4 py-2 lg:hidden">
+          <nav className="flex gap-2 overflow-x-auto">
+            {adminNavigationLinks.map((link) => {
+              const active = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "shrink-0 rounded-full border px-3 py-2 text-[13px] transition",
+                    active
+                      ? "border-sky-200 bg-sky-50 text-sky-700"
+                      : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)]",
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        <main className="min-h-0 flex-1 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4 lg:px-6">{children}</main>
       </div>
     </div>
   );

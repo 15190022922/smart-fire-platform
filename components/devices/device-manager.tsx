@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "@/components/ui/dialog";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
+import { getTenantEventBus } from "@/lib/realtime/event-bus";
 
 type DeviceStatus = "正常" | "报警" | "故障" | "离线" | "维修中";
 type DeviceStatusFilter = DeviceStatus | "全部";
@@ -72,29 +73,53 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
   const [selectedDevice, setSelectedDevice] = useState<DeviceRecord | null>(null);
   const [formState, setFormState] = useState<DeviceFormState>(emptyDeviceForm);
   const [page, setPage] = useState(1);
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const loadDevices = useCallback(async () => {
+    const response = await fetch("/api/tenant/devices", { cache: "no-store" });
+    if (!response.ok) {
+      setLoading(false);
+      return;
+    }
+    const result = (await response.json()) as { devices: DeviceRecord[] };
+    setDevices(result.devices ?? []);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     let active = true;
 
-    async function loadDevices() {
+    async function bootstrap() {
       const response = await fetch("/api/tenant/devices", { cache: "no-store" });
       if (!response.ok) {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
         return;
       }
       const result = (await response.json()) as { devices: DeviceRecord[] };
-      if (!active) {
-        return;
+      if (active) {
+        setDevices(result.devices ?? []);
+        setLoading(false);
       }
-      setDevices(result.devices ?? []);
-      setLoading(false);
     }
 
-    void loadDevices();
+    void bootstrap();
     return () => {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    const bus = getTenantEventBus();
+    return bus.subscribe({
+      types: ["alarm_created", "alarm_updated", "device_status_changed", "system_alert"],
+      onEvent: () => {
+        void loadDevices();
+      },
+    });
+  }, [loadDevices]);
 
   const filteredDevices = useMemo(() => {
     return devices.filter((device) => {
@@ -134,12 +159,14 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
   function openCreateDialog() {
     setFormState(emptyDeviceForm);
     setSelectedDevice(null);
+    setSubmitError("");
     setDialogMode("create");
   }
 
   function openEditDialog(device: DeviceRecord) {
     setSelectedDevice(device);
     setFormState(toFormState(device));
+    setSubmitError("");
     setDialogMode("edit");
   }
 
@@ -151,6 +178,8 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
   function closeDialog() {
     setDialogMode(null);
     setSelectedDevice(null);
+    setSubmitError("");
+    setSubmitting(false);
     if (initialDeviceId) {
       router.replace("/devices");
     }
@@ -158,16 +187,29 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
 
   async function handleSubmit() {
     if (!formState.name || !formState.type || !formState.area || !formState.installationLocation) {
+      setSubmitError("设备名称、设备类型、所属区域和安装位置不能为空。");
       return;
     }
+
+    setSubmitting(true);
+    setSubmitError("");
 
     const response = await fetch("/api/tenant/devices", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formState),
-    });
+    }).catch(() => null);
+
+    if (!response) {
+      setSubmitting(false);
+      setSubmitError("设备保存失败，接口未响应。请确认 web 和 backend 都已启动。");
+      return;
+    }
 
     if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+      setSubmitting(false);
+      setSubmitError(payload?.message ?? "设备保存失败，请稍后重试。");
       return;
     }
 
@@ -181,6 +223,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
       );
     }
 
+    setSubmitting(false);
     closeDialog();
   }
 
@@ -212,8 +255,8 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
           </button>
         }
       >
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-          <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
               <p className="text-sm text-[color:var(--text-muted)]">设备总数</p>
               <p className="mt-2 text-2xl font-semibold text-[color:var(--text-primary)]">{summary.total}</p>
@@ -253,7 +296,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
           </div>
         </div>
 
-        <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,320px)_1fr]">
+        <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,320px)_1fr]">
           <input
             value={searchValue}
             onChange={(event) => {
@@ -331,7 +374,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
           </table>
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-3">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-[color:var(--text-muted)]">
             第 {currentPage} / {totalPages} 页
           </p>
@@ -366,6 +409,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
             <button
               type="button"
               onClick={closeDialog}
+              disabled={submitting}
               className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)]"
             >
               取消
@@ -373,6 +417,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
             <button
               type="button"
               onClick={handleSubmit}
+              disabled={submitting}
               className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
             >
               保存
@@ -413,6 +458,11 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
             <span className="text-sm text-[color:var(--text-secondary)]">备注</span>
             <textarea value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} className={`${inputClassName} min-h-28`} />
           </label>
+          {submitError ? (
+            <div className="md:col-span-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {submitError}
+            </div>
+          ) : null}
         </div>
       </Dialog>
 

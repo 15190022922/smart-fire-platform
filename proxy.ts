@@ -20,12 +20,30 @@ export function proxy(request: NextRequest) {
   const scope = token ? decodeScope(token) : null;
   const isTenantPath =
     pathname === "/" ||
+    pathname === "/alarm-center" ||
+    pathname === "/duty-center" ||
+    pathname === "/inspection" ||
+    pathname === "/notification-center" ||
     pathname === "/devices" ||
+    pathname === "/history" ||
+    pathname === "/audit-log" ||
+    pathname === "/system-health" ||
+    pathname === "/spaces" ||
+    pathname === "/profile" ||
     pathname === "/users" ||
     pathname === "/settings" ||
     pathname === "/subscription";
 
   if (pathname.startsWith("/admin")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    if (scope !== "platform") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  }
+
+  if (pathname.startsWith("/simulator")) {
     if (!token) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
@@ -60,10 +78,20 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/",
+    "/alarm-center",
+    "/duty-center",
+    "/inspection",
+    "/notification-center",
     "/devices",
+    "/history",
+    "/audit-log",
+    "/system-health",
+    "/spaces",
+    "/profile",
     "/users",
     "/settings",
     "/subscription",
+    "/simulator",
     "/admin/:path*",
     "/workspace/:path*",
     "/login",

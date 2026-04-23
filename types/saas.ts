@@ -37,19 +37,43 @@ export type PermissionKey =
   | "tenant.settings.manage"
   | "tenant.notifications.manage";
 
-export type TenantStatus = "启用" | "停用";
-export type PlanStatus = "启用" | "停用";
-export type SubscriptionStatus = "试用中" | "已生效" | "已过期" | "已停用";
-export type UserStatus = "启用" | "停用";
-export type DeviceStatus = "正常" | "报警" | "故障" | "离线" | "维修中";
-export type AlarmProcessStatus = "未处理" | "处理中" | "已处理";
-export type NotificationType = "报警信息" | "故障信息";
+export type TenantStatus = "启用" | "停用" | "鍚敤" | "鍋滅敤";
+export type PlanStatus = "启用" | "停用" | "鍚敤" | "鍋滅敤";
+export type SubscriptionStatus =
+  | "试用中"
+  | "已生效"
+  | "已过期"
+  | "已停用"
+  | "璇曠敤涓?"
+  | "宸茬敓鏁?"
+  | "宸茶繃鏈?"
+  | "宸插仠鐢?";
+export type UserStatus = "启用" | "停用" | "鍚敤" | "鍋滅敤";
+export type DeviceStatus =
+  | "正常"
+  | "报警"
+  | "故障"
+  | "离线"
+  | "维修中"
+  | "姝ｅ父"
+  | "鎶ヨ"
+  | "鏁呴殰"
+  | "绂荤嚎"
+  | "缁翠慨涓?";
+export type AlarmProcessStatus =
+  | "未处理"
+  | "处理中"
+  | "已处理"
+  | "鏈鐞?"
+  | "澶勭悊涓?"
+  | "宸插鐞?";
+export type NotificationType = "报警信息" | "故障信息" | "鎶ヨ淇℃伅" | "鏁呴殰淇℃伅";
 
 export type FeatureDefinition = {
   key: FeatureKey;
   name: string;
   description: string;
-  category: "基础能力" | "增值能力";
+  category: "基础能力" | "增值能力" | "鍩虹鑳藉姏" | "澧炲€艰兘鍔?";
 };
 
 export type RoleDefinition = {
@@ -126,6 +150,15 @@ export type TenantDeviceRecord = {
   location: string;
   status: DeviceStatus;
   lastReportAt: string;
+  installationLocation?: string;
+  notes?: string;
+  siteId?: string;
+  buildingId?: string;
+  floorId?: string;
+  gatewayId?: string;
+  modelCode?: string;
+  protocolType?: string;
+  serialNumber?: string;
 };
 
 export type TenantAlarmRecord = {
