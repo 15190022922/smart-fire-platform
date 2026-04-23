@@ -1,5 +1,5 @@
-import type { AlarmEngineContext } from "@/services/alarm-engine/alarm-engine-types";
-import { evaluateAlarmRule } from "@/services/alarm-engine/alarm-rule-evaluator";
+import type { AlarmEngineContext } from "./alarm-engine-types";
+import { evaluateAlarmRule } from "./alarm-rule-evaluator";
 
 type OpenAlarmRow = {
   id: string;

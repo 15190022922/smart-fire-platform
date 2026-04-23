@@ -1,5 +1,5 @@
 import type { PoolClient } from "pg";
-import type { IngestionEventPayload, IngestionEventType } from "@/services/ingestion/ingestion-types";
+import type { IngestionEventPayload, IngestionEventType } from "../ingestion/ingestion-types";
 
 export type AlarmEngineContext = {
   client: PoolClient;

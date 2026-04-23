@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runAlarmEngine = runAlarmEngine;
-const alarm_rule_evaluator_1 = require("@/services/alarm-engine/alarm-rule-evaluator");
+const alarm_rule_evaluator_1 = require("./alarm-rule-evaluator");
 async function runAlarmEngine(context) {
     const decision = (0, alarm_rule_evaluator_1.evaluateAlarmRule)(context);
     const openAlarms = await context.client.query(`

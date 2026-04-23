@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateIngestionEventInput = validateIngestionEventInput;
-const ingestion_types_1 = require("@/services/ingestion/ingestion-types");
+const ingestion_types_1 = require("./ingestion-types");
 const allowedEventTypes = new Set(ingestion_types_1.ingestionEventTypes);
 function isObject(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);

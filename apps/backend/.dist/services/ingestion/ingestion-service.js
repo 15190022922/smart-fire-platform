@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.processIngestionEvent = processIngestionEvent;
-const db_1 = require("@/lib/db");
-const alarm_engine_1 = require("@/services/alarm-engine/alarm-engine");
-const notification_dispatcher_1 = require("@/services/notification/notification-dispatcher");
+const db_1 = require("../../lib/db");
+const alarm_engine_1 = require("../alarm-engine/alarm-engine");
+const notification_dispatcher_1 = require("../notification/notification-dispatcher");
 const server_1 = require("../../packages/realtime/src/server");
 function createId(prefix) {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

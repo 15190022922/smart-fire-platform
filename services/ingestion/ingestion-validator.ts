@@ -1,4 +1,4 @@
-import { ingestionEventTypes, type IngestionEventInput } from "@/services/ingestion/ingestion-types";
+import { ingestionEventTypes, type IngestionEventInput } from "./ingestion-types";
 
 const allowedEventTypes = new Set<string>(ingestionEventTypes);
 

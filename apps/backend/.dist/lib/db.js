@@ -49,7 +49,7 @@ exports.updateTenantAlarmProcessStatus = updateTenantAlarmProcessStatus;
 exports.ingestDeviceEvent = ingestDeviceEvent;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const pg_1 = require("pg");
-const password_1 = require("@/lib/password");
+const password_1 = require("./password");
 const server_1 = require("../packages/realtime/src/server");
 function getDatabaseUrl() {
     return process.env.DATABASE_URL;

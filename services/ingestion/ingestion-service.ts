@@ -1,7 +1,7 @@
-import { ensureDatabase, formatLocalTimestamp, withClient } from "@/lib/db";
-import { runAlarmEngine } from "@/services/alarm-engine/alarm-engine";
-import type { IngestionEventPayload, IngestionProcessResult } from "@/services/ingestion/ingestion-types";
-import { dispatchAlarmNotifications } from "@/services/notification/notification-dispatcher";
+import { ensureDatabase, formatLocalTimestamp, withClient } from "../../lib/db";
+import { runAlarmEngine } from "../alarm-engine/alarm-engine";
+import type { IngestionEventPayload, IngestionProcessResult } from "./ingestion-types";
+import { dispatchAlarmNotifications } from "../notification/notification-dispatcher";
 import { publishTenantEvent } from "../../packages/realtime/src/server";
 
 type DeviceRow = {

@@ -1,6 +1,6 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Pool, type PoolClient } from "pg";
-import { hashPassword, verifyPassword } from "@/lib/password";
+import { hashPassword, verifyPassword } from "./password";
 import { publishTenantEvent } from "../packages/realtime/src/server";
 import type {
   DeviceStatusSnapshotRecord,
@@ -12,7 +12,7 @@ import type {
   TenantGatewayRecord,
   TenantSiteRecord,
   TenantSpatialModel,
-} from "@/types/hardware";
+} from "../types/hardware";
 import type {
   PlanRecord,
   PlatformUserRecord,
@@ -21,7 +21,7 @@ import type {
   TenantDeviceRecord,
   TenantRecord,
   TenantUserRecord,
-} from "@/types/saas";
+} from "../types/saas";
 import type {
   AlarmCenterItem,
   AlarmTimelineEntry,
@@ -31,15 +31,15 @@ import type {
   NotificationTemplateRecord,
   SystemHealthPayload,
   SystemHealthMetric,
-} from "@/types/ops";
-import type { DutyCenterPayload, DutyLogRecord, DutyScheduleRecord, DutyShiftRecord } from "@/types/duty";
+} from "../types/ops";
+import type { DutyCenterPayload, DutyLogRecord, DutyScheduleRecord, DutyShiftRecord } from "../types/duty";
 import type {
   InspectionCenterPayload,
   InspectionRecord,
   InspectionTaskRecord,
   IssueRecord,
   MaintenanceRecord,
-} from "@/types/inspection";
+} from "../types/inspection";
 
 function getDatabaseUrl() {
   return process.env.DATABASE_URL;

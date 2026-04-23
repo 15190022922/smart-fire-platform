@@ -1,4 +1,4 @@
-import type { AlarmEngineContext, AlarmEngineDecision } from "@/services/alarm-engine/alarm-engine-types";
+import type { AlarmEngineContext, AlarmEngineDecision } from "./alarm-engine-types";
 
 export function evaluateAlarmRule(context: AlarmEngineContext): AlarmEngineDecision {
   if (context.eventType === "alarm") {
