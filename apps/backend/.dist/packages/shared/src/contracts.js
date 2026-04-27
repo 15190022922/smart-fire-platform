@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deviceRuntimeStatuses = exports.alarmWorkflowStatuses = exports.realtimeEventTypes = void 0;
+exports.ingestionEventTypes = exports.ingestionProtocols = exports.deviceRuntimeStatuses = exports.alarmWorkflowStatuses = exports.realtimeEventTypes = void 0;
 exports.realtimeEventTypes = [
     "alarm_created",
     "alarm_updated",
@@ -10,3 +10,5 @@ exports.realtimeEventTypes = [
 ];
 exports.alarmWorkflowStatuses = ["未处理", "已确认", "处理中", "已完成", "已关闭"];
 exports.deviceRuntimeStatuses = ["normal", "alarm", "fault", "offline", "maintenance"];
+exports.ingestionProtocols = ["http", "mqtt", "tcp"];
+exports.ingestionEventTypes = ["alarm", "fault", "offline", "recovery", "heartbeat"];

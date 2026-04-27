@@ -29,20 +29,20 @@ export function SubscriptionOverview({
           description="企业端只展示当前登录企业的套餐、订阅状态和功能开通情况。"
         >
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-3xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
-              <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--text-muted)]">企业</p>
+            <div className="sf-metric-block p-4">
+              <p className="sf-label">企业</p>
               <p className="mt-3 text-xl font-semibold text-[color:var(--text-primary)]">{tenant.name}</p>
               <p className="mt-2 text-sm text-[color:var(--text-secondary)]">{tenant.industry}</p>
             </div>
-            <div className="rounded-3xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
-              <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--text-muted)]">套餐</p>
+            <div className="sf-metric-block p-4">
+              <p className="sf-label">套餐</p>
               <p className="mt-3 text-xl font-semibold text-[color:var(--text-primary)]">{plan?.name ?? "未分配"}</p>
               <p className="mt-2 text-sm text-[color:var(--text-secondary)]">
                 {plan ? `￥${plan.priceMonthly.toLocaleString()}/月` : "请联系平台管理员分配"}
               </p>
             </div>
-            <div className="rounded-3xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
-              <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--text-muted)]">状态</p>
+            <div className="sf-metric-block p-4">
+              <p className="sf-label">状态</p>
               <p className="mt-3 text-xl font-semibold text-[color:var(--text-primary)]">
                 {subscription?.status ?? "未开通"}
               </p>
@@ -52,7 +52,7 @@ export function SubscriptionOverview({
             </div>
           </div>
 
-          <div className="mt-5 rounded-3xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
+          <div className="mt-5 rounded-[16px] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(248,251,254,0.98)_0%,rgba(255,255,255,0.98)_100%)] p-4">
             <div className="grid gap-4 md:grid-cols-3">
               <div>
                 <p className="text-sm text-[color:var(--text-secondary)]">续费方式</p>
@@ -81,7 +81,7 @@ export function SubscriptionOverview({
               return (
                 <div
                   key={feature.key}
-                  className="rounded-3xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4"
+                  className="sf-panel-subtle p-4"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-base font-semibold text-[color:var(--text-primary)]">{feature.name}</p>
@@ -108,7 +108,7 @@ export function SubscriptionOverview({
 
       <div className="grid gap-4">
         <SectionCard title="配额使用" description="当前展示的是前端假数据，后续可以直接改成实时接口。">
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[
               { label: "设备数", value: usage?.deviceCount ?? 0, total: plan?.maxDevices ?? 0, ratio: deviceUsageRatio, tone: "bg-sky-500" },
               { label: "用户数", value: usage?.userCount ?? 0, total: plan?.maxUsers ?? 0, ratio: userUsageRatio, tone: "bg-emerald-500" },
@@ -121,7 +121,7 @@ export function SubscriptionOverview({
                     {item.value} / {item.total || "-"}
                   </span>
                 </div>
-                <div className="mt-2 h-2 rounded-full bg-[var(--surface-strong)]">
+                <div className="mt-2 h-2 rounded-full bg-[var(--surface-contrast)]">
                   <div
                     className={`h-2 rounded-full ${item.tone}`}
                     style={{ width: `${Math.max(item.ratio, 6)}%` }}

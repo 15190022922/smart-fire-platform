@@ -13,7 +13,14 @@
     "build": "next build",
     "build:backend": "tsc -p apps/backend/tsconfig.json",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:migrate": "tsx scripts/db/migrate.ts",
+    "db:seed": "tsx scripts/db/seed.ts",
+    "db:reset": "tsx scripts/db/reset.ts",
+    "test": "npm run test:backend",
+    "test:backend": "npm run build:backend && node tests/backend/run-backend-tests.js",
+    "test:web": "node tests/web/run-web-smoke.js",
+    "pressure:ingestion": "node scripts/pressure/ingestion-pressure.js"
   },
   "dependencies": {
     "@types/pg": "^8.20.0",

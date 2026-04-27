@@ -14,6 +14,25 @@ export type SharedAlarmWorkflowStatus = (typeof alarmWorkflowStatuses)[number];
 export const deviceRuntimeStatuses = ["normal", "alarm", "fault", "offline", "maintenance"] as const;
 export type SharedDeviceRuntimeStatus = (typeof deviceRuntimeStatuses)[number];
 
+export const ingestionProtocols = ["http", "mqtt", "tcp"] as const;
+export type SharedIngestionProtocol = (typeof ingestionProtocols)[number];
+
+export const ingestionEventTypes = ["alarm", "fault", "offline", "recovery", "heartbeat"] as const;
+export type SharedIngestionEventType = (typeof ingestionEventTypes)[number];
+
+export type SharedNormalizedDeviceEvent = {
+  event_id?: string;
+  tenant_id: string;
+  device_id: string;
+  gateway_id?: string | null;
+  protocol: SharedIngestionProtocol;
+  event_type: SharedIngestionEventType;
+  event_value: string | number | Record<string, unknown>;
+  event_time: string;
+  raw_payload?: Record<string, unknown> | string | number | null;
+  source?: string;
+};
+
 export type ApiSuccess<T> = {
   success: true;
   data: T;

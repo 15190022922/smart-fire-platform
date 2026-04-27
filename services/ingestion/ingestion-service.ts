@@ -1,8 +1,20 @@
-import { ensureDatabase, formatLocalTimestamp, withClient } from "../../lib/db";
-import { runAlarmEngine } from "../alarm-engine/alarm-engine";
-import type { IngestionEventPayload, IngestionProcessResult } from "./ingestion-types";
-import { dispatchAlarmNotifications } from "../notification/notification-dispatcher";
+import { withTransaction } from "../../packages/database/src/transaction";
+import { insertAuditLog } from "../../packages/database/src/repositories/audit-repository";
+import {
+  createTenantAlarm,
+  insertAlarmLog,
+} from "../../packages/database/src/repositories/alarms-repository";
+import {
+  getTenantDeviceById,
+  updateTenantDeviceRuntime,
+  upsertDeviceStatusSnapshot,
+} from "../../packages/database/src/repositories/devices-repository";
+import { insertRawDeviceEventIfNew } from "../../packages/database/src/repositories/raw-events-repository";
 import { publishTenantEvent } from "../../packages/realtime/src/server";
+import { runAlarmEngine } from "../alarm-engine/alarm-engine";
+import { dispatchAlarmNotifications } from "../notification/notification-dispatcher";
+import { recordAlarmGenerationSample, recordIngestionHit, recordRuntimeError } from "../../apps/backend/src/lib/runtime-metrics";
+import type { IngestionEventPayload, IngestionProcessResult } from "./ingestion-types";
 
 type DeviceRow = {
   id: string;
@@ -17,6 +29,48 @@ function createId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
+  }
+  const entries = Object.entries(value as Record<string, unknown>).sort(([left], [right]) => left.localeCompare(right));
+  return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`).join(",")}}`;
+}
+
+function formatLocalTimestamp(date = new Date(), timeZone = "Asia/Shanghai") {
+  const formatter = new Intl.DateTimeFormat("sv-SE", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = Object.fromEntries(formatter.formatToParts(date).map((part) => [part.type, part.value])) as Record<string, string>;
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
+}
+
+function buildDedupeKey(input: IngestionEventPayload) {
+  if (input.event_id?.trim()) {
+    return `event-id:${input.tenant_id}:${input.device_id}:${input.event_id.trim()}`;
+  }
+
+  return [
+    input.tenant_id,
+    input.device_id,
+    input.gateway_id ?? "",
+    input.protocol ?? "http",
+    input.event_type,
+    new Date(input.event_time).toISOString(),
+    stableStringify(input.event_value),
+  ].join("|");
+}
+
 function toEventLevel(eventType: IngestionEventPayload["event_type"]) {
   if (eventType === "alarm") return "critical";
   if (eventType === "fault" || eventType === "offline") return "warning";
@@ -24,169 +78,36 @@ function toEventLevel(eventType: IngestionEventPayload["event_type"]) {
 }
 
 function mapDeviceStatusText(status: "normal" | "alarm" | "fault" | "offline") {
-  if (status === "alarm") return "报警";
-  if (status === "fault") return "故障";
-  if (status === "offline") return "离线";
-  return "正常";
-}
-
-function mapPointStatusStyle(status: "normal" | "alarm" | "fault" | "offline") {
-  return status;
+  if (status === "alarm") return "鎶ヨ";
+  if (status === "fault") return "鏁呴殰";
+  if (status === "offline") return "绂荤嚎";
+  return "姝ｅ父";
 }
 
 function resolveStatusFromAlarmType(alarmType: string): "normal" | "alarm" | "fault" | "offline" {
-  if (alarmType.includes("火警") || alarmType.includes("报警")) return "alarm";
-  if (alarmType.includes("故障")) return "fault";
-  if (alarmType.includes("离线")) return "offline";
+  if (alarmType.includes("鐏") || alarmType.includes("鎶ヨ") || alarmType.includes("閻忣偉顒?")) return "alarm";
+  if (alarmType.includes("鏁呴殰") || alarmType.includes("閺佸懘娈?")) return "fault";
+  if (alarmType.includes("绂荤嚎") || alarmType.includes("缁傝崵鍤?")) return "offline";
   return "normal";
 }
 
-async function insertAuditLog(
-  client: Parameters<Parameters<typeof withClient>[0]>[0],
-  input: {
-    tenantId: string;
-    action: string;
-    targetType: string;
-    targetId: string;
-    detail: string;
-    createdAt: string;
-  },
-) {
-  await client.query(
-    `
-      INSERT INTO audit_logs (
-        id, tenant_id, actor_scope, actor_name, actor_role, action, target_type, target_id, result, detail, created_at
-      )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-    `,
-    [
-      createId("audit"),
-      input.tenantId,
-      "platform",
-      "device_ingestion",
-      "device_ingestion",
-      input.action,
-      input.targetType,
-      input.targetId,
-      "success",
-      input.detail,
-      input.createdAt,
-    ],
-  );
-}
-
-async function insertAlarmLog(
-  client: Parameters<Parameters<typeof withClient>[0]>[0],
-  input: {
-    tenantId: string;
-    alarmId: string;
-    action: string;
-    fromStatus: string;
-    toStatus: string;
-    note: string;
-    createdAt: string;
-  },
-) {
-  await client.query(
-    `
-      INSERT INTO alarm_logs (
-        id, tenant_id, alarm_id, action, from_status, to_status, operator_name, operator_role, note, attachments, created_at
-      )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11)
-    `,
-    [
-      createId("alarm-log"),
-      input.tenantId,
-      input.alarmId,
-      input.action,
-      input.fromStatus,
-      input.toStatus,
-      "设备接入服务",
-      "device_ingestion",
-      input.note,
-      JSON.stringify([]),
-      input.createdAt,
-    ],
-  );
-}
-
-async function updateDeviceRuntime(
-  client: Parameters<Parameters<typeof withClient>[0]>[0],
-  input: {
-    tenantId: string;
-    deviceId: string;
-    gatewayId?: string | null;
-    eventType: string;
-    eventCode: string;
-    status: "normal" | "alarm" | "fault" | "offline";
-    reportedAt: string;
-  },
-) {
-  await client.query(
-    `
-      INSERT INTO device_status_snapshots (
-        device_id, tenant_id, gateway_id, status, last_event_type, last_event_code, last_reported_at, updated_at
-      )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-      ON CONFLICT (device_id) DO UPDATE SET
-        gateway_id = COALESCE(EXCLUDED.gateway_id, device_status_snapshots.gateway_id),
-        status = EXCLUDED.status,
-        last_event_type = EXCLUDED.last_event_type,
-        last_event_code = EXCLUDED.last_event_code,
-        last_reported_at = EXCLUDED.last_reported_at,
-        updated_at = EXCLUDED.updated_at
-    `,
-    [
-      input.deviceId,
-      input.tenantId,
-      input.gatewayId ?? null,
-      input.status,
-      input.eventType,
-      input.eventCode,
-      input.reportedAt,
-      input.reportedAt,
-    ],
-  );
-
-  await client.query(
-    "UPDATE tenant_devices SET status = $1, last_report_at = $2 WHERE tenant_id = $3 AND id = $4",
-    [mapDeviceStatusText(input.status), input.reportedAt, input.tenantId, input.deviceId],
-  );
-
-  await client.query(
-    "UPDATE tenant_device_points SET status_style = $1, updated_at = $2 WHERE tenant_id = $3 AND device_id = $4",
-    [mapPointStatusStyle(input.status), input.reportedAt, input.tenantId, input.deviceId],
-  );
-}
-
 export async function processIngestionEvent(input: IngestionEventPayload): Promise<IngestionProcessResult> {
-  await ensureDatabase();
-
+  const startedAt = Date.now();
   const processedAt = formatLocalTimestamp(new Date(input.event_time));
   const rawEventId = createId("raw");
-  const eventValue =
-    typeof input.event_value === "object" ? input.event_value : { value: input.event_value };
+  const dedupeKey = buildDedupeKey(input);
+  const protocol = input.protocol ?? "http";
+  const eventValue = typeof input.event_value === "object" ? input.event_value : { value: input.event_value };
+  let realtimeEventCode: string = input.event_type;
 
-  let result: IngestionProcessResult | null = null;
-
-  await withClient(async (client) => {
-    await client.query("BEGIN");
-    try {
-      const deviceQuery = await client.query<DeviceRow>(
-        `
-          SELECT id, tenant_id, name, area, installation_location, gateway_id
-          FROM tenant_devices
-          WHERE tenant_id = $1 AND id = $2
-          LIMIT 1
-        `,
-        [input.tenant_id, input.device_id],
-      );
-
-      const device = deviceQuery.rows[0];
+  try {
+    const result = await withTransaction<IngestionProcessResult>(async (client) => {
+      const device = (await getTenantDeviceById(client, input.tenant_id, input.device_id)) as DeviceRow | null;
       if (!device) {
         throw new Error("DEVICE_NOT_FOUND");
       }
 
+      const engineStartedAt = Date.now();
       const engine = await runAlarmEngine({
         client,
         tenantId: input.tenant_id,
@@ -194,9 +115,47 @@ export async function processIngestionEvent(input: IngestionEventPayload): Promi
         deviceName: device.name,
         deviceLocation: `${device.area} / ${device.installation_location}`,
         reportedAt: processedAt,
-        eventType: input.event_type,
+        eventType: input.event_type as IngestionEventPayload["event_type"],
         eventValue: input.event_value,
       });
+      recordAlarmGenerationSample(Date.now() - engineStartedAt);
+      realtimeEventCode = engine.decision.eventCode;
+
+      const inserted = await insertRawDeviceEventIfNew(client, {
+        id: rawEventId,
+        tenantId: input.tenant_id,
+        deviceId: input.device_id,
+        gatewayId: input.gateway_id ?? device.gateway_id,
+        eventId: input.event_id ?? null,
+        dedupeKey,
+        protocol,
+        eventType: input.event_type,
+        eventCode: engine.decision.eventCode,
+        eventLevel: toEventLevel(input.event_type),
+        payload: { ...eventValue, source: input.source ?? "device_ingestion" },
+        rawPayload: input.raw_payload ?? eventValue,
+        processingStatus: "processed",
+        processedAt,
+        reportedAt: processedAt,
+      });
+
+      if (!inserted) {
+        return {
+          success: true,
+          raw_event_id: rawEventId,
+          alarm_id: engine.activeAlarm?.id ?? null,
+          device_status: engine.activeAlarm
+            ? resolveStatusFromAlarmType(engine.activeAlarm.alarm_type)
+            : engine.decision.nextDeviceStatus,
+          workflow: {
+            alarm_created: false,
+            notification_created: false,
+            realtime_published: false,
+            duplicate_suppressed: true,
+          },
+          processed_at: processedAt,
+        };
+      }
 
       let nextStatus = engine.decision.nextDeviceStatus;
       let alarmId: string | null = null;
@@ -207,36 +166,21 @@ export async function processIngestionEvent(input: IngestionEventPayload): Promi
         nextStatus = resolveStatusFromAlarmType(engine.activeAlarm.alarm_type);
       }
 
-      await client.query(
-        `
-          INSERT INTO raw_device_events (
-            id, tenant_id, device_id, gateway_id, event_type, event_code, event_level, payload, reported_at
-          )
-          VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9)
-        `,
-        [
-          rawEventId,
-          input.tenant_id,
-          input.device_id,
-          input.gateway_id ?? device.gateway_id,
-          input.event_type,
-          engine.decision.eventCode,
-          toEventLevel(input.event_type),
-          JSON.stringify({
-            ...eventValue,
-            source: input.source ?? "device_ingestion",
-          }),
-          processedAt,
-        ],
-      );
-
-      await updateDeviceRuntime(client, {
-        tenantId: input.tenant_id,
+      await upsertDeviceStatusSnapshot(client, {
         deviceId: input.device_id,
+        tenantId: input.tenant_id,
         gatewayId: input.gateway_id ?? device.gateway_id,
+        status: nextStatus,
         eventType: input.event_type,
         eventCode: engine.decision.eventCode,
-        status: nextStatus,
+        reportedAt: processedAt,
+      });
+
+      await updateTenantDeviceRuntime(client, {
+        tenantId: input.tenant_id,
+        deviceId: input.device_id,
+        statusText: mapDeviceStatusText(nextStatus),
+        pointStatusStyle: nextStatus,
         reportedAt: processedAt,
       });
 
@@ -245,58 +189,51 @@ export async function processIngestionEvent(input: IngestionEventPayload): Promi
           alarmId = createId("alarm");
           alarmCreated = true;
 
-          await client.query(
-            `
-              INSERT INTO tenant_alarms (
-                id, tenant_id, device_id, device_name, location, alarm_type, time,
-                process_status, workflow_status, detail_note, attachments, false_alarm,
-                assigned_user_name, last_operator_name, closed_reason
-              )
-              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$13,$14,$15)
-            `,
-            [
-              alarmId,
-              input.tenant_id,
-              input.device_id,
-              device.name,
-              `${device.area} / ${device.installation_location}`,
-              engine.decision.alarmTypeLabel,
-              processedAt,
-              "未处理",
-              "未处理",
-              "",
-              JSON.stringify([]),
-              false,
-              "",
-              "设备接入服务",
-              "",
-            ],
-          );
+          await createTenantAlarm(client, {
+            id: alarmId,
+            tenantId: input.tenant_id,
+            deviceId: input.device_id,
+            deviceName: device.name,
+            location: `${device.area} / ${device.installation_location}`,
+            alarmType: engine.decision.alarmTypeLabel,
+            time: processedAt,
+          });
 
           await insertAlarmLog(client, {
             tenantId: input.tenant_id,
             alarmId,
             action: engine.decision.alarmLogAction,
-            fromStatus: "未处理",
-            toStatus: "未处理",
+            fromStatus: "鏈鐞?",
+            toStatus: "鏈鐞?",
+            operatorName: "device_ingestion",
+            operatorRole: "device_ingestion",
             note: `${engine.decision.alarmTypeLabel} 已进入闭环流程`,
             createdAt: processedAt,
           });
 
-          notificationCreated = await dispatchAlarmNotifications(client, {
-            tenantId: input.tenant_id,
-            alarmId,
-            deviceId: input.device_id,
-            level: input.event_type === "fault" ? "fault" : "alarm",
-            content: `${device.name} ${engine.decision.alarmTypeLabel}，时间 ${processedAt}`,
-            createdAt: processedAt,
-          });
+          try {
+            notificationCreated = await dispatchAlarmNotifications(client, {
+              tenantId: input.tenant_id,
+              alarmId,
+              deviceId: input.device_id,
+              level: input.event_type === "fault" ? "fault" : "alarm",
+              content: `${device.name} ${engine.decision.alarmTypeLabel}，时间 ${processedAt}`,
+              createdAt: processedAt,
+            });
+          } catch (error) {
+            recordRuntimeError("notification_dispatch", error instanceof Error ? error.message : String(error));
+          }
 
           await insertAuditLog(client, {
+            id: createId("audit"),
             tenantId: input.tenant_id,
+            actorScope: "platform",
+            actorName: "device_ingestion",
+            actorRole: "device_ingestion",
             action: "alarm.created",
             targetType: "alarm",
-            targetId: alarmId,
+            targetId: alarmId ?? input.device_id,
+            result: "success",
             detail: `${engine.decision.alarmTypeLabel} 已创建`,
             createdAt: processedAt,
           });
@@ -309,6 +246,8 @@ export async function processIngestionEvent(input: IngestionEventPayload): Promi
               action: "重复事件",
               fromStatus: engine.activeAlarm.workflow_status,
               toStatus: engine.activeAlarm.workflow_status,
+              operatorName: "device_ingestion",
+              operatorRole: "device_ingestion",
               note: `${engine.decision.alarmTypeLabel} 再次上报，未重复创建报警`,
               createdAt: processedAt,
             });
@@ -318,72 +257,76 @@ export async function processIngestionEvent(input: IngestionEventPayload): Promi
         alarmId = engine.activeAlarm.id;
         await insertAlarmLog(client, {
           tenantId: input.tenant_id,
-          alarmId,
+          alarmId: engine.activeAlarm.id,
           action: "恢复事件",
           fromStatus: engine.activeAlarm.workflow_status,
           toStatus: engine.activeAlarm.workflow_status,
+          operatorName: "device_ingestion",
+          operatorRole: "device_ingestion",
           note: "设备上报恢复事件，正式报警保持人工闭环",
           createdAt: processedAt,
         });
 
         await insertAuditLog(client, {
+          id: createId("audit"),
           tenantId: input.tenant_id,
+          actorScope: "platform",
+          actorName: "device_ingestion",
+          actorRole: "device_ingestion",
           action: "alarm.recovery.logged",
-          targetType: "alarm",
-          targetId: alarmId,
-          detail: "设备恢复事件已记录，报警未自动关闭",
+            targetType: "alarm",
+            targetId: alarmId ?? input.device_id,
+          result: "success",
+          detail: "设备恢复事件已记录，正式报警未自动关闭",
           createdAt: processedAt,
         });
       }
 
       await insertAuditLog(client, {
+        id: createId("audit"),
         tenantId: input.tenant_id,
+        actorScope: "platform",
+        actorName: "device_ingestion",
+        actorRole: "device_ingestion",
         action: "device.event.ingested",
         targetType: "device",
         targetId: input.device_id,
+        result: "success",
         detail: `${input.event_type}/${engine.decision.eventCode} -> ${nextStatus}`,
         createdAt: processedAt,
       });
 
       await insertAuditLog(client, {
+        id: createId("audit"),
         tenantId: input.tenant_id,
+        actorScope: "platform",
+        actorName: "device_ingestion",
+        actorRole: "device_ingestion",
         action: "device.status.updated",
         targetType: "device_status",
         targetId: input.device_id,
+        result: "success",
         detail: `设备状态更新为 ${nextStatus}`,
         createdAt: processedAt,
       });
 
       if (notificationCreated) {
         await insertAuditLog(client, {
+          id: createId("audit"),
           tenantId: input.tenant_id,
+          actorScope: "platform",
+          actorName: "device_ingestion",
+          actorRole: "device_ingestion",
           action: "notification.triggered",
           targetType: "notification",
           targetId: alarmId ?? input.device_id,
+          result: "success",
           detail: "通知记录已生成",
           createdAt: processedAt,
         });
       }
 
-      await client.query("COMMIT");
-
-      const realtimeType = alarmCreated
-        ? "alarm_created"
-        : engine.decision.shouldPublishRealtimeType;
-
-      publishTenantEvent(input.tenant_id, {
-        type: realtimeType,
-        tenantId: input.tenant_id,
-        deviceId: input.device_id,
-        alarmId,
-        eventType: input.event_type,
-        eventCode: engine.decision.eventCode,
-        reportedAt: processedAt,
-        occurredAt: processedAt,
-        source: input.source ?? "device_ingestion",
-      });
-
-      result = {
+      return {
         success: true,
         raw_event_id: rawEventId,
         alarm_id: alarmId,
@@ -391,19 +334,41 @@ export async function processIngestionEvent(input: IngestionEventPayload): Promi
         workflow: {
           alarm_created: alarmCreated,
           notification_created: notificationCreated,
-          realtime_published: true,
+          realtime_published: false,
         },
         processed_at: processedAt,
       };
+    });
+
+    try {
+      const realtimeType = result.workflow.alarm_created
+        ? "alarm_created"
+        : input.event_type === "heartbeat"
+          ? "heartbeat"
+          : input.event_type === "recovery"
+            ? "alarm_updated"
+            : "device_status_changed";
+      publishTenantEvent(input.tenant_id, {
+        type: realtimeType,
+        tenantId: input.tenant_id,
+        deviceId: input.device_id,
+        alarmId: result.alarm_id,
+        eventType: input.event_type,
+        eventCode: realtimeEventCode,
+        reportedAt: processedAt,
+        occurredAt: processedAt,
+        source: input.source ?? "device_ingestion",
+      });
+      result.workflow.realtime_published = true;
     } catch (error) {
-      await client.query("ROLLBACK");
-      throw error;
+      recordRuntimeError("realtime_publish", error instanceof Error ? error.message : String(error));
     }
-  });
 
-  if (!result) {
-    throw new Error("INGESTION_PROCESS_FAILED");
+    return result;
+  } catch (error) {
+    recordRuntimeError("ingestion", error instanceof Error ? error.message : String(error));
+    throw error;
+  } finally {
+    recordIngestionHit(Date.now() - startedAt);
   }
-
-  return result;
 }

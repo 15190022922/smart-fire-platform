@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/auth-shared";
-import { createAuditLog, createDutyLogEntry } from "@/lib/db";
 import { getServerSession } from "@/lib/server-auth";
+import { createAuditLogEntry } from "../../../../packages/database/src/repositories/audit-repository";
+import { createDutyLogEntry } from "../../../../packages/database/src/repositories/duty-repository";
 
 export async function POST() {
   const session = await getServerSession();
 
   if (session) {
-    await createAuditLog({
+    await createAuditLogEntry({
       tenantId: session.tenantId,
       actorScope: session.scope,
       actorName: session.username,
-      actorRole: session.roleKey,
+      actorRole: String(session.roleKey),
       action: "auth.logout",
       targetType: "session",
       targetId: session.userId,

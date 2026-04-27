@@ -6,10 +6,11 @@ import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
 import { useSaaSDemo } from "@/components/saas/saas-demo-provider";
+import { StatusBadge } from "@/components/status-badge";
 import { PlatformRoleKey, PlatformUserRecord, UserStatus } from "@/types/saas";
 
 const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+  "sf-input h-11 px-4 text-sm";
 
 type PlatformUserFormState = Omit<PlatformUserRecord, "id">;
 
@@ -74,12 +75,12 @@ export function PlatformUserManager() {
 
   return (
     <FeatureGuard title="平台用户管理" permissionKey="platform.users.manage">
-      <div className="space-y-6">
+      <div className="space-y-2.5">
       <PageHeader
         title="平台用户管理"
         subtitle="平台级角色可跨租户管理企业、套餐与订阅，权限范围与企业角色隔离。"
         aside={
-          <button type="button" onClick={openCreate} className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700">
+          <button type="button" onClick={openCreate} className="sf-button sf-button-primary h-10 px-4 text-sm">
             新增平台用户
           </button>
         }
@@ -90,18 +91,16 @@ export function PlatformUserManager() {
           {platformUsers.map((user) => {
             const role = roles.find((item) => item.key === user.roleKey);
             return (
-              <div key={user.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[color:var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--panel-shadow)]">
+              <div key={user.id} className="sf-list-row flex flex-wrap items-center justify-between gap-3 px-4 py-4">
                 <div>
                   <p className="text-sm font-semibold text-[color:var(--text-primary)]">{user.username}</p>
                   <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{role?.name} / {user.phone}</p>
                   <p className="mt-1 text-xs text-[color:var(--text-muted)]">{user.note}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={`rounded-full border px-3 py-1 text-xs ${user.status === "启用" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-100 text-slate-700"}`}>
-                    {user.status}
-                  </span>
-                  <button type="button" onClick={() => openEdit(user)} className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs text-sky-700">编辑</button>
-                  <button type="button" onClick={() => removeUser(user)} className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700">删除</button>
+                  <StatusBadge status={user.status} />
+                  <button type="button" onClick={() => openEdit(user)} className="sf-button sf-button-primary h-8 px-3 text-xs">编辑</button>
+                  <button type="button" onClick={() => removeUser(user)} className="sf-button sf-button-danger h-8 px-3 text-xs">删除</button>
                 </div>
               </div>
             );
@@ -115,8 +114,8 @@ export function PlatformUserManager() {
         title={dialogMode === "create" ? "新增平台用户" : "编辑平台用户"}
         footer={
           <>
-            <button type="button" onClick={closeDialog} className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)]">取消</button>
-            <button type="button" onClick={saveUser} className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700">保存</button>
+            <button type="button" onClick={closeDialog} className="sf-button sf-button-secondary h-10 px-4 text-sm">取消</button>
+            <button type="button" onClick={saveUser} className="sf-button sf-button-primary h-10 px-4 text-sm">保存</button>
           </>
         }
       >
@@ -147,7 +146,7 @@ export function PlatformUserManager() {
           </label>
           <label className="space-y-2 md:col-span-2">
             <span className="text-sm text-[color:var(--text-secondary)]">备注</span>
-            <textarea value={formState.note} onChange={(event) => setFormState((current) => ({ ...current, note: event.target.value }))} className={`${inputClassName} min-h-24`} />
+            <textarea value={formState.note} onChange={(event) => setFormState((current) => ({ ...current, note: event.target.value }))} className={`${inputClassName} min-h-24 py-3`} />
           </label>
         </div>
       </Dialog>

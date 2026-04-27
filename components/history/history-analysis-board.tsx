@@ -211,7 +211,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
         description="先按日期锁定范围，再按设备、处理状态或报警类型细查。"
         className="p-4 sm:p-4"
       >
-        <div className="grid gap-3 lg:grid-cols-[repeat(5,minmax(0,1fr))_auto_auto]">
+        <div className="grid gap-3 xl:grid-cols-[repeat(5,minmax(0,1fr))_auto_auto]">
           <label className="space-y-1.5 text-sm text-[color:var(--text-secondary)]">
             <span>开始日期</span>
             <input
@@ -290,7 +290,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
         </div>
       </SectionCard>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.9fr)]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,0.9fr)]">
         <SectionCard
           title="报警趋势"
           description="按天统计，直接对应当前筛选范围。"
@@ -351,7 +351,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
 
         <SectionCard title="分布统计" description="快速看处理状态和报警类型。" className="p-4 sm:p-4">
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
                 <p className="text-xs text-[color:var(--text-muted)]">报警总数</p>
                 <p className="mt-2 text-2xl font-semibold text-[color:var(--text-primary)]">{filteredAlarms.length}</p>
@@ -392,7 +392,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <SectionCard title="报警历史明细" description="精确到天，支持按状态和设备核对。" className="p-4 sm:p-4">
           <div className="max-h-[520px] overflow-auto rounded-2xl border border-[color:var(--border)]">
-            <table className="min-w-full text-sm">
+            <table className="min-w-[760px] text-sm">
               <thead className="sticky top-0 bg-[var(--surface-strong)] text-[color:var(--text-secondary)]">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium">时间</th>
@@ -421,7 +421,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
 
         <SectionCard title="原始设备事件" description="保留接入层事件，便于对照硬件上报。" className="p-4 sm:p-4">
           <div className="max-h-[520px] overflow-auto rounded-2xl border border-[color:var(--border)]">
-            <table className="min-w-full text-sm">
+            <table className="min-w-[760px] text-sm">
               <thead className="sticky top-0 bg-[var(--surface-strong)] text-[color:var(--text-secondary)]">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium">时间</th>

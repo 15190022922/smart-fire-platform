@@ -13,7 +13,7 @@ import type {
 import type { TenantDeviceRecord } from "@/types/saas";
 
 const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+  "sf-input h-11 px-4 text-sm";
 
 type UploadFormState = {
   floorId: string;
@@ -440,39 +440,40 @@ export function SpatialModelBoard({
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[28px] border border-[color:var(--border)] bg-[var(--surface)] p-6 shadow-[var(--panel-shadow)]">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-4xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">Spatial Readiness</p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[color:var(--text-primary)]">
+    <div className="space-y-2.5">
+      <section className="sf-panel relative overflow-hidden rounded-[20px] p-4 sm:p-5">
+        <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent_0%,rgba(72,106,141,0.34)_48%,transparent_100%)]" />
+        <div className="flex flex-col gap-3 xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(560px,auto)] xl:items-end xl:gap-4">
+          <div className="max-w-[860px]">
+            <p className="sf-label text-[color:var(--accent-strong)]">Spatial Readiness</p>
+            <h1 className="mt-2.5 text-[26px] font-semibold tracking-[-0.03em] text-[color:var(--text-primary)] sm:text-[28px]">
               图纸上传与布点编辑器
             </h1>
-            <p className="mt-3 text-sm leading-7 text-[color:var(--text-muted)]">
+            <p className="mt-2 text-[13px] leading-6 text-[color:var(--text-secondary)] sm:text-sm">
               现在开始把企业自己的楼层图和设备点位真正落到系统里。后续首页地图、实时状态和硬件接入都直接建立在这套空间模型上。
             </p>
           </div>
-          <div className="grid min-w-[280px] grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
-              <p className="text-xs text-[color:var(--text-muted)]">已映射设备</p>
-              <p className="mt-2 text-2xl font-semibold text-[color:var(--text-primary)]">
+          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 xl:min-w-[560px] xl:justify-self-end">
+            <div className="sf-metric-block px-3.5 py-2.5">
+              <p className="sf-label">已映射设备</p>
+              <p className="mt-1.5 text-[1.45rem] font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">
                 {model.summary.mappedDeviceCount}
               </p>
             </div>
-            <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
-              <p className="text-xs text-[color:var(--text-muted)]">待布点设备</p>
-              <p className="mt-2 text-2xl font-semibold text-[color:var(--text-primary)]">
+            <div className="sf-metric-block px-3.5 py-2.5">
+              <p className="sf-label">待布点设备</p>
+              <p className="mt-1.5 text-[1.45rem] font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">
                 {model.summary.unmappedDeviceCount}
               </p>
             </div>
-            <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
-              <p className="text-xs text-[color:var(--text-muted)]">在线网关</p>
-              <p className="mt-2 text-2xl font-semibold text-[color:var(--text-primary)]">
+            <div className="sf-metric-block px-3.5 py-2.5">
+              <p className="sf-label">在线网关</p>
+              <p className="mt-1.5 text-[1.45rem] font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">
                 {model.summary.onlineGatewayCount}/{model.summary.gatewayCount}
               </p>
             </div>
-            <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
-              <p className="text-xs text-[color:var(--text-muted)]">最近原始事件</p>
+            <div className="sf-metric-block px-3.5 py-2.5">
+              <p className="sf-label">最近原始事件</p>
               <p className="mt-2 text-sm font-semibold text-[color:var(--text-primary)]">{model.summary.recentEventCount} 条</p>
             </div>
           </div>
@@ -480,7 +481,9 @@ export function SpatialModelBoard({
       </section>
 
       {message ? (
-        <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">{message}</div>
+        <div className="rounded-[14px] border border-[color:rgba(72,106,141,0.18)] bg-[color:var(--accent-soft)] px-4 py-3 text-sm text-[color:var(--accent-strong)]">
+          {message}
+        </div>
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.45fr_0.8fr]">
@@ -488,7 +491,7 @@ export function SpatialModelBoard({
           title="上传楼层图纸"
           description="先选楼层，再上传图片。当前版本先把图纸文件以 data URL 演示方式存入数据库，后续接 OSS 或对象存储时只需替换文件存储层。"
         >
-          <div className="space-y-4">
+          <div className="space-y-3">
             <label className="block space-y-2">
               <span className="text-sm text-[color:var(--text-secondary)]">所属楼层</span>
               <select
@@ -527,7 +530,7 @@ export function SpatialModelBoard({
               <input type="file" accept="image/*" onChange={handleFileSelect} className={inputClassName} />
             </label>
 
-            <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[color:var(--text-secondary)]">
+            <div className="sf-metric-block px-4 py-3 text-sm text-[color:var(--text-secondary)]">
               {uploadForm.fileName
                 ? `${uploadForm.fileName} / ${uploadForm.width} × ${uploadForm.height}`
                 : "尚未选择图纸文件"}
@@ -537,7 +540,7 @@ export function SpatialModelBoard({
               type="button"
               onClick={handleUploadDrawing}
               disabled={uploading}
-              className="w-full rounded-full border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-medium text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="sf-button sf-button-primary h-11 w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               {uploading ? "正在上传..." : "上传图纸"}
             </button>
@@ -550,10 +553,10 @@ export function SpatialModelBoard({
               return (
                 <div
                   key={drawing.id}
-                  className={`rounded-2xl border px-4 py-3 ${
+                  className={`px-4 py-3 ${
                     selectedDrawingId === drawing.id
-                      ? "border-sky-200 bg-sky-50"
-                      : "border-[color:var(--border)] bg-[var(--surface-muted)]"
+                      ? "sf-list-row border-[color:var(--accent)] bg-[color:var(--accent-soft)] shadow-[var(--panel-shadow)]"
+                      : "sf-list-row"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -577,7 +580,7 @@ export function SpatialModelBoard({
                       <button
                         type="button"
                         onClick={() => handleDeleteDrawing(drawing.id)}
-                        className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700"
+                        className="sf-button sf-button-danger h-8 px-3 text-xs"
                       >
                         删除
                       </button>
@@ -595,16 +598,16 @@ export function SpatialModelBoard({
           description="先选图纸和设备，然后直接点击画布。当前设备如果已有点位，会移动到新的位置而不是重复新增。"
           extra={
             <div className="flex items-center gap-2">
-              <span className="rounded-full border border-[color:var(--border)] bg-[var(--surface-muted)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
+              <span className="rounded-full border border-[color:var(--border-soft)] bg-[color:rgba(255,255,255,0.84)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
                 当前图纸：{selectedDrawing?.name ?? "未选择"}
               </span>
-              <span className="rounded-full border border-[color:var(--border)] bg-[var(--surface-muted)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
+              <span className="rounded-full border border-[color:var(--border-soft)] bg-[color:rgba(255,255,255,0.84)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
                 点位：{pointsForDrawing.length}
               </span>
             </div>
           }
         >
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
               <label className="block space-y-2">
                 <span className="text-sm text-[color:var(--text-secondary)]">当前楼层</span>
@@ -647,7 +650,7 @@ export function SpatialModelBoard({
               <div
                 ref={mapRef}
                 onClick={handlePlacePoint}
-                className="relative min-h-[560px] overflow-hidden rounded-[28px] border border-[color:var(--border)] bg-slate-100"
+                className="relative min-h-[420px] overflow-hidden rounded-[20px] border border-[color:var(--border)] bg-[linear-gradient(180deg,#eef3f8_0%,#e5edf5_100%)] sm:min-h-[560px]"
                 style={{
                   backgroundImage: `url(${selectedDrawing.fileUrl})`,
                   backgroundSize: "contain",
@@ -656,7 +659,8 @@ export function SpatialModelBoard({
                   cursor: selectedDeviceId ? "crosshair" : "not-allowed",
                 }}
               >
-                <div className="pointer-events-none absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs text-slate-700 shadow-sm">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.32),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0))]" />
+                <div className="pointer-events-none absolute left-4 top-4 rounded-full border border-[color:rgba(255,255,255,0.52)] bg-white/82 px-3 py-1 text-xs text-[color:var(--text-secondary)] shadow-sm backdrop-blur-sm">
                   点击图纸空白处完成布点
                 </div>
 
@@ -680,11 +684,11 @@ export function SpatialModelBoard({
                         event.stopPropagation();
                         setSelectedDeviceId(point.deviceId);
                       }}
-                      className={`group absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-lg ${colorClass}`}
+                      className={`group absolute h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_6px_16px_rgba(15,23,42,0.18)] ${colorClass}`}
                       style={{ left: `${point.x * 100}%`, top: `${point.y * 100}%` }}
                       title={`${device?.name ?? point.deviceId} / ${runtimeStatusLabel(snapshot?.status ?? "normal")}`}
                     >
-                      <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-44 -translate-x-1/2 rounded-xl border border-[color:var(--border)] bg-white px-3 py-2 text-left text-xs text-slate-700 shadow-xl group-hover:block">
+                      <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-44 -translate-x-1/2 rounded-[14px] border border-[color:var(--border)] bg-white/96 px-3 py-2 text-left text-xs text-slate-700 shadow-[var(--panel-shadow-strong)] group-hover:block">
                         <span className="block font-semibold text-slate-900">{device?.name ?? point.deviceId}</span>
                         <span className="mt-1 block">{device?.type ?? "未定义类型"}</span>
                         <span className="mt-1 block">{runtimeStatusLabel(snapshot?.status ?? "normal")}</span>
@@ -694,19 +698,19 @@ export function SpatialModelBoard({
                 })}
               </div>
             ) : (
-              <div className="space-y-4 rounded-[28px] border border-dashed border-[color:var(--border)] bg-[var(--surface-muted)] p-6">
-                <div className="rounded-2xl border border-[color:var(--border)] bg-white/70 px-4 py-3 text-sm text-[color:var(--text-muted)]">
+              <div className="space-y-3 rounded-[20px] border border-dashed border-[color:var(--border)] bg-[var(--surface-muted)] p-5">
+                <div className="rounded-[16px] border border-[color:var(--border-soft)] bg-white/70 px-4 py-3 text-sm text-[color:var(--text-muted)]">
                   当前企业还没有图纸。系统已切换到无图纸拓扑视图，便于先完成设备接入测试和区域核对。正式运行时再补图纸和坐标布点即可。
                 </div>
                 <div className="grid gap-4 xl:grid-cols-2">
                   {fallbackGroups.map((group) => (
-                    <div key={group.key} className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface)] p-4">
+                    <div key={group.key} className="sf-panel-subtle p-4">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="text-sm font-semibold text-[color:var(--text-primary)]">{group.label}</p>
                           <p className="mt-1 text-xs text-[color:var(--text-muted)]">{group.devices.length} 台设备</p>
                         </div>
-                        <span className="rounded-full bg-sky-50 px-3 py-1 text-xs text-sky-700">无图纸模式</span>
+                        <span className="rounded-full border border-[color:rgba(72,106,141,0.18)] bg-[color:var(--accent-soft)] px-3 py-1 text-xs text-[color:var(--accent-strong)]">无图纸模式</span>
                       </div>
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         {group.devices.map((device) => {
@@ -716,10 +720,10 @@ export function SpatialModelBoard({
                               key={device.id}
                               type="button"
                               onClick={() => setSelectedDeviceId(device.id)}
-                              className={`rounded-2xl border px-4 py-3 text-left transition ${
+                              className={`px-4 py-3 text-left ${
                                 selectedDeviceId === device.id
-                                  ? "border-sky-200 bg-sky-50"
-                                  : "border-[color:var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface)]"
+                                  ? "sf-list-row border-[color:var(--accent)] bg-[color:var(--accent-soft)] shadow-[var(--panel-shadow)]"
+                                  : "sf-list-row"
                               }`}
                             >
                               <p className="truncate text-sm font-semibold text-[color:var(--text-primary)]">{device.name}</p>
@@ -744,7 +748,7 @@ export function SpatialModelBoard({
               </div>
             )}
 
-            <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[color:var(--text-secondary)]">
+            <div className="rounded-[16px] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(248,251,254,0.98)_0%,rgba(255,255,255,0.98)_100%)] px-4 py-3 text-sm text-[color:var(--text-secondary)]">
               {!hasDrawings
                 ? "当前为无图纸模式，可先核对设备归属和实时状态；后续上传图纸后再进入正式布点。"
                 : savingPoint
@@ -756,14 +760,14 @@ export function SpatialModelBoard({
           </div>
         </SectionCard>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <SectionCard
             title="点位清单"
             description="用于快速检查当前图纸上的点位绑定情况。删除点位不会删除设备本身。"
           >
             <div className="space-y-3">
               {pointsForDrawing.length === 0 ? (
-                <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-5 text-sm text-[color:var(--text-muted)]">
+                <div className="rounded-[16px] border border-[color:var(--border-soft)] bg-[var(--surface-muted)] px-4 py-5 text-sm text-[color:var(--text-muted)]">
                   当前图纸还没有点位。
                 </div>
               ) : (
@@ -773,7 +777,7 @@ export function SpatialModelBoard({
                   return (
                     <div
                       key={point.id}
-                      className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3"
+                      className="sf-list-row px-4 py-3"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -787,7 +791,7 @@ export function SpatialModelBoard({
                         <button
                           type="button"
                           onClick={() => handleDeletePoint(point.id)}
-                          className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700"
+                          className="sf-button sf-button-danger h-8 px-3 text-xs"
                         >
                           删除
                         </button>
@@ -813,7 +817,7 @@ export function SpatialModelBoard({
           >
             <div className="space-y-3">
               {unmappedDevices.length === 0 ? (
-                <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-5 text-sm text-[color:var(--text-muted)]">
+                <div className="rounded-[16px] border border-[color:var(--border-soft)] bg-[var(--surface-muted)] px-4 py-5 text-sm text-[color:var(--text-muted)]">
                   当前设备都已完成布点。
                 </div>
               ) : (
@@ -822,10 +826,10 @@ export function SpatialModelBoard({
                     key={device.id}
                     type="button"
                     onClick={() => setSelectedDeviceId(device.id)}
-                    className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left ${
+                    className={`flex w-full items-center justify-between px-4 py-3 text-left ${
                       selectedDeviceId === device.id
-                        ? "border-sky-200 bg-sky-50"
-                        : "border-[color:var(--border)] bg-[var(--surface-muted)]"
+                        ? "sf-list-row border-[color:var(--accent)] bg-[color:var(--accent-soft)] shadow-[var(--panel-shadow)]"
+                        : "sf-list-row"
                     }`}
                   >
                     <div className="min-w-0">
@@ -849,7 +853,7 @@ export function SpatialModelBoard({
           >
             <div className="space-y-3">
               {model.gateways.map((gateway) => (
-                <div key={gateway.id} className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+                <div key={gateway.id} className="sf-list-row px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-[color:var(--text-primary)]">{gateway.name}</p>
@@ -863,7 +867,7 @@ export function SpatialModelBoard({
                   </div>
                 </div>
               ))}
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+              <div className="rounded-[16px] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(248,251,254,0.98)_0%,rgba(255,255,255,0.98)_100%)] px-4 py-3">
                 <p className="text-sm font-semibold text-[color:var(--text-primary)]">最近原始事件</p>
                 <div className="mt-3 space-y-2">
                   {model.recentEvents.slice(0, 4).map((event) => (

@@ -18,24 +18,27 @@ export function Dialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--dialog-overlay)] p-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-[28px] border border-[color:var(--border)] bg-[var(--surface-strong)] shadow-[0_24px_80px_rgba(15,23,42,0.18)]">
-        <div className="flex items-start justify-between gap-4 border-b border-[color:var(--border)] px-6 py-5">
+    <div className="sf-fade-in fixed inset-0 z-50 flex items-center justify-center bg-[var(--dialog-overlay)] p-4 backdrop-blur-sm">
+      <div className="sf-rise-in w-full max-w-2xl overflow-hidden rounded-[var(--radius-dialog)] border border-[color:var(--border)] bg-[var(--surface-strong)] shadow-[0_22px_64px_rgba(11,21,34,0.16)]">
+        <div className="flex items-start justify-between gap-4 border-b border-[color:var(--border)] bg-[linear-gradient(180deg,rgba(250,252,255,0.96)_0%,rgba(244,248,252,0.96)_100%)] px-5 py-4 sm:px-6">
           <div>
-            <h3 className="text-xl font-semibold text-[color:var(--text-primary)]">{title}</h3>
-            {description ? <p className="mt-2 text-sm text-[color:var(--text-muted)]">{description}</p> : null}
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-faint)]">
+              Detail Panel
+            </p>
+            <h3 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">{title}</h3>
+            {description ? <p className="mt-2 text-sm leading-6 text-[color:var(--text-muted)]">{description}</p> : null}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-[color:var(--border)] px-3 py-1.5 text-sm text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)]"
+            className="sf-button sf-button-secondary px-3 py-1.5 text-sm"
           >
             关闭
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-auto px-6 py-5">{children}</div>
+        <div className="max-h-[70vh] overflow-auto px-5 py-5 sm:px-6">{children}</div>
         {footer ? (
-          <div className="flex justify-end gap-3 border-t border-[color:var(--border)] px-6 py-4">
+          <div className="flex justify-end gap-3 border-t border-[color:var(--border)] bg-[rgba(245,248,252,0.65)] px-5 py-4 sm:px-6">
             {footer}
           </div>
         ) : null}

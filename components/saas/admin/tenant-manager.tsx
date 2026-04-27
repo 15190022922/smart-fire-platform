@@ -6,10 +6,11 @@ import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
 import { useSaaSDemo } from "@/components/saas/saas-demo-provider";
+import { StatusBadge } from "@/components/status-badge";
 import { TenantRecord, TenantStatus, TenantUserRecord } from "@/types/saas";
 
 const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+  "sf-input h-11 px-4 text-sm";
 
 type TenantFormState = {
   name: string;
@@ -240,7 +241,7 @@ export function TenantManager() {
 
   return (
     <FeatureGuard title="企业管理" permissionKey="platform.tenants.manage">
-      <div className="space-y-6">
+      <div className="space-y-2.5">
         <PageHeader
           title="企业管理"
           subtitle="平台管理员在这里创建企业，并同步生成企业初始管理员账号。企业购买后，企业管理员用初始账号登录并修改密码。"
@@ -248,7 +249,7 @@ export function TenantManager() {
             <button
               type="button"
               onClick={openCreate}
-              className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700"
+              className="sf-button sf-button-primary h-10 px-4 text-sm"
             >
               新增企业
             </button>
@@ -256,29 +257,35 @@ export function TenantManager() {
         />
 
         <SectionCard title="企业列表" description="每个企业即一个 tenant，创建企业时同时创建企业初始管理员账号。">
-          <div className="mb-4 grid gap-4 lg:grid-cols-[minmax(0,320px)_1fr]">
+          <div className="sf-toolbar mb-4 grid gap-3 p-3 lg:grid-cols-[minmax(0,320px)_1fr]">
             <input
               value={searchValue}
               onChange={(event) => setSearchValue(event.target.value)}
               placeholder="搜索企业名称、编码、行业或联系人"
               className={inputClassName}
             />
-            <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[color:var(--text-secondary)]">
-              当前共 {filteredTenants.length} 家企业
+            <div className="sf-metric-block flex items-center justify-between gap-3 px-4 py-3">
+              <div>
+                <p className="sf-label">Tenant Count</p>
+                <p className="mt-1 text-sm text-[color:var(--text-secondary)]">当前检索结果</p>
+              </div>
+              <p className="text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">
+                {filteredTenants.length}
+              </p>
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-[24px] border border-[color:var(--border)]">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-[var(--table-head)] text-[color:var(--text-muted)]">
+          <div className="sf-table-shell overflow-x-auto">
+            <table className="min-w-[980px] text-left text-sm">
+              <thead className="sf-table-head">
                 <tr>
-                  <th className="px-4 py-3 font-medium">企业名称</th>
-                  <th className="px-4 py-3 font-medium">编码</th>
-                  <th className="px-4 py-3 font-medium">行业</th>
-                  <th className="px-4 py-3 font-medium">初始管理员</th>
-                  <th className="px-4 py-3 font-medium">当前套餐</th>
-                  <th className="px-4 py-3 font-medium">状态</th>
-                  <th className="px-4 py-3 font-medium">操作</th>
+                  <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">企业名称</th>
+                  <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">编码</th>
+                  <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">行业</th>
+                  <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">初始管理员</th>
+                  <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">当前套餐</th>
+                  <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">状态</th>
+                  <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">操作</th>
                 </tr>
               </thead>
               <tbody className="bg-[var(--table-row)]">
@@ -290,12 +297,19 @@ export function TenantManager() {
                   return (
                     <tr
                       key={tenant.id}
-                      className="border-t border-[color:var(--border)]"
+                      className="border-t border-[color:var(--border-soft)] transition-colors duration-150 hover:bg-[color:var(--surface-muted)]"
                       style={{
                         backgroundColor: index % 2 === 0 ? "var(--table-row)" : "var(--table-row-alt)",
                       }}
                     >
-                      <td className="px-4 py-4 font-medium text-[color:var(--text-primary)]">{tenant.name}</td>
+                      <td className="px-4 py-4">
+                        <div>
+                          <p className="font-semibold tracking-[-0.01em] text-[color:var(--text-primary)]">
+                            {tenant.name}
+                          </p>
+                          <p className="mt-1 text-xs text-[color:var(--text-muted)]">{tenant.contactName}</p>
+                        </div>
+                      </td>
                       <td className="px-4 py-4 text-[color:var(--text-secondary)]">{tenant.code}</td>
                       <td className="px-4 py-4 text-[color:var(--text-secondary)]">{tenant.industry}</td>
                       <td className="px-4 py-4 text-[color:var(--text-secondary)]">
@@ -305,43 +319,35 @@ export function TenantManager() {
                         {plan?.name ?? "未分配"} / {subscription?.status ?? "-"}
                       </td>
                       <td className="px-4 py-4">
-                        <span
-                          className={`rounded-full border px-3 py-1 text-xs ${
-                            tenant.status === ("启用" as TenantStatus)
-                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                              : "border-slate-200 bg-slate-100 text-slate-700"
-                          }`}
-                        >
-                          {tenant.status}
-                        </span>
+                        <StatusBadge status={tenant.status} />
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex flex-wrap gap-2">
                           <button
                             type="button"
                             onClick={() => openView(tenant)}
-                            className="rounded-full border border-[color:var(--border)] px-3 py-1 text-xs text-[color:var(--text-secondary)]"
+                            className="sf-button sf-button-secondary h-8 px-3 text-xs"
                           >
                             详情
                           </button>
                           <button
                             type="button"
                             onClick={() => openEdit(tenant)}
-                            className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs text-sky-700"
+                            className="sf-button sf-button-primary h-8 px-3 text-xs"
                           >
                             编辑
                           </button>
                           <button
                             type="button"
                             onClick={() => toggleStatus(tenant)}
-                            className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs text-amber-700"
+                            className="sf-button sf-button-warning h-8 px-3 text-xs"
                           >
                             {tenant.status === ("启用" as TenantStatus) ? "停用" : "启用"}
                           </button>
                           <button
                             type="button"
                             onClick={() => removeTenant(tenant)}
-                            className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700"
+                            className="sf-button sf-button-danger h-8 px-3 text-xs"
                           >
                             删除
                           </button>
@@ -369,7 +375,7 @@ export function TenantManager() {
               <button
                 type="button"
                 onClick={closeDialog}
-                className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)]"
+                className="sf-button sf-button-secondary h-10 px-4 text-sm"
               >
                 取消
               </button>
@@ -377,7 +383,7 @@ export function TenantManager() {
                 type="button"
                 onClick={() => void saveTenant()}
                 disabled={saving}
-                className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700 disabled:opacity-60"
+                className="sf-button sf-button-primary h-10 px-4 text-sm"
               >
                 {saving ? "保存中..." : "保存"}
               </button>
@@ -421,14 +427,15 @@ export function TenantManager() {
               <textarea
                 value={formState.note}
                 onChange={(event) => setFormState((current) => ({ ...current, note: event.target.value }))}
-                className={`${inputClassName} min-h-24`}
+                className={`${inputClassName} min-h-24 py-3`}
               />
             </label>
 
             {dialogMode === "create" ? (
               <>
-                <div className="md:col-span-2 rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[color:var(--text-secondary)]">
-                  初始管理员信息
+                <div className="sf-metric-block md:col-span-2 px-4 py-3">
+                  <p className="sf-label">Initial Admin</p>
+                  <p className="mt-1 text-sm text-[color:var(--text-secondary)]">创建企业时同步下发管理员初始账号。</p>
                 </div>
                 <label className="space-y-2">
                   <span className="text-sm text-[color:var(--text-secondary)]">管理员登录账号</span>
@@ -471,7 +478,7 @@ export function TenantManager() {
             ) : null}
 
             {error ? (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 md:col-span-2">
+              <div className="rounded-[14px] border border-[color:rgba(176,72,79,0.18)] bg-[color:var(--danger-soft)] px-4 py-3 text-sm text-[color:var(--danger-strong)] md:col-span-2">
                 {error}
               </div>
             ) : null}
@@ -493,14 +500,14 @@ export function TenantManager() {
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4"
+                  className="sf-metric-block px-4 py-4"
                 >
-                  <p className="text-sm text-[color:var(--text-muted)]">{label}</p>
+                  <p className="sf-label">{label}</p>
                   <p className="mt-2 text-base text-[color:var(--text-primary)]">{value}</p>
                 </div>
               ))}
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4 md:col-span-2">
-                <p className="text-sm text-[color:var(--text-muted)]">备注</p>
+              <div className="sf-metric-block px-4 py-4 md:col-span-2">
+                <p className="sf-label">备注</p>
                 <p className="mt-2 text-base text-[color:var(--text-primary)]">{selectedTenant.note}</p>
               </div>
             </div>

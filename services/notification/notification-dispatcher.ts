@@ -1,8 +1,6 @@
 import type { PoolClient } from "pg";
-
-function createId(prefix: string) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
+import { createNotificationRecordsForAlarm } from "../../packages/database/src/repositories/notification-repository";
+import { recordNotificationFailure } from "../../apps/backend/src/lib/runtime-metrics";
 
 export async function dispatchAlarmNotifications(
   client: PoolClient,
@@ -15,60 +13,21 @@ export async function dispatchAlarmNotifications(
     createdAt: string;
   },
 ) {
-  const templates = await client.query<{
-    id: string;
-    channel: string;
-    target_roles: string[];
-  }>(
-    `
-      SELECT id, channel, target_roles
-      FROM notification_templates
-      WHERE tenant_id = $1 AND enabled = TRUE AND level = $2
-    `,
-    [input.tenantId, input.level],
-  );
+  const forceFailure = process.env.NOTIFICATION_FORCE_FAIL === "1" || input.content.includes("[FORCE_NOTIFY_FAIL]");
 
-  const rows =
-    templates.rows.length > 0
-      ? templates.rows.flatMap((template) =>
-          (template.target_roles ?? []).map((role) => ({
-            templateId: template.id,
-            channel: template.channel,
-            targetRole: role,
-          })),
-        )
-      : [{ templateId: null, channel: "station", targetRole: "tenant_level_1" }];
+  const created = await createNotificationRecordsForAlarm(client, {
+    tenantId: input.tenantId,
+    alarmId: input.alarmId,
+    deviceId: input.deviceId,
+    level: input.level,
+    content: input.content,
+    createdAt: input.createdAt,
+    forceFailure,
+  });
 
-  for (const row of rows) {
-    await client.query(
-      `
-        INSERT INTO notification_records (
-          id, tenant_id, alarm_id, device_id, template_id, notify_type, channel, level,
-          target_name, target_role, target_user, content, status, retry_count, last_error, created_at, updated_at
-        )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
-      `,
-      [
-        createId("notify"),
-        input.tenantId,
-        input.alarmId,
-        input.deviceId,
-        row.templateId,
-        row.channel === "sms" ? "sms" : "station",
-        row.channel,
-        input.level,
-        row.targetRole,
-        row.targetRole,
-        "",
-        input.content,
-        "sent",
-        0,
-        "",
-        input.createdAt,
-        input.createdAt,
-      ],
-    );
+  if (forceFailure) {
+    recordNotificationFailure("forced_notification_failure");
   }
 
-  return rows.length > 0;
+  return created;
 }

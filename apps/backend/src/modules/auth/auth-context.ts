@@ -28,10 +28,22 @@ function parseCookies(cookieHeader?: string) {
   );
 }
 
-export function resolveRequestContext(req: IncomingMessage): BackendRequestContext {
-  const cookies = parseCookies(req.headers.cookie);
-  const token = cookies.get(AUTH_COOKIE_NAME);
-  const cookieSession = token ? decodeSharedSession(token) : null;
+function isDevelopmentMockContextEnabled() {
+  return process.env.NODE_ENV !== "production" && process.env.BACKEND_ALLOW_HEADER_CONTEXT !== "0";
+}
+
+function hasTrustedInternalToken(req: IncomingMessage) {
+  const expected = process.env.BACKEND_INTERNAL_TOKEN;
+  if (!expected) return false;
+  const actual = req.headers["x-backend-internal-token"];
+  return typeof actual === "string" && actual === expected;
+}
+
+function readTrustedHeaderContext(req: IncomingMessage) {
+  const allowHeaderContext = isDevelopmentMockContextEnabled() || hasTrustedInternalToken(req);
+  if (!allowHeaderContext) {
+    return null;
+  }
 
   const scopeHeader = req.headers["x-user-scope"];
   const tenantHeader = req.headers["x-tenant-id"];
@@ -39,22 +51,24 @@ export function resolveRequestContext(req: IncomingMessage): BackendRequestConte
   const userRoleHeader = req.headers["x-user-role"];
 
   return {
+    tenantId: typeof tenantHeader === "string" ? tenantHeader : null,
+    scope: typeof scopeHeader === "string" ? (scopeHeader as "platform" | "tenant") : null,
+    userName: decodeHeaderValue(typeof userNameHeader === "string" ? userNameHeader : undefined) ?? null,
+    userRole: (typeof userRoleHeader === "string" ? userRoleHeader : undefined) ?? null,
+  };
+}
+
+export function resolveRequestContext(req: IncomingMessage): BackendRequestContext {
+  const cookies = parseCookies(req.headers.cookie);
+  const token = cookies.get(AUTH_COOKIE_NAME);
+  const cookieSession = token ? decodeSharedSession(token) : null;
+  const headerContext = readTrustedHeaderContext(req);
+
+  return {
     session: cookieSession,
-    tenantId:
-      (typeof tenantHeader === "string" ? tenantHeader : undefined) ??
-      cookieSession?.tenantId ??
-      null,
-    scope:
-      (typeof scopeHeader === "string" ? (scopeHeader as "platform" | "tenant") : undefined) ??
-      cookieSession?.scope ??
-      null,
-    userName:
-      decodeHeaderValue(typeof userNameHeader === "string" ? userNameHeader : undefined) ??
-      cookieSession?.displayName ??
-      null,
-    userRole:
-      (typeof userRoleHeader === "string" ? userRoleHeader : undefined) ??
-      (cookieSession?.roleKey as string | undefined) ??
-      null,
+    tenantId: cookieSession?.tenantId ?? headerContext?.tenantId ?? null,
+    scope: cookieSession?.scope ?? headerContext?.scope ?? null,
+    userName: cookieSession?.displayName ?? headerContext?.userName ?? null,
+    userRole: (cookieSession?.roleKey as string | undefined) ?? headerContext?.userRole ?? null,
   };
 }

@@ -6,10 +6,11 @@ import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
 import { useSaaSDemo } from "@/components/saas/saas-demo-provider";
+import { StatusBadge } from "@/components/status-badge";
 import { SubscriptionRecord, SubscriptionStatus } from "@/types/saas";
 
 const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+  "sf-input h-11 px-4 text-sm";
 
 type SubscriptionFormState = Omit<SubscriptionRecord, "id">;
 
@@ -68,46 +69,51 @@ export function SubscriptionManager() {
 
   return (
     <FeatureGuard title="订阅管理" permissionKey="platform.subscriptions.manage">
-      <div className="space-y-6">
-      <PageHeader
-        title="订阅管理"
-        subtitle="为企业分配套餐、设置订阅生效时间、试用状态和到期状态。"
-        aside={
-          <button type="button" onClick={openCreate} className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700">
-            新增订阅
-          </button>
-        }
-      />
+      <div className="space-y-2.5">
+        <PageHeader
+          title="订阅管理"
+          subtitle="为企业分配套餐、设置订阅生效时间、试用状态和到期状态。"
+          aside={
+            <button type="button" onClick={openCreate} className="sf-button sf-button-primary h-10 px-4 text-sm">
+              新增订阅
+            </button>
+          }
+        />
 
-      <SectionCard title="订阅列表" description="订阅状态决定租户当前是否可正常使用对应套餐功能。">
-        <div className="space-y-3">
-          {subscriptions.map((subscription) => {
-            const tenant = tenants.find((item) => item.id === subscription.tenantId);
-            const plan = plans.find((item) => item.id === subscription.planId);
+        <SectionCard title="订阅列表" description="订阅状态决定租户当前是否可正常使用对应套餐功能。">
+          <div className="space-y-3">
+            {subscriptions.map((subscription) => {
+              const tenant = tenants.find((item) => item.id === subscription.tenantId);
+              const plan = plans.find((item) => item.id === subscription.planId);
 
-            return (
-              <div key={subscription.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[color:var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--panel-shadow)]">
-                <div>
-                  <p className="text-sm font-semibold text-[color:var(--text-primary)]">{tenant?.name}</p>
-                  <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
-                    {plan?.name} / {subscription.startDate} - {subscription.endDate}
-                  </p>
-                  <p className="mt-1 text-xs text-[color:var(--text-muted)]">
-                    {subscription.trial ? "试用订阅" : "正式订阅"} / 自动续费：{subscription.autoRenew ? "是" : "否"}
-                  </p>
+              return (
+                <div key={subscription.id} className="sf-list-row flex flex-wrap items-center justify-between gap-4 px-4 py-4">
+                  <div>
+                    <p className="sf-label">Subscription</p>
+                    <p className="mt-2 text-[15px] font-semibold tracking-[-0.01em] text-[color:var(--text-primary)]">
+                      {tenant?.name}
+                    </p>
+                    <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
+                      {plan?.name} / {subscription.startDate} - {subscription.endDate}
+                    </p>
+                    <p className="mt-1 text-xs text-[color:var(--text-muted)]">
+                      {subscription.trial ? "试用订阅" : "正式订阅"} / 自动续费：{subscription.autoRenew ? "是" : "否"}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status={subscription.status} />
+                    <button type="button" onClick={() => openEdit(subscription)} className="sf-button sf-button-primary h-8 px-3 text-xs">
+                      编辑
+                    </button>
+                    <button type="button" onClick={() => removeSubscription(subscription)} className="sf-button sf-button-danger h-8 px-3 text-xs">
+                      删除
+                    </button>
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-[color:var(--border)] bg-[var(--surface-muted)] px-3 py-1.5 text-sm text-[color:var(--text-secondary)]">
-                    {subscription.status}
-                  </span>
-                  <button type="button" onClick={() => openEdit(subscription)} className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs text-sky-700">编辑</button>
-                  <button type="button" onClick={() => removeSubscription(subscription)} className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700">删除</button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </SectionCard>
+              );
+            })}
+          </div>
+        </SectionCard>
 
       <Dialog
         open={dialogMode === "create" || dialogMode === "edit"}
@@ -115,8 +121,8 @@ export function SubscriptionManager() {
         title={dialogMode === "create" ? "新增订阅" : "编辑订阅"}
         footer={
           <>
-            <button type="button" onClick={closeDialog} className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)]">取消</button>
-            <button type="button" onClick={saveSubscription} className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700">保存</button>
+            <button type="button" onClick={closeDialog} className="sf-button sf-button-secondary h-10 px-4 text-sm">取消</button>
+            <button type="button" onClick={saveSubscription} className="sf-button sf-button-primary h-10 px-4 text-sm">保存</button>
           </>
         }
       >
@@ -150,11 +156,11 @@ export function SubscriptionManager() {
               <option>已停用</option>
             </select>
           </label>
-          <label className="flex items-center gap-3 rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+          <label className="sf-checkrow px-4 py-3">
             <input type="checkbox" checked={formState.trial} onChange={(event) => setFormState((current) => ({ ...current, trial: event.target.checked }))} />
             <span className="text-sm text-[color:var(--text-primary)]">试用订阅</span>
           </label>
-          <label className="flex items-center gap-3 rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 md:col-span-2">
+          <label className="sf-checkrow px-4 py-3 md:col-span-2">
             <input type="checkbox" checked={formState.autoRenew} onChange={(event) => setFormState((current) => ({ ...current, autoRenew: event.target.checked }))} />
             <span className="text-sm text-[color:var(--text-primary)]">自动续费</span>
           </label>

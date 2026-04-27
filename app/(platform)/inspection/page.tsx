@@ -1,10 +1,21 @@
 import { InspectionBoard } from "@/components/inspection/inspection-board";
-import { getInspectionCenterData } from "@/lib/db";
+import { fetchBackendJson } from "@/lib/backend-client";
 import { getServerSession } from "@/lib/server-auth";
+import type { InspectionCenterPayload } from "@/types/inspection";
 
 export default async function InspectionPage() {
   const session = await getServerSession();
-  const initialData = session?.tenantId ? await getInspectionCenterData(session.tenantId) : null;
+  let initialData: InspectionCenterPayload | null = null;
+
+  if (session?.tenantId) {
+    const response = await fetchBackendJson<InspectionCenterPayload>("/api/tenant/inspection", {
+      method: "GET",
+      session,
+    });
+    if (response.ok) {
+      initialData = await response.json();
+    }
+  }
 
   return <InspectionBoard initialData={initialData} />;
 }

@@ -61,7 +61,7 @@ export function NotificationCenterBoard({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       <PageHeader
         title="通知中心"
         subtitle="统一管理短信和站内通知模板、发送记录、通知等级、通知对象和失败重试。"
@@ -73,7 +73,7 @@ export function NotificationCenterBoard({
             {visibleTemplates.map((template) => (
               <div
                 key={template.id}
-                className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3"
+                className="sf-list-row px-4 py-3"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-[color:var(--text-primary)]">{template.name}</p>
@@ -106,13 +106,19 @@ export function NotificationCenterBoard({
         <SectionCard
           title="发送记录"
           description="值守期间重点关注失败通知，必要时可手动重试。"
-          extra={errorMessage ? <span className="text-sm text-rose-600">{errorMessage}</span> : null}
+          extra={
+            errorMessage ? (
+              <span className="rounded-full border border-[color:rgba(176,72,79,0.18)] bg-[color:var(--danger-soft)] px-3 py-1 text-xs text-[color:var(--danger-strong)]">
+                {errorMessage}
+              </span>
+            ) : null
+          }
         >
           <div className="space-y-3">
             {visibleRecords.map((record) => (
               <div
                 key={record.id}
-                className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3"
+                className="sf-list-row px-4 py-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -138,7 +144,7 @@ export function NotificationCenterBoard({
                       <button
                         type="button"
                         onClick={() => void retryRecord(record.id)}
-                        className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs text-sky-700"
+                        className="sf-button sf-button-primary h-8 px-3 text-xs"
                       >
                         重试
                       </button>

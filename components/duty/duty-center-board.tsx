@@ -6,8 +6,7 @@ import { SectionCard } from "@/components/section-card";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import type { DutyCenterPayload, DutyLogRecord, DutyScheduleRecord } from "@/types/duty";
 
-const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+const inputClassName = "sf-input h-10 px-3 text-sm";
 
 const SCHEDULE_PAGE_SIZE = 6;
 const LOG_PAGE_SIZE = 8;
@@ -95,19 +94,19 @@ export function DutyCenterBoard({ initialData }: { initialData: DutyCenterPayloa
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       <PageHeader
         title="值班中心"
         subtitle="值班排班、交接班和日志统一归口。未闭环报警必须在交接说明中明确带出。"
         aside={
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm">
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            <div className="sf-metric-block px-3.5 py-2.5 text-sm">
               <p className="text-[color:var(--text-secondary)]">当前值班</p>
               <p className="mt-1 text-lg font-semibold text-[color:var(--text-primary)]">
                 {data.currentSchedule?.assigneeName ?? "未排班"}
               </p>
             </div>
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <div className="sf-metric-block px-3.5 py-2.5 text-sm">
               <p>未闭环报警</p>
               <p className="mt-1 text-lg font-semibold">{data.openAlarmCount}</p>
             </div>
@@ -116,7 +115,7 @@ export function DutyCenterBoard({ initialData }: { initialData: DutyCenterPayloa
       />
 
       {message ? (
-        <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">{message}</div>
+        <div className="rounded-[14px] border border-[color:rgba(72,106,141,0.18)] bg-[color:var(--accent-soft)] px-4 py-3 text-sm text-[color:var(--accent-strong)]">{message}</div>
       ) : null}
 
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
@@ -174,7 +173,7 @@ export function DutyCenterBoard({ initialData }: { initialData: DutyCenterPayloa
             <button
               type="button"
               onClick={() => void submitHandover()}
-              className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700"
+              className="sf-button sf-button-warning h-10 px-4 text-sm"
             >
               手动交接班
             </button>
@@ -219,7 +218,7 @@ export function DutyCenterBoard({ initialData }: { initialData: DutyCenterPayloa
             <button
               type="button"
               onClick={() => void submitSchedule()}
-              className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700"
+              className="sf-button sf-button-primary h-10 px-4 text-sm"
             >
               保存排班
             </button>
@@ -257,7 +256,7 @@ export function DutyCenterBoard({ initialData }: { initialData: DutyCenterPayloa
               <button
                 type="button"
                 onClick={() => void refresh()}
-                className="rounded-full border px-3 py-2 text-sm"
+                className="sf-button sf-button-secondary h-10 px-3 text-sm"
               >
                 刷新
               </button>
@@ -268,7 +267,7 @@ export function DutyCenterBoard({ initialData }: { initialData: DutyCenterPayloa
             {visibleLogs.map((item) => (
               <div
                 key={item.id}
-                className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3"
+                className="sf-list-row px-4 py-3"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-[color:var(--text-primary)]">
@@ -297,7 +296,7 @@ export function DutyCenterBoard({ initialData }: { initialData: DutyCenterPayloa
 
 function StatusCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm">
+    <div className="sf-metric-block px-4 py-3 text-sm">
       <p className="text-[color:var(--text-secondary)]">{label}</p>
       <p className="mt-1 text-lg font-semibold text-[color:var(--text-primary)]">{value}</p>
     </div>
@@ -306,7 +305,7 @@ function StatusCard({ label, value }: { label: string; value: string }) {
 
 function ScheduleCard({ schedule }: { schedule: DutyScheduleRecord }) {
   return (
-    <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+    <div className="sf-list-row px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-[color:var(--text-primary)]">
@@ -316,7 +315,7 @@ function ScheduleCard({ schedule }: { schedule: DutyScheduleRecord }) {
             {schedule.assigneeName} / {schedule.assigneePhone}
           </p>
         </div>
-        <span className="rounded-full border border-[color:var(--border)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
+        <span className="rounded-full border border-[color:var(--border-soft)] bg-white/80 px-3 py-1 text-xs text-[color:var(--text-secondary)]">
           {schedule.status}
         </span>
       </div>

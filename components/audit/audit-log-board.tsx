@@ -32,21 +32,21 @@ export function AuditLogBoard({ logs }: { logs: AuditLogRecord[] }) {
   }, [filtered, safePage]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       <PageHeader
         title="审计日志"
         subtitle="记录登录、报警处理、设备操作、权限变更等关键行为，满足追溯和责任界定要求。"
       />
 
       <SectionCard title="检索条件" description="按结果和关键字筛选关键操作日志。">
-        <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)]">
+        <div className="sf-toolbar grid gap-3 p-3 md:grid-cols-[180px_minmax(0,1fr)]">
           <select
             value={resultFilter}
             onChange={(event) => {
               setResultFilter(event.target.value as "all" | "success" | "error");
               setPage(1);
             }}
-            className="rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm"
+            className="sf-input h-10 px-3 text-sm"
           >
             <option value="all">全部结果</option>
             <option value="success">成功</option>
@@ -59,27 +59,27 @@ export function AuditLogBoard({ logs }: { logs: AuditLogRecord[] }) {
               setPage(1);
             }}
             placeholder="按操作人、动作、目标类型、详情搜索"
-            className="rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm"
+            className="sf-input h-10 px-3 text-sm"
           />
         </div>
       </SectionCard>
 
       <SectionCard title="审计记录" description="最近 500 条关键操作。">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-[var(--table-head)] text-[color:var(--text-secondary)]">
+        <div className="sf-table-shell overflow-x-auto">
+          <table className="min-w-[820px] text-left text-sm">
+            <thead className="sf-table-head">
               <tr>
-                <th className="px-4 py-3">时间</th>
-                <th className="px-4 py-3">操作人</th>
-                <th className="px-4 py-3">动作</th>
-                <th className="px-4 py-3">目标</th>
-                <th className="px-4 py-3">结果</th>
-                <th className="px-4 py-3">详情</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">时间</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">操作人</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">动作</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">目标</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">结果</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">详情</th>
               </tr>
             </thead>
             <tbody>
               {visibleLogs.map((log) => (
-                <tr key={log.id} className="border-t border-[color:var(--border)] bg-[var(--table-row)]">
+                <tr key={log.id} className="border-t border-[color:var(--border-soft)] bg-[var(--table-row)] transition-colors duration-150 hover:bg-[color:var(--surface-muted)]">
                   <td className="px-4 py-3">{log.createdAt}</td>
                   <td className="px-4 py-3">
                     <div className="font-medium text-[color:var(--text-primary)]">{log.actorName}</div>

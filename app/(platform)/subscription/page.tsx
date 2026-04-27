@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { SubscriptionOverview } from "@/components/subscription/subscription-overview";
+import { fetchBackendJson } from "@/lib/backend-client";
 import { getServerSession } from "@/lib/server-auth";
-import { getTenantOverview } from "@/lib/db";
+import type { PlanRecord, SubscriptionRecord, TenantRecord } from "@/types/saas";
 
 export default async function SubscriptionPage() {
   const session = await getServerSession();
@@ -11,7 +12,12 @@ export default async function SubscriptionPage() {
     notFound();
   }
 
-  const overview = await getTenantOverview(session.tenantId);
+  const overviewResponse = await fetchBackendJson<{
+    tenant?: TenantRecord | null;
+    plan?: PlanRecord | null;
+    subscription?: SubscriptionRecord | null;
+  }>("/api/tenant/overview", { session });
+  const overview = overviewResponse.ok ? await overviewResponse.json() : {};
 
   if (!overview.tenant) {
     notFound();

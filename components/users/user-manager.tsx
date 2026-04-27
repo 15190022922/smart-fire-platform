@@ -43,11 +43,9 @@ type UserFormState = {
   note: string;
 };
 
-const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+const inputClassName = "sf-input h-11 px-4 text-sm";
 
-const mutedCardClassName =
-  "rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3";
+const mutedCardClassName = "sf-metric-block px-3.5 py-2.5";
 
 const userLevels: UserLevel[] = ["一级用户", "二级用户", "三级用户"];
 const messageTypes: NotificationMessageType[] = ["报警信息", "故障信息"];
@@ -245,7 +243,7 @@ export function UserManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2.5">
       <PageHeader
         title="用户管理"
         subtitle="企业用户、短信通知和接收类型现在会写入本地数据库，刷新页面和重新登录后仍会保留。"
@@ -269,16 +267,12 @@ export function UserManager() {
         title="用户列表"
         description="支持用户新增、编辑、删除、分页和短信接收配置。"
         extra={
-          <button
-            type="button"
-            onClick={openCreateDialog}
-            className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
-          >
+          <button type="button" onClick={openCreateDialog} className="sf-button sf-button-primary h-10 px-4 text-sm">
             新增用户
           </button>
         }
       >
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,320px)_auto_auto]">
+        <div className="sf-toolbar grid gap-3 p-3 lg:grid-cols-[minmax(0,320px)_auto_auto]">
           <input
             value={searchValue}
             onChange={(event) => {
@@ -297,11 +291,7 @@ export function UserManager() {
                   setLevelFilter(level);
                   setPage(1);
                 }}
-                className={`rounded-full border px-4 py-2 text-sm transition ${
-                  levelFilter === level
-                    ? "border-sky-200 bg-sky-50 text-sky-700"
-                    : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)] hover:bg-[var(--surface-muted)]"
-                }`}
+                className={`sf-button h-10 px-4 text-sm ${levelFilter === level ? "sf-button-primary" : "sf-button-secondary"}`}
               >
                 {level}
               </button>
@@ -316,11 +306,7 @@ export function UserManager() {
                   setStatusFilter(status);
                   setPage(1);
                 }}
-                className={`rounded-full border px-4 py-2 text-sm transition ${
-                  statusFilter === status
-                    ? "border-sky-200 bg-sky-50 text-sky-700"
-                    : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)] hover:bg-[var(--surface-muted)]"
-                }`}
+                className={`sf-button h-10 px-4 text-sm ${statusFilter === status ? "sf-button-primary" : "sf-button-secondary"}`}
               >
                 {status}
               </button>
@@ -328,9 +314,9 @@ export function UserManager() {
           </div>
         </div>
 
-        <div className="mt-5 overflow-x-auto rounded-[24px] border border-[color:var(--border)]">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-[var(--table-head)] text-[color:var(--text-muted)]">
+        <div className="sf-table-shell mt-5 overflow-x-auto">
+          <table className="min-w-[860px] text-left text-sm">
+            <thead className="sf-table-head">
               <tr>
                 <th className="px-4 py-3 font-medium">用户名</th>
                 <th className="px-4 py-3 font-medium">手机号</th>
@@ -345,7 +331,7 @@ export function UserManager() {
               {pagedUsers.map((user, index) => (
                 <tr
                   key={user.id}
-                  className="border-t border-[color:var(--border)] text-[color:var(--text-secondary)]"
+                  className="border-t border-[color:var(--border-soft)] text-[color:var(--text-secondary)] transition-colors duration-150 hover:bg-[color:var(--surface-muted)]"
                   style={{
                     backgroundColor: index % 2 === 0 ? "var(--table-row)" : "var(--table-row-alt)",
                   }}
@@ -372,7 +358,7 @@ export function UserManager() {
                       {user.messageTypes.map((type) => (
                         <span
                           key={type}
-                          className="rounded-full border border-[color:var(--border)] bg-[var(--surface-muted)] px-2.5 py-1 text-xs text-[color:var(--text-secondary)]"
+                          className="rounded-full border border-[color:var(--border-soft)] bg-white/80 px-2.5 py-1 text-xs text-[color:var(--text-secondary)]"
                         >
                           {type}
                         </span>
@@ -384,21 +370,21 @@ export function UserManager() {
                       <button
                         type="button"
                         onClick={() => openViewDialog(user)}
-                        className="rounded-full border border-[color:var(--border)] px-3 py-1 text-xs text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)]"
+                        className="sf-button sf-button-secondary h-8 px-3 text-xs"
                       >
                         详情
                       </button>
                       <button
                         type="button"
                         onClick={() => openEditDialog(user)}
-                        className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs text-sky-700 transition hover:bg-sky-100"
+                        className="sf-button sf-button-primary h-8 px-3 text-xs"
                       >
                         编辑
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(user)}
-                        className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700 transition hover:bg-rose-100"
+                        className="sf-button sf-button-danger h-8 px-3 text-xs"
                       >
                         删除
                       </button>
@@ -419,7 +405,7 @@ export function UserManager() {
               type="button"
               disabled={currentPage === 1}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
-              className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)] disabled:cursor-not-allowed disabled:opacity-40"
+              className="sf-button sf-button-secondary h-10 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-40"
             >
               上一页
             </button>
@@ -427,7 +413,7 @@ export function UserManager() {
               type="button"
               disabled={currentPage === totalPages}
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-              className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)] disabled:cursor-not-allowed disabled:opacity-40"
+              className="sf-button sf-button-secondary h-10 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-40"
             >
               下一页
             </button>
@@ -445,14 +431,14 @@ export function UserManager() {
             <button
               type="button"
               onClick={closeDialog}
-              className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)]"
+              className="sf-button sf-button-secondary h-10 px-4 text-sm"
             >
               取消
             </button>
             <button
               type="button"
               onClick={handleSubmit}
-              className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
+              className="sf-button sf-button-primary h-10 px-4 text-sm"
             >
               保存
             </button>
@@ -494,7 +480,7 @@ export function UserManager() {
               <option>停用</option>
             </select>
           </label>
-          <label className="flex items-center gap-3 rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 md:col-span-2">
+          <label className="sf-checkrow px-4 py-3 md:col-span-2">
             <input type="checkbox" checked={formState.smsEnabled} onChange={(event) => setFormState((current) => ({ ...current, smsEnabled: event.target.checked }))} />
             <span className="text-sm text-[color:var(--text-primary)]">开启短信通知</span>
           </label>
@@ -508,11 +494,7 @@ export function UserManager() {
                     key={type}
                     type="button"
                     onClick={() => toggleMessageType(type)}
-                    className={`rounded-full border px-4 py-2 text-sm transition ${
-                      active
-                        ? "border-sky-200 bg-sky-50 text-sky-700"
-                        : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)] hover:bg-[var(--surface-muted)]"
-                    }`}
+                    className={`sf-button h-10 px-4 text-sm ${active ? "sf-button-primary" : "sf-button-secondary"}`}
                   >
                     {type}
                   </button>
@@ -522,7 +504,7 @@ export function UserManager() {
           </div>
           <label className="space-y-2 md:col-span-2">
             <span className="text-sm text-[color:var(--text-secondary)]">备注</span>
-            <textarea value={formState.note} onChange={(event) => setFormState((current) => ({ ...current, note: event.target.value }))} className={`${inputClassName} min-h-24`} />
+            <textarea value={formState.note} onChange={(event) => setFormState((current) => ({ ...current, note: event.target.value }))} className={`${inputClassName} min-h-24 py-3`} />
           </label>
         </div>
       </Dialog>
@@ -557,7 +539,7 @@ export function UserManager() {
                 {selectedUser.messageTypes.map((type) => (
                   <span
                     key={type}
-                    className="rounded-full border border-[color:var(--border)] bg-[var(--surface-strong)] px-3 py-1 text-xs text-[color:var(--text-secondary)]"
+                    className="rounded-full border border-[color:var(--border-soft)] bg-white/80 px-3 py-1 text-xs text-[color:var(--text-secondary)]"
                   >
                     {type}
                   </span>

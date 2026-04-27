@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/server-auth";
-import { findLoginAccount, updateLoginPassword } from "@/lib/db";
+import { authRepository } from "../../../../packages/database/src/ops-repositories";
 
 export async function POST(request: Request) {
   const session = await getServerSession();
@@ -22,11 +22,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "新密码长度至少 6 位" }, { status: 400 });
   }
 
-  const account = await findLoginAccount(session.username, body.currentPassword);
+  const account = await authRepository.findLoginAccountByCredentials(session.username, body.currentPassword);
   if (!account) {
     return NextResponse.json({ message: "当前密码错误" }, { status: 400 });
   }
 
-  await updateLoginPassword(session.username, body.nextPassword);
+  await authRepository.updateLoginPasswordByUsername(session.username, body.nextPassword);
   return NextResponse.json({ success: true });
 }

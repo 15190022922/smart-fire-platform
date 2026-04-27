@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
+import { StatusBadge } from "@/components/status-badge";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { getTenantEventBus } from "@/lib/realtime/event-bus";
 import type { AlarmCenterItem, AlarmWorkflowStatus } from "@/types/ops";
@@ -10,14 +11,7 @@ import type { AlarmCenterItem, AlarmWorkflowStatus } from "@/types/ops";
 const PAGE_SIZE = 8;
 
 const workflowOptions: AlarmWorkflowStatus[] = ["未处理", "已确认", "处理中", "已完成", "已关闭"];
-
-const workflowTone: Record<AlarmWorkflowStatus, string> = {
-  未处理: "border-rose-200 bg-rose-50 text-rose-700",
-  已确认: "border-sky-200 bg-sky-50 text-sky-700",
-  处理中: "border-amber-200 bg-amber-50 text-amber-700",
-  已完成: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  已关闭: "border-slate-200 bg-slate-100 text-slate-700",
-};
+const inputClassName = "sf-input h-10 px-3 text-sm";
 
 export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenterItem[] }) {
   const safeInitialAlarms = Array.isArray(initialAlarms) ? initialAlarms : [];
@@ -104,29 +98,30 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       <PageHeader
         title="报警中心"
         subtitle="所有报警必须进入闭环流程。这里统一完成确认、处理、完成、关闭、误报标记、备注、附件和时间轴追踪。"
         aside={
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            <p>未闭环报警</p>
-            <p className="mt-1 text-2xl font-semibold">
+          <div className="sf-metric-block min-w-[154px] px-3.5 py-2.5">
+            <p className="sf-label text-[color:var(--danger-strong)]">Open Alarms</p>
+            <p className="mt-1.5 text-[1.45rem] font-semibold leading-none tracking-[-0.03em] text-[color:var(--danger-strong)]">
               {alarms.filter((item) => item.workflowStatus !== "已关闭" && item.workflowStatus !== "已完成").length}
             </p>
+            <p className="mt-2 text-xs text-[color:var(--text-muted)]">当前未完成闭环数量</p>
           </div>
         }
       />
 
       <SectionCard title="报警池" description="按状态和关键字快速定位当前值守中的报警。">
-        <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)]">
+        <div className="sf-toolbar grid gap-3 p-3 md:grid-cols-[180px_minmax(0,1fr)]">
           <select
             value={statusFilter}
             onChange={(event) => {
               setStatusFilter(event.target.value as AlarmWorkflowStatus | "all");
               setPage(1);
             }}
-            className="rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm"
+            className={inputClassName}
           >
             <option value="all">全部状态</option>
             {workflowOptions.map((status) => (
@@ -142,7 +137,7 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
               setPage(1);
             }}
             placeholder="按设备名称、位置、报警类型搜索"
-            className="rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm"
+            className={inputClassName}
           />
         </div>
 
@@ -152,6 +147,7 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
               <button
                 key={alarm.id}
                 type="button"
+                data-selected={selectedAlarm?.id === alarm.id ? "true" : "false"}
                 onClick={() => {
                   setSelectedAlarmId(alarm.id);
                   setNote(alarm.detailNote);
@@ -159,25 +155,37 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
                   setAssignedUserName(alarm.assignedUserName);
                   setFalseAlarm(alarm.falseAlarm);
                 }}
-                className={`w-full rounded-2xl border px-4 py-3 text-left ${
+                className={`relative w-full overflow-hidden px-4 py-3 text-left transition-[border-color,background-color,box-shadow,transform] duration-180 ${
                   selectedAlarm?.id === alarm.id
-                    ? "border-sky-300 bg-sky-50"
-                    : "border-[color:var(--border)] bg-[var(--surface-muted)]"
+                    ? "sf-list-row border-[color:var(--accent-strong)] bg-[color:var(--accent-soft)] shadow-[var(--panel-shadow-strong)] outline outline-1 outline-offset-[-1px] outline-[color:color-mix(in_srgb,var(--accent)_34%,var(--surface-contrast))]"
+                    : "sf-list-row hover:-translate-y-[1px]"
                 }`}
               >
+                {selectedAlarm?.id === alarm.id ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-y-0 left-0 w-1.5 rounded-r-full bg-[color:var(--accent-strong)]"
+                  />
+                ) : null}
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-rose-700">{alarm.alarmType}</p>
-                    <p className="mt-1 truncate text-sm text-[color:var(--text-primary)]">{alarm.deviceName}</p>
+                  <div className="min-w-0 pr-3">
+                    <p className="sf-label">{alarm.alarmType}</p>
+                    <p
+                      className={`mt-2 truncate text-[15px] font-semibold tracking-[-0.01em] ${
+                        selectedAlarm?.id === alarm.id
+                          ? "text-[color:var(--accent-strong)]"
+                          : "text-[color:var(--text-primary)]"
+                      }`}
+                    >
+                      {alarm.deviceName}
+                    </p>
                     <p className="mt-1 truncate text-xs text-[color:var(--text-muted)]">{alarm.location}</p>
                   </div>
-                  <span className={`rounded-full border px-2.5 py-1 text-[11px] ${workflowTone[alarm.workflowStatus]}`}>
-                    {alarm.workflowStatus}
-                  </span>
+                  <StatusBadge status={alarm.workflowStatus} />
                 </div>
                 <div className="mt-2 flex flex-col gap-1 text-[11px] text-[color:var(--text-muted)] sm:flex-row sm:items-center sm:justify-between">
                   <span>{alarm.time}</span>
-                  {alarm.falseAlarm ? <span className="text-amber-700">已标记误报</span> : null}
+                  {alarm.falseAlarm ? <span className="text-[color:var(--warning-strong)]">已标记误报</span> : null}
                 </div>
               </button>
             ))}
@@ -192,17 +200,18 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
           </div>
 
           {selectedAlarm ? (
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
+          <div className="space-y-3">
+              <div className="sf-panel-subtle p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-[color:var(--text-primary)]">{selectedAlarm.alarmType}</h3>
+                    <p className="sf-label">Selected Alarm</p>
+                    <h3 className="mt-2 text-lg font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">
+                      {selectedAlarm.alarmType}
+                    </h3>
                     <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{selectedAlarm.deviceName}</p>
                     <p className="mt-1 text-sm text-[color:var(--text-muted)]">{selectedAlarm.location}</p>
                   </div>
-                  <span className={`rounded-full border px-3 py-1 text-xs ${workflowTone[selectedAlarm.workflowStatus]}`}>
-                    {selectedAlarm.workflowStatus}
-                  </span>
+                  <StatusBadge status={selectedAlarm.workflowStatus} />
                 </div>
 
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -212,7 +221,7 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
                       value={selectedAlarm.workflowStatus}
                       onChange={(event) => void updateAlarm(event.target.value as AlarmWorkflowStatus)}
                       disabled={saving}
-                      className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2"
+                      className={inputClassName}
                     >
                       {workflowOptions.map((status) => (
                         <option key={status} value={status}>
@@ -226,13 +235,13 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
                     <input
                       value={assignedUserName}
                       onChange={(event) => setAssignedUserName(event.target.value)}
-                      className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2"
+                      className={inputClassName}
                     />
                   </label>
                 </div>
 
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <label className="flex items-center gap-2 rounded-2xl border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2 text-sm">
+                  <label className="sf-checkrow px-3 py-2.5 text-sm">
                     <input type="checkbox" checked={falseAlarm} onChange={(event) => setFalseAlarm(event.target.checked)} />
                     <span>标记为误报</span>
                   </label>
@@ -240,7 +249,7 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
                     type="button"
                     disabled={saving}
                     onClick={() => void updateAlarm("已关闭")}
-                    className="rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 disabled:opacity-60"
+                    className="sf-button sf-button-danger h-10 px-4 text-sm disabled:opacity-60"
                   >
                     保存并关闭
                   </button>
@@ -252,7 +261,7 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
                     rows={4}
-                    className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2"
+                    className="sf-input w-full px-3 py-3 text-sm"
                   />
                 </label>
 
@@ -262,19 +271,28 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
                     value={attachments}
                     onChange={(event) => setAttachments(event.target.value)}
                     rows={3}
-                    className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2"
+                    className="sf-input w-full px-3 py-3 text-sm"
                   />
                 </label>
 
-                {errorMessage ? <p className="mt-3 text-sm text-rose-600">{errorMessage}</p> : null}
+                {errorMessage ? (
+                  <p className="mt-3 rounded-[14px] border border-[color:rgba(176,72,79,0.18)] bg-[color:var(--danger-soft)] px-3 py-2 text-sm text-[color:var(--danger-strong)]">
+                    {errorMessage}
+                  </p>
+                ) : null}
               </div>
 
               <SectionCard title="处理时间轴" description="所有关键操作都记录到时间轴，供值守复盘和审计。">
                 <div className="space-y-3">
                   {selectedAlarm.timeline.map((item) => (
-                    <div key={item.id} className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+                    <div
+                      key={item.id}
+                      className="rounded-[16px] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(248,251,254,0.98)_0%,rgba(255,255,255,0.98)_100%)] px-4 py-3"
+                    >
                       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                        <p className="text-sm font-semibold text-[color:var(--text-primary)]">{item.action}</p>
+                        <p className="text-sm font-semibold tracking-[-0.01em] text-[color:var(--text-primary)]">
+                          {item.action}
+                        </p>
                         <span className="text-xs text-[color:var(--text-muted)]">{item.createdAt}</span>
                       </div>
                       <p className="mt-1 text-xs text-[color:var(--text-secondary)]">
@@ -284,7 +302,10 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
                       {item.attachments.length > 0 ? (
                         <div className="mt-2 flex flex-wrap gap-2">
                           {item.attachments.map((attachment) => (
-                            <span key={attachment} className="rounded-full border border-[color:var(--border)] px-2.5 py-1 text-xs">
+                            <span
+                              key={attachment}
+                              className="rounded-full border border-[color:var(--border-soft)] bg-[color:rgba(255,255,255,0.82)] px-2.5 py-1 text-xs text-[color:var(--text-secondary)]"
+                            >
                               {attachment}
                             </span>
                           ))}
@@ -296,7 +317,7 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
               </SectionCard>
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-12 text-center text-sm text-[color:var(--text-muted)]">
+            <div className="rounded-[16px] border border-dashed border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-12 text-center text-sm text-[color:var(--text-muted)]">
               当前没有报警数据。
             </div>
           )}

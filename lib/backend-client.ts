@@ -12,6 +12,7 @@ function encodeHeaderValue(value?: string | null) {
 export function buildBackendHeaders(session: AuthSession | null) {
   return {
     "Content-Type": "application/json",
+    "x-backend-internal-token": process.env.BACKEND_INTERNAL_TOKEN || "",
     "x-user-scope": session?.scope ?? "",
     "x-tenant-id": session?.tenantId ?? "",
     "x-user-name": encodeHeaderValue(session?.displayName || session?.username || ""),

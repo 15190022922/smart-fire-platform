@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { encodeSession } from "@/lib/auth";
 import { AUTH_COOKIE_NAME } from "@/lib/auth-shared";
-import { createAuditLog, createDutyLogEntry, findLoginAccount, getTenantById } from "@/lib/db";
+import { adminRepository, authRepository } from "../../../../packages/database/src/ops-repositories";
+import { createAuditLogEntry } from "../../../../packages/database/src/repositories/audit-repository";
+import { createDutyLogEntry } from "../../../../packages/database/src/repositories/duty-repository";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { username?: string; password?: string };
@@ -10,12 +12,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "用户名和密码不能为空" }, { status: 400 });
   }
 
-  const account = await findLoginAccount(body.username, body.password);
+  const account = await authRepository.findLoginAccountByCredentials(body.username, body.password);
   if (!account) {
     return NextResponse.json({ message: "用户名或密码错误" }, { status: 401 });
   }
 
-  const tenant = await getTenantById(account.tenantId);
+  const tenant = await adminRepository.getTenantById(account.tenantId);
   const session = {
     userId: account.id,
     username: account.username,
@@ -28,11 +30,11 @@ export async function POST(request: Request) {
     mustChangePassword: account.mustChangePassword ?? false,
   } as const;
 
-  await createAuditLog({
+  await createAuditLogEntry({
     tenantId: account.tenantId,
     actorScope: account.scope,
     actorName: account.username,
-    actorRole: account.roleKey,
+    actorRole: String(account.roleKey),
     action: "auth.login",
     targetType: "session",
     targetId: account.id,

@@ -6,8 +6,7 @@ import { SectionCard } from "@/components/section-card";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import type { InspectionCenterPayload, InspectionTaskRecord, IssueRecord } from "@/types/inspection";
 
-const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+const inputClassName = "sf-input h-10 px-3 text-sm";
 
 const TASK_PAGE_SIZE = 6;
 const ISSUE_PAGE_SIZE = 6;
@@ -131,12 +130,12 @@ export function InspectionBoard({ initialData }: { initialData: InspectionCenter
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       <PageHeader
         title="巡检与维保"
         subtitle="巡检计划、执行记录、隐患整改和维保历史统一归档。异常巡检结果会自动转入隐患整改流程。"
         aside={
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid gap-2.5 sm:grid-cols-3">
             <MetricCard label="巡检任务" value={String(data.tasks.length)} />
             <MetricCard
               label="整改中隐患"
@@ -148,7 +147,7 @@ export function InspectionBoard({ initialData }: { initialData: InspectionCenter
       />
 
       {message ? (
-        <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">{message}</div>
+        <div className="rounded-[14px] border border-[color:rgba(72,106,141,0.18)] bg-[color:var(--accent-soft)] px-4 py-3 text-sm text-[color:var(--accent-strong)]">{message}</div>
       ) : null}
 
       <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
@@ -215,7 +214,7 @@ export function InspectionBoard({ initialData }: { initialData: InspectionCenter
             <button
               type="button"
               onClick={() => void createTask()}
-              className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700"
+              className="sf-button sf-button-primary h-10 px-4 text-sm"
             >
               创建巡检任务
             </button>
@@ -241,7 +240,7 @@ export function InspectionBoard({ initialData }: { initialData: InspectionCenter
             {visibleIssues.map((issue) => (
               <div
                 key={issue.id}
-                className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3"
+                className="sf-list-row px-4 py-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -261,7 +260,7 @@ export function InspectionBoard({ initialData }: { initialData: InspectionCenter
                       key={status}
                       type="button"
                       onClick={() => void updateIssue(issue.id, status)}
-                      className="rounded-full border px-3 py-1 text-xs text-[color:var(--text-secondary)]"
+                      className="sf-button sf-button-secondary h-8 px-3 text-xs"
                     >
                       {status}
                     </button>
@@ -287,7 +286,7 @@ export function InspectionBoard({ initialData }: { initialData: InspectionCenter
             {visibleRecords.map((record) => (
               <div
                 key={record.id}
-                className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3"
+                className="sf-list-row px-4 py-3"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-[color:var(--text-primary)]">
@@ -315,7 +314,7 @@ export function InspectionBoard({ initialData }: { initialData: InspectionCenter
             {visibleMaintenanceRecords.map((record) => (
               <div
                 key={record.id}
-                className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3"
+                className="sf-list-row px-4 py-3"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-[color:var(--text-primary)]">{record.deviceName}</p>
@@ -345,7 +344,7 @@ export function InspectionBoard({ initialData }: { initialData: InspectionCenter
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm">
+    <div className="sf-metric-block px-3.5 py-2.5 text-sm">
       <p className="text-[color:var(--text-secondary)]">{label}</p>
       <p className="mt-1 text-lg font-semibold text-[color:var(--text-primary)]">{value}</p>
     </div>
@@ -360,7 +359,7 @@ function TaskCard({
   onSubmit: (taskId: string, result: "completed" | "abnormal") => void;
 }) {
   return (
-    <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+    <div className="sf-list-row px-4 py-3">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-[color:var(--text-primary)]">{task.title}</p>
@@ -377,14 +376,19 @@ function TaskCard({
         <button
           type="button"
           onClick={() => void onSubmit(task.id, "completed")}
-          className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700"
+          className="sf-button h-8 px-3 text-xs"
+          style={{
+            borderColor: "rgba(57,118,91,0.18)",
+            background: "linear-gradient(180deg,#f3faf6 0%,#ebf7f0 100%)",
+            color: "var(--success-strong)",
+          }}
         >
           标记完成
         </button>
         <button
           type="button"
           onClick={() => void onSubmit(task.id, "abnormal")}
-          className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700"
+          className="sf-button sf-button-danger h-8 px-3 text-xs"
         >
           标记异常
         </button>

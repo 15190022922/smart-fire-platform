@@ -2,7 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscribeTenantEvents = subscribeTenantEvents;
 exports.publishTenantEvent = publishTenantEvent;
+exports.getRealtimeServerStats = getRealtimeServerStats;
 const tenantSubscribers = new Map();
+let publishFailureCount = 0;
 function nextSubscriberId() {
     return `sub-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -73,6 +75,21 @@ function publishTenantEvent(tenantId, payload) {
         return;
     const serialized = JSON.stringify(toEnvelope(tenantId, payload));
     for (const subscriber of bucket.values()) {
-        subscriber.push(serialized);
+        try {
+            subscriber.push(serialized);
+        }
+        catch {
+            publishFailureCount += 1;
+        }
     }
+}
+function getRealtimeServerStats() {
+    let connectionCount = 0;
+    for (const bucket of tenantSubscribers.values()) {
+        connectionCount += bucket.size;
+    }
+    return {
+        connectionCount,
+        publishFailureCount,
+    };
 }

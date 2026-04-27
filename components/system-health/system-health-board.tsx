@@ -54,13 +54,13 @@ export function SystemHealthBoard({ initialData }: { initialData: SystemHealthPa
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       <PageHeader
         title="系统健康"
         subtitle="监控实时连接、报警延迟、设备在线率、错误日志和接口响应时间，判断值守链路是否健康。"
         aside={
-          <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[color:var(--text-secondary)]">
-            <p>实时连接</p>
+          <div className="sf-metric-block px-3.5 py-2.5 text-sm text-[color:var(--text-secondary)]">
+            <p className="sf-label">实时连接</p>
             <p className="mt-1 text-lg font-semibold text-[color:var(--text-primary)]">
               {realtimeStatus === "connected" ? "已连接" : realtimeStatus === "reconnecting" ? "重连中" : "连接中"}
             </p>
@@ -69,10 +69,10 @@ export function SystemHealthBoard({ initialData }: { initialData: SystemHealthPa
       />
 
       <SectionCard title="关键指标" description="按照安全关键系统视角展示核心运行指标。">
-        <div className="grid gap-3 lg:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {data.metrics.map((metric) => (
-            <div key={metric.code} className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
-              <p className="text-xs text-[color:var(--text-muted)]">{metric.name}</p>
+            <div key={metric.code} className="sf-kpi px-4 py-3">
+              <p className="sf-label">{metric.name}</p>
               <p className="mt-2 text-2xl font-semibold text-[color:var(--text-primary)]">
                 {metric.displayValue}
                 {metric.code === "api_response_time" && apiLatency !== null ? apiLatency : metric.unit ? metric.unit : ""}
@@ -87,7 +87,7 @@ export function SystemHealthBoard({ initialData }: { initialData: SystemHealthPa
         <SectionCard title="最近错误日志" description="最近失败操作，用于快速定位风险。">
           <div className="space-y-3">
             {data.recentErrors.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3">
+              <div key={item.id} className="rounded-[16px] border border-[color:rgba(176,72,79,0.18)] bg-[color:var(--danger-soft)] px-4 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-rose-700">{item.action}</p>
                   <span className="text-xs text-rose-600">{item.createdAt}</span>
@@ -104,7 +104,7 @@ export function SystemHealthBoard({ initialData }: { initialData: SystemHealthPa
         <SectionCard title="最近设备事件" description="按最近接入顺序展示原始事件流。">
           <div className="space-y-3">
             {data.latestEvents.map((event) => (
-              <div key={event.id} className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+              <div key={event.id} className="sf-list-row px-4 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-[color:var(--text-primary)]">{event.deviceId}</p>
                   <span className="text-xs text-[color:var(--text-muted)]">{event.reportedAt}</span>

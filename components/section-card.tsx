@@ -16,14 +16,17 @@ export function SectionCard({
   return (
     <section
       className={cn(
-        "rounded-[24px] border border-[color:var(--border)] bg-[var(--surface)] p-4 shadow-[var(--panel-shadow)] sm:p-5",
+        "sf-panel sf-rise-in relative overflow-hidden p-3 sm:p-3.5",
         className,
       )}
     >
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+      <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(72,106,141,0.16),transparent)]" />
+      <div className="mb-2.5 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-[color:var(--text-primary)]">{title}</h3>
-          {description ? <p className="mt-1.5 max-w-3xl text-sm leading-6 text-[color:var(--text-muted)]">{description}</p> : null}
+          <h3 className="text-[0.98rem] font-semibold tracking-[-0.01em] text-[color:var(--text-primary)]">{title}</h3>
+          {description ? (
+            <p className="mt-0.5 max-w-3xl text-[12px] leading-5 text-[color:var(--text-muted)]">{description}</p>
+          ) : null}
         </div>
         {extra ? <div>{extra}</div> : null}
       </div>

@@ -16,6 +16,7 @@ type Subscriber = {
 };
 
 const tenantSubscribers = new Map<string, Map<string, Subscriber>>();
+let publishFailureCount = 0;
 
 function nextSubscriberId() {
   return `sub-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -95,6 +96,22 @@ export function publishTenantEvent(tenantId: string, payload: Record<string, unk
   if (!bucket || bucket.size === 0) return;
   const serialized = JSON.stringify(toEnvelope(tenantId, payload));
   for (const subscriber of bucket.values()) {
-    subscriber.push(serialized);
+    try {
+      subscriber.push(serialized);
+    } catch {
+      publishFailureCount += 1;
+    }
   }
+}
+
+export function getRealtimeServerStats() {
+  let connectionCount = 0;
+  for (const bucket of tenantSubscribers.values()) {
+    connectionCount += bucket.size;
+  }
+
+  return {
+    connectionCount,
+    publishFailureCount,
+  };
 }

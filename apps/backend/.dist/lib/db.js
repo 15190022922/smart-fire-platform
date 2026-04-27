@@ -322,12 +322,26 @@ async function createSchema(client) {
       tenant_id TEXT NOT NULL,
       device_id TEXT NOT NULL,
       gateway_id TEXT,
+      event_id TEXT,
+      dedupe_key TEXT,
+      protocol TEXT NOT NULL DEFAULT 'http',
       event_type TEXT NOT NULL,
       event_code TEXT NOT NULL,
       event_level TEXT NOT NULL,
       payload JSONB NOT NULL,
+      raw_payload JSONB,
+      processing_status TEXT NOT NULL DEFAULT 'processed',
+      processed_at TEXT,
       reported_at TEXT NOT NULL
     );
+
+    ALTER TABLE raw_device_events ADD COLUMN IF NOT EXISTS event_id TEXT;
+    ALTER TABLE raw_device_events ADD COLUMN IF NOT EXISTS dedupe_key TEXT;
+    ALTER TABLE raw_device_events ADD COLUMN IF NOT EXISTS protocol TEXT NOT NULL DEFAULT 'http';
+    ALTER TABLE raw_device_events ADD COLUMN IF NOT EXISTS raw_payload JSONB;
+    ALTER TABLE raw_device_events ADD COLUMN IF NOT EXISTS processing_status TEXT NOT NULL DEFAULT 'processed';
+    ALTER TABLE raw_device_events ADD COLUMN IF NOT EXISTS processed_at TEXT;
+    CREATE UNIQUE INDEX IF NOT EXISTS raw_device_events_dedupe_key_idx ON raw_device_events (dedupe_key);
 
     CREATE TABLE IF NOT EXISTS device_status_snapshots (
       device_id TEXT PRIMARY KEY,
@@ -608,37 +622,37 @@ async function seedSpatialFoundation(client) {
     }
     await client.query(`
     INSERT INTO tenant_sites (id, tenant_id, name, code, address, status, description) VALUES
-    ('site-hx-main', 'tenant-huaxing', '鍗庢槦鍒堕€犱富鍥尯', 'HX-SITE-01', '鑻忓窞宸ヤ笟鍥尯閲戠煶璺?18 鍙?, 'active', '浼佷笟涓荤敓浜у洯鍖猴紝鍖呭惈涓ゆ爧鍘傛埧涓庝竴澶勬秷闃叉车鎴裤€?),
-    ('site-ah-mall', 'tenant-anhe', '瀹夊拰鍟嗕笟涓績', 'AH-SITE-01', '鏉窞瀹夊拰澶ч亾 88 鍙?, 'active', '鍟嗕笟缁煎悎浣撳満鏅紝閲嶇偣鍖哄煙涓轰腑搴€佸湴涓嬭溅搴撳拰閰嶇數鎴裤€?)
+    ('site-hx-main', 'tenant-huaxing', '华星制造主园区', 'HX-SITE-01', '苏州工业园区金石路18号', 'active', '企业主生产园区，包含厂房与消防泵房'),
+    ('site-ah-mall', 'tenant-anhe', '安和商业中心', 'AH-SITE-01', '杭州安和大道88号', 'active', '商业综合体场景，重点区域为中庭、地下车库和配电房')
     ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO tenant_buildings (id, tenant_id, site_id, name, code, level_count, usage_type) VALUES
-    ('building-hx-a', 'tenant-huaxing', 'site-hx-main', '1鍙峰巶鎴?, 'HX-A', 3, '鍒堕€犺溅闂?),
+    ('building-hx-a', 'tenant-huaxing', 'site-hx-main', '1号厂房', 'HX-A', 3, '制造车间'),
     ('building-hx-pump', 'tenant-huaxing', 'site-hx-main', '娑堥槻娉垫埧', 'HX-P', 1, '鍔ㄥ姏淇濋殰'),
-    ('building-ah-main', 'tenant-anhe', 'site-ah-mall', '鍟嗕笟涓绘ゼ', 'AH-MAIN', 5, '鍟嗕笟缁煎悎浣?),
-    ('building-ah-garage', 'tenant-anhe', 'site-ah-mall', '鍦颁笅杞﹀簱', 'AH-GARAGE', 2, '鍋滆溅涓庤澶囩敤鎴?)
+    ('building-ah-main', 'tenant-anhe', 'site-ah-mall', '商业主楼', 'AH-MAIN', 5, '商业综合体'),
+    ('building-ah-garage', 'tenant-anhe', 'site-ah-mall', '地下车库', 'AH-GARAGE', 2, '停车与设备用房')
     ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO tenant_floors (id, tenant_id, building_id, name, code, level_index, description) VALUES
-    ('floor-hx-a-1', 'tenant-huaxing', 'building-hx-a', '1灞?, 'HX-A-1', 1, '涓滀晶閰嶇數鍖轰笌鍘熸枡缂撳啿鍖恒€?),
-    ('floor-hx-a-2', 'tenant-huaxing', 'building-hx-a', '2灞?, 'HX-A-2', 2, '鑱斿姩妯″潡涓庡伐鑹鸿蛋寤娿€?),
-    ('floor-hx-p-1', 'tenant-huaxing', 'building-hx-pump', '娉垫埧灞?, 'HX-P-1', 1, '娑堥槻娉典笌绋冲帇璁惧銆?),
-    ('floor-ah-main-1', 'tenant-anhe', 'building-ah-main', '1灞備腑搴?, 'AH-M-1', 1, '涓涵銆佸晢閾哄叆鍙ｄ笌鐤忔暎閫氶亾銆?),
-    ('floor-ah-g-2', 'tenant-anhe', 'building-ah-garage', 'B2 杞﹀簱', 'AH-G-B2', -2, '鍦颁笅杞﹀簱涓庣數姊墠瀹ゃ€?)
+    ('floor-hx-a-1', 'tenant-huaxing', 'building-hx-a', '1层', 'HX-A-1', 1, '东侧配电区与原料缓冲区'),
+    ('floor-hx-a-2', 'tenant-huaxing', 'building-hx-a', '2层', 'HX-A-2', 2, '联动模块与工艺走廊'),
+    ('floor-hx-p-1', 'tenant-huaxing', 'building-hx-pump', '泵房层', 'HX-P-1', 1, '消防泵与稳压设备'),
+    ('floor-ah-main-1', 'tenant-anhe', 'building-ah-main', '1层中庭', 'AH-M-1', 1, '中庭、商铺入口与疏散通道'),
+    ('floor-ah-g-2', 'tenant-anhe', 'building-ah-garage', 'B2车库', 'AH-G-B2', -2, '地下车库与电梯前室')
     ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO tenant_drawings (id, tenant_id, floor_id, name, file_url, width, height, version, status, updated_at) VALUES
-    ('drawing-hx-a-1', 'tenant-huaxing', 'floor-hx-a-1', '1鍙峰巶鎴?1灞傛€诲浘', '/drawings/hx-a-1.png', 1600, 900, 'v1.0', 'published', '2026-04-18 10:20:00'),
-    ('drawing-hx-a-2', 'tenant-huaxing', 'floor-hx-a-2', '1鍙峰巶鎴?2灞傝仈鍔ㄥ浘', '/drawings/hx-a-2.png', 1600, 900, 'v1.0', 'published', '2026-04-18 10:26:00'),
-    ('drawing-hx-p-1', 'tenant-huaxing', 'floor-hx-p-1', '娉垫埧甯冪疆鍥?, '/drawings/hx-p-1.png', 1200, 720, 'v0.9', 'draft', '2026-04-19 08:15:00'),
-    ('drawing-ah-main-1', 'tenant-anhe', 'floor-ah-main-1', '鍟嗕笟涓绘ゼ 1灞傛秷闃插浘', '/drawings/ah-main-1.png', 1800, 1080, 'v1.2', 'published', '2026-04-17 17:40:00'),
-    ('drawing-ah-g-2', 'tenant-anhe', 'floor-ah-g-2', 'B2 杞﹀簱娑堥槻鎬诲浘', '/drawings/ah-g-b2.png', 1800, 1080, 'v1.1', 'published', '2026-04-16 14:05:00')
+    ('drawing-hx-a-1', 'tenant-huaxing', 'floor-hx-a-1', '1号厂房1层总图', '/drawings/hx-a-1.png', 1600, 900, 'v1.0', 'published', '2026-04-18 10:20:00'),
+    ('drawing-hx-a-2', 'tenant-huaxing', 'floor-hx-a-2', '1号厂房2层联动图', '/drawings/hx-a-2.png', 1600, 900, 'v1.0', 'published', '2026-04-18 10:26:00'),
+    ('drawing-hx-p-1', 'tenant-huaxing', 'floor-hx-p-1', '泵房布置图', '/drawings/hx-p-1.png', 1200, 720, 'v0.9', 'draft', '2026-04-19 08:15:00'),
+    ('drawing-ah-main-1', 'tenant-anhe', 'floor-ah-main-1', '商业主楼1层消防图', '/drawings/ah-main-1.png', 1800, 1080, 'v1.2', 'published', '2026-04-17 17:40:00'),
+    ('drawing-ah-g-2', 'tenant-anhe', 'floor-ah-g-2', 'B2车库消防总图', '/drawings/ah-g-b2.png', 1800, 1080, 'v1.1', 'published', '2026-04-16 14:05:00')
     ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO tenant_gateways (id, tenant_id, site_id, name, protocol, serial_number, status, last_seen_at) VALUES
-    ('gateway-hx-1', 'tenant-huaxing', 'site-hx-main', '鍗庢槦鍥尯閲囬泦缃戝叧 1', 'MQTT', 'HXGW-202604-001', 'online', '2026-04-22 15:18:00'),
-    ('gateway-hx-2', 'tenant-huaxing', 'site-hx-main', '娉垫埧杈圭紭缃戝叧', 'Modbus TCP', 'HXGW-202604-002', 'fault', '2026-04-22 14:51:00'),
-    ('gateway-ah-1', 'tenant-anhe', 'site-ah-mall', '鍟嗕笟涓績杈圭紭缃戝叧', 'MQTT', 'AHGW-202604-001', 'online', '2026-04-22 15:16:00')
+    ('gateway-hx-1', 'tenant-huaxing', 'site-hx-main', '华星园区采集网关1', 'MQTT', 'HXGW-202604-001', 'online', '2026-04-22 15:18:00'),
+    ('gateway-hx-2', 'tenant-huaxing', 'site-hx-main', '泵房边缘网关', 'Modbus TCP', 'HXGW-202604-002', 'fault', '2026-04-22 14:51:00'),
+    ('gateway-ah-1', 'tenant-anhe', 'site-ah-mall', '商业中心边缘网关', 'MQTT', 'AHGW-202604-001', 'online', '2026-04-22 15:16:00')
     ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO tenant_device_points (id, tenant_id, device_id, floor_id, drawing_id, x, y, rotation, icon, status_style, updated_at) VALUES
@@ -1291,6 +1305,7 @@ async function getPlatformOverview() {
         platformUsers: (await allReady("SELECT * FROM platform_users ORDER BY username ASC")).map(mapPlatformUser),
     };
 }
+/** @deprecated Enterprise-side overview is served from packages/database repositories. */
 async function getTenantOverview(tenantId) {
     const tenant = await getTenantById(tenantId);
     const subscriptionRow = await getReady("SELECT * FROM subscriptions WHERE tenant_id = $1 LIMIT 1", [tenantId]);
@@ -1309,6 +1324,7 @@ async function getTenantOverview(tenantId) {
         quota: quotaRow ? mapQuota(quotaRow) : null,
     };
 }
+/** @deprecated Enterprise-side spatial model is served from packages/database repositories. */
 async function getTenantSpatialModel(tenantId) {
     const [sites, buildings, floors, drawings, gateways, devicePoints, statusSnapshots, recentEvents, devices] = await Promise.all([
         allReady("SELECT * FROM tenant_sites WHERE tenant_id = $1 ORDER BY name ASC", [tenantId]),
@@ -2108,6 +2124,7 @@ async function deleteTenantUser(tenantId, id) {
 async function listTenantDevices(tenantId) {
     return (await allReady("SELECT * FROM tenant_devices WHERE tenant_id = $1 ORDER BY name ASC", [tenantId])).map(mapTenantDevice);
 }
+/** @deprecated Enterprise-side drawings writes are served from packages/database repositories. */
 async function createTenantDrawing(tenantId, input) {
     await ensureDatabase();
     const id = `drawing-${Date.now()}`;
@@ -2129,6 +2146,7 @@ async function createTenantDrawing(tenantId, input) {
     ]);
     return mapDrawing(await getReady("SELECT * FROM tenant_drawings WHERE id = $1", [id]));
 }
+/** @deprecated Enterprise-side drawings writes are served from packages/database repositories. */
 async function deleteTenantDrawing(tenantId, drawingId) {
     await ensureDatabase();
     await withClient(async (client) => {
@@ -2144,6 +2162,7 @@ async function deleteTenantDrawing(tenantId, drawingId) {
         }
     });
 }
+/** @deprecated Enterprise-side device-point writes are served from packages/database repositories. */
 async function upsertTenantDevicePoint(tenantId, input) {
     await ensureDatabase();
     const existing = input.id
@@ -2184,6 +2203,7 @@ async function upsertTenantDevicePoint(tenantId, input) {
     ]);
     return mapDevicePoint(await getReady("SELECT * FROM tenant_device_points WHERE id = $1", [id]));
 }
+/** @deprecated Enterprise-side device-point writes are served from packages/database repositories. */
 async function deleteTenantDevicePoint(tenantId, pointId) {
     await queryReady("DELETE FROM tenant_device_points WHERE tenant_id = $1 AND id = $2", [tenantId, pointId]);
 }

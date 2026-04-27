@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SaaSDemoProvider } from "@/components/saas/saas-demo-provider";
-import { getAdminState } from "@/lib/db";
+import { fetchBackendJson } from "@/lib/backend-client";
+import { getServerSession } from "@/lib/server-auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,9 +15,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   let initialAdminState = null;
+  const session = await getServerSession();
 
   try {
-    initialAdminState = await getAdminState();
+    if (session?.scope === "platform") {
+      const response = await fetchBackendJson("/api/admin/state", { session });
+      initialAdminState = response.ok ? await response.json() : null;
+    }
   } catch {
     initialAdminState = null;
   }

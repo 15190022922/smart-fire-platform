@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { PageHeader } from "@/components/page-header";
 import { Dialog } from "@/components/ui/dialog";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
+import { PaginationBar } from "@/components/ui/pagination-bar";
 import { getTenantEventBus } from "@/lib/realtime/event-bus";
 
 type DeviceStatus = "正常" | "报警" | "故障" | "离线" | "维修中";
@@ -38,7 +40,7 @@ const deviceStatuses: DeviceStatus[] = ["正常", "报警", "故障", "离线", 
 const pageSize = 6;
 
 const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+  "sf-input h-11 px-4 text-sm";
 
 const emptyDeviceForm: DeviceFormState = {
   name: "",
@@ -241,37 +243,38 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
   }
 
   return (
-    <div className="space-y-6">
-      <SectionCard
+    <div className="space-y-2.5">
+      <PageHeader
         title="设备管理"
-        description="当前设备列表与增删改查已接入持久化存储，刷新页面或重新登录后会保留。"
-        extra={
-          <button
-            type="button"
-            onClick={openCreateDialog}
-            className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
-          >
+        subtitle="统一维护设备台账、状态筛选和详情查看，列表与地图点位使用同一份设备数据。"
+        aside={
+          <button type="button" onClick={openCreateDialog} className="sf-button sf-button-primary h-10 px-4 text-sm">
             新增设备
           </button>
         }
+      />
+
+      <SectionCard
+        title="设备总表"
+        description="当前设备列表与增删改查已接入持久化存储，刷新页面或重新登录后会保留。"
       >
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
-              <p className="text-sm text-[color:var(--text-muted)]">设备总数</p>
-              <p className="mt-2 text-2xl font-semibold text-[color:var(--text-primary)]">{summary.total}</p>
+            <div className="sf-kpi px-4 py-4">
+              <p className="sf-label">设备总数</p>
+              <p className="mt-3 text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">{summary.total}</p>
             </div>
-            <div className="rounded-[22px] border border-rose-200 bg-rose-50 p-4">
-              <p className="text-sm text-rose-600">报警设备</p>
-              <p className="mt-2 text-2xl font-semibold text-rose-700">{summary.alarm}</p>
+            <div className="sf-kpi px-4 py-4" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, var(--danger-soft) 180%)" }}>
+              <p className="sf-label text-[color:var(--danger-strong)]">报警设备</p>
+              <p className="mt-3 text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--danger-strong)]">{summary.alarm}</p>
             </div>
-            <div className="rounded-[22px] border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm text-amber-600">故障设备</p>
-              <p className="mt-2 text-2xl font-semibold text-amber-700">{summary.fault}</p>
+            <div className="sf-kpi px-4 py-4" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, var(--warning-soft) 180%)" }}>
+              <p className="sf-label text-[color:var(--warning-strong)]">故障设备</p>
+              <p className="mt-3 text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--warning-strong)]">{summary.fault}</p>
             </div>
-            <div className="rounded-[22px] border border-cyan-200 bg-cyan-50 p-4">
-              <p className="text-sm text-cyan-700">维修中</p>
-              <p className="mt-2 text-2xl font-semibold text-cyan-700">{summary.maintenance}</p>
+            <div className="sf-kpi px-4 py-4" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, var(--info-soft) 180%)" }}>
+              <p className="sf-label text-[color:var(--info)]">维修中</p>
+              <p className="mt-3 text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--info)]">{summary.maintenance}</p>
             </div>
           </div>
 
@@ -284,11 +287,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
                   setActiveFilter(filter);
                   setPage(1);
                 }}
-                className={`rounded-full border px-4 py-2 text-sm transition ${
-                  activeFilter === filter
-                    ? "border-sky-200 bg-sky-50 text-sky-700"
-                    : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)] hover:bg-[var(--surface-muted)]"
-                }`}
+                className={`sf-button h-10 px-4 text-sm ${activeFilter === filter ? "sf-button-primary" : "sf-button-secondary"}`}
               >
                 {filter}
               </button>
@@ -296,7 +295,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
           </div>
         </div>
 
-        <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,320px)_1fr]">
+        <div className="sf-toolbar mt-5 grid gap-3 p-3 xl:grid-cols-[minmax(0,320px)_1fr]">
           <input
             value={searchValue}
             onChange={(event) => {
@@ -306,33 +305,46 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
             placeholder="搜索设备名称、类型、区域或状态"
             className={inputClassName}
           />
-          <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[color:var(--text-secondary)]">
-            {loading ? "正在加载设备数据..." : `当前展示 ${filteredDevices.length} 台设备`}
+          <div className="sf-metric-block flex items-center justify-between gap-3 px-4 py-3">
+            <div>
+              <p className="sf-label">Device Scope</p>
+              <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
+                {loading ? "正在加载设备数据..." : "当前检索结果"}
+              </p>
+            </div>
+            <p className="text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">
+              {loading ? "--" : filteredDevices.length}
+            </p>
           </div>
         </div>
 
-        <div className="mt-5 overflow-x-auto rounded-[24px] border border-[color:var(--border)]">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-[var(--table-head)] text-[color:var(--text-muted)]">
+        <div className="sf-table-shell mt-5 overflow-x-auto">
+          <table className="min-w-[760px] text-left text-sm">
+            <thead className="sf-table-head">
               <tr>
-                <th className="px-4 py-3 font-medium">设备名称</th>
-                <th className="px-4 py-3 font-medium">设备类型</th>
-                <th className="px-4 py-3 font-medium">所在位置</th>
-                <th className="px-4 py-3 font-medium">当前状态</th>
-                <th className="px-4 py-3 font-medium">最近上报时间</th>
-                <th className="px-4 py-3 font-medium">操作</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">设备名称</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">设备类型</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">所在位置</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">当前状态</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">最近上报时间</th>
+                <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-[0.08em]">操作</th>
               </tr>
             </thead>
             <tbody className="bg-[var(--table-row)]">
               {pagedDevices.map((device, index) => (
                 <tr
                   key={device.id}
-                  className="border-t border-[color:var(--border)] text-[color:var(--text-secondary)]"
+                  className="border-t border-[color:var(--border-soft)] text-[color:var(--text-secondary)] transition-colors duration-150 hover:bg-[color:var(--surface-muted)]"
                   style={{
                     backgroundColor: index % 2 === 0 ? "var(--table-row)" : "var(--table-row-alt)",
                   }}
                 >
-                  <td className="px-4 py-4 font-medium text-[color:var(--text-primary)]">{device.name}</td>
+                  <td className="px-4 py-4">
+                    <div>
+                      <p className="font-semibold tracking-[-0.01em] text-[color:var(--text-primary)]">{device.name}</p>
+                      <p className="mt-1 text-xs text-[color:var(--text-muted)]">{device.area}</p>
+                    </div>
+                  </td>
                   <td className="px-4 py-4">{device.type}</td>
                   <td className="px-4 py-4">
                     <div className="max-w-56">
@@ -348,21 +360,21 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
                       <button
                         type="button"
                         onClick={() => openViewDialog(device)}
-                        className="rounded-full border border-[color:var(--border)] px-3 py-1 text-xs text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)]"
+                        className="sf-button sf-button-secondary h-8 px-3 text-xs"
                       >
                         详情
                       </button>
                       <button
                         type="button"
                         onClick={() => openEditDialog(device)}
-                        className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs text-sky-700 transition hover:bg-sky-100"
+                        className="sf-button sf-button-primary h-8 px-3 text-xs"
                       >
                         编辑
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(device)}
-                        className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700 transition hover:bg-rose-100"
+                        className="sf-button sf-button-danger h-8 px-3 text-xs"
                       >
                         删除
                       </button>
@@ -374,29 +386,14 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
           </table>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-[color:var(--text-muted)]">
-            第 {currentPage} / {totalPages} 页
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={currentPage === 1}
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              上一页
-            </button>
-            <button
-              type="button"
-              disabled={currentPage === totalPages}
-              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-              className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              下一页
-            </button>
-          </div>
-        </div>
+        <PaginationBar
+          page={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredDevices.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          label="设备列表"
+        />
       </SectionCard>
 
       <Dialog
@@ -410,7 +407,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
               type="button"
               onClick={closeDialog}
               disabled={submitting}
-              className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)]"
+              className="sf-button sf-button-secondary h-10 px-4 text-sm"
             >
               取消
             </button>
@@ -418,7 +415,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
+              className="sf-button sf-button-primary h-10 px-4 text-sm"
             >
               保存
             </button>
@@ -456,10 +453,10 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
           </label>
           <label className="space-y-2 md:col-span-2">
             <span className="text-sm text-[color:var(--text-secondary)]">备注</span>
-            <textarea value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} className={`${inputClassName} min-h-28`} />
+            <textarea value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} className={`${inputClassName} min-h-28 py-3`} />
           </label>
           {submitError ? (
-            <div className="md:col-span-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <div className="md:col-span-2 rounded-[14px] border border-[color:rgba(176,72,79,0.18)] bg-[color:var(--danger-soft)] px-4 py-3 text-sm text-[color:var(--danger-strong)]">
               {submitError}
             </div>
           ) : null}
@@ -474,30 +471,30 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
       >
         {viewingDevice ? (
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
-              <p className="text-sm text-[color:var(--text-muted)]">设备名称</p>
+            <div className="sf-metric-block p-4">
+              <p className="sf-label">设备名称</p>
               <p className="mt-2 text-base font-semibold text-[color:var(--text-primary)]">{viewingDevice.name}</p>
             </div>
-            <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
-              <p className="text-sm text-[color:var(--text-muted)]">设备状态</p>
+            <div className="sf-metric-block p-4">
+              <p className="sf-label">设备状态</p>
               <div className="mt-2">
                 <StatusBadge status={viewingDevice.status} />
               </div>
             </div>
-            <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
-              <p className="text-sm text-[color:var(--text-muted)]">设备类型</p>
+            <div className="sf-metric-block p-4">
+              <p className="sf-label">设备类型</p>
               <p className="mt-2 text-base text-[color:var(--text-primary)]">{viewingDevice.type}</p>
             </div>
-            <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
-              <p className="text-sm text-[color:var(--text-muted)]">最近上报时间</p>
+            <div className="sf-metric-block p-4">
+              <p className="sf-label">最近上报时间</p>
               <p className="mt-2 text-base text-[color:var(--text-primary)]">{viewingDevice.lastReportAt}</p>
             </div>
-            <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-muted)] p-4 md:col-span-2">
-              <p className="text-sm text-[color:var(--text-muted)]">所在位置</p>
+            <div className="sf-metric-block p-4 md:col-span-2">
+              <p className="sf-label">所在位置</p>
               <p className="mt-2 text-base text-[color:var(--text-primary)]">{viewingDevice.location}</p>
             </div>
-            <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-muted)] p-4 md:col-span-2">
-              <p className="text-sm text-[color:var(--text-muted)]">备注</p>
+            <div className="sf-metric-block p-4 md:col-span-2">
+              <p className="sf-label">备注</p>
               <p className="mt-2 text-base leading-7 text-[color:var(--text-primary)]">{viewingDevice.notes}</p>
             </div>
           </div>

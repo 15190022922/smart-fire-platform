@@ -87,39 +87,39 @@ export function DashboardChartsPanel({
   }
 
   return (
-    <section className="grid h-full min-h-0 gap-2 xl:grid-cols-[minmax(0,1.42fr)_minmax(0,0.82fr)_minmax(0,1.02fr)]">
-      <article className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] rounded-[20px] border border-[color:var(--border-strong)] bg-[var(--surface)] shadow-[var(--panel-shadow)]">
-        <div className="flex items-center justify-between gap-3 border-b border-[color:var(--border)] px-3 py-2">
+    <section className="grid h-full min-h-0 gap-1.5 xl:grid-cols-[minmax(0,1.42fr)_minmax(0,0.82fr)_minmax(0,1.02fr)]">
+      <article className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[18px] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(247,250,253,0.98)_100%)] shadow-[var(--panel-shadow)]">
+        <div className="flex items-center justify-between gap-3 border-b border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(250,252,255,0.98)_0%,rgba(244,248,252,0.96)_100%)] px-3 py-2">
           <div>
-            <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">近 6 小时警情变化</h2>
+            <h2 className="text-sm font-semibold tracking-[-0.01em] text-[color:var(--text-primary)]">近 6 小时警情变化</h2>
             <p className="text-[11px] text-[color:var(--text-muted)]">同时查看新增报警、未闭环数量和已处理数量</p>
           </div>
           <button
             type="button"
             onClick={handleExport}
-            className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700 transition hover:bg-sky-100"
+            className="sf-button sf-button-primary px-3 py-1 text-xs"
           >
             导出
           </button>
         </div>
-        <div className="px-3 py-2">
+        <div className="px-3 py-2.5">
           <svg viewBox={`0 0 ${width} ${height + 18}`} className="h-24 w-full">
-            <polyline fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={totalPolyline} />
-            <polyline fill="none" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={pendingPolyline} />
-            <polyline fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={handledPolyline} />
+            <polyline fill="none" stroke="#b0484f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={totalPolyline} />
+            <polyline fill="none" stroke="#a96b22" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={pendingPolyline} />
+            <polyline fill="none" stroke="#39765b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={handledPolyline} />
           </svg>
 
           <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px]">
             <span className="inline-flex items-center gap-1 text-[color:var(--text-secondary)]">
-              <span className="h-2 w-2 rounded-full bg-rose-500" />
+              <span className="h-2 w-2 rounded-full bg-[var(--danger)]" />
               新增报警
             </span>
             <span className="inline-flex items-center gap-1 text-[color:var(--text-secondary)]">
-              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              <span className="h-2 w-2 rounded-full bg-[var(--warning)]" />
               未闭环
             </span>
             <span className="inline-flex items-center gap-1 text-[color:var(--text-secondary)]">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="h-2 w-2 rounded-full bg-[var(--success)]" />
               已处理
             </span>
           </div>
@@ -138,11 +138,11 @@ export function DashboardChartsPanel({
         </div>
       </article>
 
-      <article className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] rounded-[20px] border border-[color:var(--border-strong)] bg-[var(--surface)] shadow-[var(--panel-shadow)]">
-        <div className="border-b border-[color:var(--border)] px-3 py-2">
-          <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">设备状态</h2>
+      <article className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[18px] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(247,250,253,0.98)_100%)] shadow-[var(--panel-shadow)]">
+        <div className="border-b border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(250,252,255,0.98)_0%,rgba(244,248,252,0.96)_100%)] px-3 py-2">
+          <h2 className="text-sm font-semibold tracking-[-0.01em] text-[color:var(--text-primary)]">设备状态</h2>
         </div>
-        <div className="grid grid-cols-4 items-end gap-2 px-3 py-2">
+        <div className="grid grid-cols-2 items-end gap-2 px-3 py-2 sm:grid-cols-4">
           {visibleBreakdown.map((item) => (
             <div key={item.label} className="flex h-full flex-col justify-end">
               <div className="mb-1 text-center">
@@ -157,9 +157,9 @@ export function DashboardChartsPanel({
         </div>
       </article>
 
-      <article className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] rounded-[20px] border border-[color:var(--border-strong)] bg-[var(--surface)] shadow-[var(--panel-shadow)]">
-        <div className="border-b border-[color:var(--border)] px-3 py-2">
-          <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">报警类型分布</h2>
+      <article className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[18px] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(247,250,253,0.98)_100%)] shadow-[var(--panel-shadow)]">
+        <div className="border-b border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(250,252,255,0.98)_0%,rgba(244,248,252,0.96)_100%)] px-3 py-2">
+          <h2 className="text-sm font-semibold tracking-[-0.01em] text-[color:var(--text-primary)]">报警类型分布</h2>
         </div>
         <div className="min-h-0 space-y-2 overflow-y-auto px-3 py-2">
           {typeStats.map((item) => (

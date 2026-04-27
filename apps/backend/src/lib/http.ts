@@ -13,7 +13,10 @@ export function sendJson(res: ServerResponse, status: number, payload: unknown) 
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Cookie, x-tenant-id, x-user-scope, x-user-name, x-user-role");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Cookie, x-tenant-id, x-user-scope, x-user-name, x-user-role, x-backend-internal-token",
+  );
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");
   res.end(JSON.stringify(payload));
 }

@@ -6,10 +6,11 @@ import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
 import { useSaaSDemo } from "@/components/saas/saas-demo-provider";
+import { StatusBadge } from "@/components/status-badge";
 import { FeatureKey, PlanRecord, PlanStatus } from "@/types/saas";
 
 const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+  "sf-input h-11 px-4 text-sm";
 
 type PlanFormState = Omit<PlanRecord, "id">;
 
@@ -106,66 +107,78 @@ export function PlanManager() {
 
   return (
     <FeatureGuard title="套餐管理" permissionKey="platform.plans.manage">
-      <div className="space-y-6">
-      <PageHeader
-        title="套餐管理"
-        subtitle="定义基础版、专业版、企业版等套餐能力，控制功能、配额和短信额度。"
-        aside={
-          <button type="button" onClick={openCreate} className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700">
-            新增套餐
-          </button>
-        }
-      />
+      <div className="space-y-2.5">
+        <PageHeader
+          title="套餐管理"
+          subtitle="定义基础版、专业版、企业版等套餐能力，控制功能、配额和短信额度。"
+          aside={
+            <button type="button" onClick={openCreate} className="sf-button sf-button-primary h-10 px-4 text-sm">
+              新增套餐
+            </button>
+          }
+        />
 
-      <SectionCard title="套餐列表" description="套餐决定企业可用功能、设备数、用户数和短信通知额度。">
-        <div className="grid gap-4 xl:grid-cols-3">
-          {plans.map((plan) => (
-            <div key={plan.id} className="rounded-[24px] border border-[color:var(--border)] bg-[var(--surface)] p-5 shadow-[var(--panel-shadow)]">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-lg font-semibold text-[color:var(--text-primary)]">{plan.name}</p>
-                  <p className="mt-1 text-sm text-[color:var(--text-muted)]">{plan.description}</p>
+        <SectionCard title="套餐列表" description="套餐决定企业可用功能、设备数、用户数和短信通知额度。">
+          <div className="grid gap-4 xl:grid-cols-3">
+            {plans.map((plan) => (
+              <div
+                key={plan.id}
+                className="sf-panel-subtle relative overflow-hidden p-4 transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-[var(--panel-shadow)]"
+              >
+                <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent_0%,rgba(72,106,141,0.32)_48%,transparent_100%)]" />
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="sf-label">Service Plan</p>
+                    <p className="mt-2 text-[19px] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">
+                      {plan.name}
+                    </p>
+                    <p className="mt-1 text-sm text-[color:var(--text-muted)]">{plan.description}</p>
+                  </div>
+                  <StatusBadge status={plan.status} />
                 </div>
-                <span className={`rounded-full border px-3 py-1 text-xs ${plan.status === "启用" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-100 text-slate-700"}`}>
-                  {plan.status}
-                </span>
-              </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
-                  <p className="text-[color:var(--text-muted)]">月费</p>
-                  <p className="mt-2 font-semibold text-[color:var(--text-primary)]">¥ {plan.priceMonthly}</p>
+                <div className="mt-4 grid grid-cols-2 gap-2.5 text-sm">
+                  <div className="sf-metric-block px-3.5 py-3">
+                    <p className="sf-label">月费</p>
+                    <p className="mt-2 font-semibold text-[color:var(--text-primary)]">¥ {plan.priceMonthly}</p>
+                  </div>
+                  <div className="sf-metric-block px-3.5 py-3">
+                    <p className="sf-label">短信额度</p>
+                    <p className="mt-2 font-semibold text-[color:var(--text-primary)]">{plan.smsQuota}</p>
+                  </div>
+                  <div className="sf-metric-block px-3.5 py-3">
+                    <p className="sf-label">最大设备数</p>
+                    <p className="mt-2 font-semibold text-[color:var(--text-primary)]">{plan.maxDevices}</p>
+                  </div>
+                  <div className="sf-metric-block px-3.5 py-3">
+                    <p className="sf-label">最大用户数</p>
+                    <p className="mt-2 font-semibold text-[color:var(--text-primary)]">{plan.maxUsers}</p>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
-                  <p className="text-[color:var(--text-muted)]">短信额度</p>
-                  <p className="mt-2 font-semibold text-[color:var(--text-primary)]">{plan.smsQuota}</p>
-                </div>
-                <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
-                  <p className="text-[color:var(--text-muted)]">最大设备数</p>
-                  <p className="mt-2 font-semibold text-[color:var(--text-primary)]">{plan.maxDevices}</p>
-                </div>
-                <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
-                  <p className="text-[color:var(--text-muted)]">最大用户数</p>
-                  <p className="mt-2 font-semibold text-[color:var(--text-primary)]">{plan.maxUsers}</p>
-                </div>
-              </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                {planFeatureMap[plan.id].map((name) => (
-                  <span key={name} className="rounded-full border border-[color:var(--border)] bg-[var(--surface-muted)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
-                    {name}
-                  </span>
-                ))}
-              </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {planFeatureMap[plan.id].map((name) => (
+                    <span
+                      key={name}
+                      className="rounded-full border border-[color:var(--border-soft)] bg-[color:rgba(255,255,255,0.8)] px-3 py-1 text-xs text-[color:var(--text-secondary)]"
+                    >
+                      {name}
+                    </span>
+                  ))}
+                </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button type="button" onClick={() => openEdit(plan)} className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs text-sky-700">编辑</button>
-                <button type="button" onClick={() => removePlan(plan)} className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700">删除</button>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => openEdit(plan)} className="sf-button sf-button-primary h-8 px-3 text-xs">
+                    编辑
+                  </button>
+                  <button type="button" onClick={() => removePlan(plan)} className="sf-button sf-button-danger h-8 px-3 text-xs">
+                    删除
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </SectionCard>
+            ))}
+          </div>
+        </SectionCard>
 
       <Dialog
         open={dialogMode === "create" || dialogMode === "edit"}
@@ -173,8 +186,8 @@ export function PlanManager() {
         title={dialogMode === "create" ? "新增套餐" : "编辑套餐"}
         footer={
           <>
-            <button type="button" onClick={closeDialog} className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)]">取消</button>
-            <button type="button" onClick={savePlan} className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700">保存</button>
+            <button type="button" onClick={closeDialog} className="sf-button sf-button-secondary h-10 px-4 text-sm">取消</button>
+            <button type="button" onClick={savePlan} className="sf-button sf-button-primary h-10 px-4 text-sm">保存</button>
           </>
         }
       >
@@ -212,7 +225,7 @@ export function PlanManager() {
           </label>
           <label className="space-y-2 md:col-span-2">
             <span className="text-sm text-[color:var(--text-secondary)]">套餐说明</span>
-            <textarea value={formState.description} onChange={(event) => setFormState((current) => ({ ...current, description: event.target.value }))} className={`${inputClassName} min-h-24`} />
+            <textarea value={formState.description} onChange={(event) => setFormState((current) => ({ ...current, description: event.target.value }))} className={`${inputClassName} min-h-24 py-3`} />
           </label>
           <div className="space-y-2 md:col-span-2">
             <span className="text-sm text-[color:var(--text-secondary)]">可用功能</span>
@@ -224,7 +237,9 @@ export function PlanManager() {
                     key={feature.key}
                     type="button"
                     onClick={() => toggleFeature(feature.key)}
-                    className={`rounded-full border px-4 py-2 text-sm transition ${active ? "border-sky-200 bg-sky-50 text-sky-700" : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)]"}`}
+                    className={`sf-button h-10 px-4 text-sm ${
+                      active ? "sf-button-primary" : "sf-button-secondary"
+                    }`}
                   >
                     {feature.name}
                   </button>

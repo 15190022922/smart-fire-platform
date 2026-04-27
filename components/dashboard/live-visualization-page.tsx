@@ -472,20 +472,20 @@ export function LiveVisualizationPage({
 
   return (
     <div
-      className="grid min-h-0 grid-cols-1 gap-2 lg:h-full lg:grid-rows-[86px_minmax(0,1fr)_152px] lg:overflow-hidden"
+      className="grid min-h-0 grid-cols-1 gap-1.5 xl:h-full xl:grid-rows-[84px_minmax(0,1fr)_148px] xl:overflow-hidden"
       style={{
-        paddingTop: "var(--tenant-page-top-offset, 4px)",
-        gap: "var(--tenant-page-gap, 4px)",
+        paddingTop: "var(--tenant-page-top-offset, 2px)",
+        gap: "var(--tenant-page-gap, 6px)",
       }}
     >
       <DashboardTopMetrics metrics={metrics} />
 
       <section
-        className="grid min-h-0 gap-2 pt-1 xl:grid-cols-[minmax(0,1fr)_360px]"
-        style={{ gap: "var(--tenant-page-gap, 4px)" }}
+        className="grid min-h-0 gap-1.5 pt-0.5 xl:grid-cols-[minmax(0,1fr)_368px]"
+        style={{ gap: "var(--tenant-page-gap, 6px)" }}
       >
         <InteractiveMapPanel zones={zones} />
-        <div className="grid min-h-0 pt-1" style={{ gap: "var(--tenant-page-gap, 4px)" }}>
+        <div className="grid min-h-0 pt-0.5" style={{ gap: "var(--tenant-page-gap, 6px)" }}>
           <AlarmRealtimePanel alarms={alarmFeed} realtimeStatus={realtimeStatus} onRefresh={refresh} />
         </div>
       </section>

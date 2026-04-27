@@ -14,17 +14,17 @@ const zoneLayout: Record<
   string,
   { x: number; y: number; width: number; height: number; tone: string; labelTone: string }
 > = {
-  "zone-1": { x: 220, y: 210, width: 620, height: 360, tone: "bg-sky-50", labelTone: "text-sky-700" },
-  "zone-2": { x: 1280, y: 170, width: 560, height: 380, tone: "bg-cyan-50", labelTone: "text-cyan-700" },
-  "zone-3": { x: 320, y: 860, width: 760, height: 290, tone: "bg-slate-100", labelTone: "text-slate-700" },
-  "zone-4": { x: 1420, y: 860, width: 420, height: 260, tone: "bg-emerald-50", labelTone: "text-emerald-700" },
+  "zone-1": { x: 220, y: 210, width: 620, height: 360, tone: "bg-[rgba(232,241,250,0.92)]", labelTone: "text-[var(--accent-strong)]" },
+  "zone-2": { x: 1280, y: 170, width: 560, height: 380, tone: "bg-[rgba(238,246,250,0.92)]", labelTone: "text-[rgb(58,99,128)]" },
+  "zone-3": { x: 320, y: 860, width: 760, height: 290, tone: "bg-[rgba(243,246,250,0.94)]", labelTone: "text-[color:var(--text-secondary)]" },
+  "zone-4": { x: 1420, y: 860, width: 420, height: 260, tone: "bg-[rgba(236,246,241,0.94)]", labelTone: "text-[var(--success-strong)]" },
 };
 
 const pointTone: Record<string, string> = {
-  正常: "border-emerald-300 bg-emerald-500",
-  报警: "border-rose-300 bg-rose-500 point-pulse",
-  故障: "border-amber-300 bg-amber-500",
-  离线: "border-slate-300 bg-slate-400",
+  正常: "border-[rgba(57,118,91,0.38)] bg-[var(--success)]",
+  报警: "border-[rgba(176,72,79,0.42)] bg-[var(--danger)] point-pulse",
+  故障: "border-[rgba(169,107,34,0.42)] bg-[var(--warning)]",
+  离线: "border-[rgba(107,125,145,0.35)] bg-[rgb(130,144,160)]",
 };
 
 type HoveredPoint = {
@@ -155,14 +155,14 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
   }
 
   return (
-    <section className="grid min-h-[420px] grid-rows-[auto_minmax(0,1fr)] rounded-[20px] border border-[color:var(--border-strong)] bg-[var(--surface)] shadow-[var(--panel-shadow)] lg:min-h-0">
-      <div className="flex min-h-0 flex-col gap-2 border-b border-[color:var(--border)] px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+    <section className="sf-panel grid min-h-[420px] grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[18px] lg:min-h-0">
+      <div className="flex min-h-0 flex-col gap-2 border-b border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(250,252,255,0.98)_0%,rgba(244,248,252,0.96)_100%)] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="flex flex-wrap gap-1.5 text-xs">
-            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-emerald-700">正常</span>
-            <span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-rose-700">报警</span>
-            <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-amber-700">故障</span>
-            <span className="rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-slate-700">离线</span>
+            <span className="rounded-full border border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] px-2.5 py-1 text-[var(--success-strong)]">正常</span>
+            <span className="rounded-full border border-[rgba(176,72,79,0.18)] bg-[var(--danger-soft)] px-2.5 py-1 text-[var(--danger-strong)]">报警</span>
+            <span className="rounded-full border border-[rgba(169,107,34,0.18)] bg-[var(--warning-soft)] px-2.5 py-1 text-[var(--warning-strong)]">故障</span>
+            <span className="rounded-full border border-[rgba(107,125,145,0.18)] bg-[var(--neutral-soft)] px-2.5 py-1 text-[color:var(--text-secondary)]">离线</span>
           </div>
           <div className="hidden h-4 w-px bg-[color:var(--border)] sm:block" />
           <div className="flex flex-wrap gap-1.5">
@@ -170,10 +170,10 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
               type="button"
               onClick={() => setActiveZoneId("all")}
               className={cn(
-                "rounded-full border px-2.5 py-1 text-xs transition",
+                "sf-button rounded-full px-2.5 py-1 text-xs",
                 activeZoneId === "all"
-                  ? "border-sky-200 bg-sky-50 text-sky-700"
-                  : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)] hover:bg-[var(--surface-muted)]",
+                  ? "border-[rgba(72,106,141,0.18)] bg-[var(--accent-soft)] text-[var(--accent-strong)]"
+                  : "border-[color:var(--border)] bg-[rgba(255,255,255,0.65)] text-[color:var(--text-secondary)] hover:bg-[var(--surface)]",
               )}
             >
               全部区域
@@ -184,10 +184,10 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
                 type="button"
                 onClick={() => setActiveZoneId(zone.id)}
                 className={cn(
-                  "rounded-full border px-2.5 py-1 text-xs transition",
+                  "sf-button rounded-full px-2.5 py-1 text-xs",
                   activeZoneId === zone.id
-                    ? "border-sky-200 bg-sky-50 text-sky-700"
-                    : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)] hover:bg-[var(--surface-muted)]",
+                    ? "border-[rgba(72,106,141,0.18)] bg-[var(--accent-soft)] text-[var(--accent-strong)]"
+                    : "border-[color:var(--border)] bg-[rgba(255,255,255,0.65)] text-[color:var(--text-secondary)] hover:bg-[var(--surface)]",
                 )}
               >
                 {zone.name}
@@ -196,7 +196,7 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
           </div>
         </div>
         {selectedPoint ? (
-          <span className="hidden shrink-0 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs text-sky-700 xl:inline-flex">
+          <span className="hidden shrink-0 rounded-full border border-[rgba(72,106,141,0.18)] bg-[var(--accent-soft)] px-3 py-1 text-[11px] font-semibold text-[var(--accent-strong)] xl:inline-flex">
             {selectedPoint.deviceName}
           </span>
         ) : null}
@@ -207,7 +207,7 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
         className={cn("relative min-h-0 overflow-hidden select-none touch-none", dragState ? "cursor-grabbing" : "cursor-grab")}
         style={{
           background:
-            "linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 85%, white) 0%, var(--surface-muted) 100%)",
+            "linear-gradient(180deg, rgba(249,252,255,0.98) 0%, rgba(239,244,249,0.98) 100%)",
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -217,14 +217,14 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
         onContextMenu={(event) => event.preventDefault()}
         onWheel={handleWheel}
       >
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.12)_1px,transparent_1px)] bg-[size:46px_46px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(130,149,171,0.09)_1px,transparent_1px),linear-gradient(90deg,rgba(130,149,171,0.09)_1px,transparent_1px)] bg-[size:46px_46px]" />
 
         <div className="absolute right-3 top-3 z-20 flex items-center gap-2 sm:right-4 sm:top-4">
           <button
             type="button"
             aria-label="缩小"
             onPointerDown={handleZoomOut}
-            className="rounded-full border border-[color:var(--border)] bg-white/78 px-2.5 py-2 text-[11px] text-[color:var(--text-secondary)] backdrop-blur sm:px-3 sm:text-xs"
+            className="sf-button sf-button-secondary bg-white/76 px-2.5 py-2 text-[11px] backdrop-blur sm:px-3 sm:text-xs"
           >
             -
           </button>
@@ -232,7 +232,7 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
             type="button"
             aria-label="复位"
             onPointerDown={handleZoomReset}
-            className="rounded-full border border-[color:var(--border)] bg-white/78 px-2.5 py-2 text-[11px] text-[color:var(--text-secondary)] backdrop-blur sm:px-3 sm:text-xs"
+            className="sf-button sf-button-secondary bg-white/76 px-2.5 py-2 text-[11px] backdrop-blur sm:px-3 sm:text-xs"
           >
             复位
           </button>
@@ -240,7 +240,7 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
             type="button"
             aria-label="放大"
             onPointerDown={handleZoomIn}
-            className="rounded-full border border-[color:var(--border)] bg-white/78 px-2.5 py-2 text-[11px] text-[color:var(--text-secondary)] backdrop-blur sm:px-3 sm:text-xs"
+            className="sf-button sf-button-secondary bg-white/76 px-2.5 py-2 text-[11px] backdrop-blur sm:px-3 sm:text-xs"
           >
             +
           </button>
@@ -254,13 +254,13 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
             transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
           }}
         >
-          <div className="absolute left-[120px] top-[590px] h-[92px] w-[1900px] rounded-full bg-slate-200/85" />
-          <div className="absolute left-[1020px] top-[90px] h-[1040px] w-[108px] rounded-full bg-slate-200/85" />
-          <div className="absolute left-[140px] top-[120px] h-[180px] w-[250px] rounded-[38px] border border-slate-300 bg-amber-50" />
-          <div className="absolute right-[160px] top-[120px] h-[220px] w-[260px] rounded-[40px] border border-slate-300 bg-sky-50" />
-          <div className="absolute right-[220px] bottom-[100px] h-[200px] w-[250px] rounded-[40px] border border-slate-300 bg-emerald-50" />
-          <div className="absolute left-[500px] top-[120px] h-[120px] w-[240px] rounded-[30px] border border-dashed border-slate-300 bg-white/80" />
-          <div className="absolute left-[1440px] top-[690px] h-[130px] w-[190px] rounded-[26px] border border-dashed border-slate-300 bg-white/80" />
+          <div className="absolute left-[120px] top-[590px] h-[92px] w-[1900px] rounded-full bg-[rgba(173,186,200,0.62)]" />
+          <div className="absolute left-[1020px] top-[90px] h-[1040px] w-[108px] rounded-full bg-[rgba(173,186,200,0.62)]" />
+          <div className="absolute left-[140px] top-[120px] h-[180px] w-[250px] rounded-[30px] border border-[rgba(150,166,184,0.8)] bg-[rgba(255,247,235,0.92)]" />
+          <div className="absolute right-[160px] top-[120px] h-[220px] w-[260px] rounded-[32px] border border-[rgba(150,166,184,0.8)] bg-[rgba(238,246,250,0.92)]" />
+          <div className="absolute right-[220px] bottom-[100px] h-[200px] w-[250px] rounded-[32px] border border-[rgba(150,166,184,0.8)] bg-[rgba(236,246,241,0.92)]" />
+          <div className="absolute left-[500px] top-[120px] h-[120px] w-[240px] rounded-[22px] border border-dashed border-[rgba(156,171,188,0.9)] bg-white/78" />
+          <div className="absolute left-[1440px] top-[690px] h-[130px] w-[190px] rounded-[22px] border border-dashed border-[rgba(156,171,188,0.9)] bg-white/78" />
 
           {visibleZones.map((zone) => {
             const frame = zoneLayout[zone.id];
@@ -268,23 +268,23 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
             return (
               <section
                 key={zone.id}
-                className="absolute rounded-[28px] border border-[color:var(--border-strong)] bg-[var(--surface-strong)] p-4 shadow-[var(--panel-shadow)]"
+                className="absolute rounded-[20px] border border-[color:var(--border-strong)] bg-[rgba(255,255,255,0.9)] p-4 shadow-[0_12px_26px_rgba(16,33,49,0.07)] backdrop-blur-[2px]"
                 style={{ left: frame.x, top: frame.y, width: frame.width, height: frame.height }}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <div className={`rounded-full border border-[color:var(--border)] bg-[var(--surface-strong)] px-3 py-1 text-xs font-medium ${frame.labelTone}`}>
+                  <div className={`rounded-full border border-[color:var(--border)] bg-[rgba(255,255,255,0.84)] px-3 py-1 text-[11px] font-semibold ${frame.labelTone}`}>
                     {zone.level}
                   </div>
-                  <div className="rounded-full border border-[color:var(--border)] bg-[var(--surface-muted)] px-3 py-1 text-xs text-[color:var(--text-muted)]">
+                  <div className="rounded-full border border-[color:var(--border)] bg-[rgba(244,248,252,0.88)] px-3 py-1 text-[11px] text-[color:var(--text-muted)]">
                     {zone.riskLevel}
                   </div>
                 </div>
-                <div className={`relative mt-3 h-[calc(100%-44px)] rounded-[22px] border border-[color:var(--border)] ${frame.tone}`}>
-                  <div className="absolute inset-4 rounded-[16px] border border-dashed border-slate-300" />
-                  <div className="absolute left-[22%] top-0 h-full w-px bg-slate-200" />
-                  <div className="absolute left-[61%] top-0 h-full w-px bg-slate-200" />
-                  <div className="absolute top-[30%] h-px w-full bg-slate-200" />
-                  <div className="absolute top-[68%] h-px w-full bg-slate-200" />
+                <div className={`relative mt-3 h-[calc(100%-44px)] rounded-[16px] border border-[rgba(150,166,184,0.56)] ${frame.tone}`}>
+                  <div className="absolute inset-4 rounded-[12px] border border-dashed border-[rgba(150,166,184,0.7)]" />
+                  <div className="absolute left-[22%] top-0 h-full w-px bg-[rgba(165,180,198,0.65)]" />
+                  <div className="absolute left-[61%] top-0 h-full w-px bg-[rgba(165,180,198,0.65)]" />
+                  <div className="absolute top-[30%] h-px w-full bg-[rgba(165,180,198,0.65)]" />
+                  <div className="absolute top-[68%] h-px w-full bg-[rgba(165,180,198,0.65)]" />
                 </div>
               </section>
             );
@@ -299,7 +299,7 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
                   type="button"
                   draggable={false}
                   aria-label={point.deviceName}
-                  className={`absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full border-2 shadow-sm ${pointTone[point.status] ?? pointTone["正常"]}`}
+                  className={`absolute h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full border-2 shadow-[0_0_0_3px_rgba(255,255,255,0.74)] ${pointTone[point.status] ?? pointTone["正常"]}`}
                   style={{ left: position.x, top: position.y }}
                   onDragStart={(event) => event.preventDefault()}
                   onPointerDown={(event) => event.stopPropagation()}
@@ -318,7 +318,7 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
         </div>
 
         {selectedPoint ? (
-          <div className="absolute bottom-3 left-3 right-3 z-20 rounded-[18px] border border-[color:var(--border-strong)] bg-[var(--surface-strong)] p-4 shadow-[var(--panel-shadow)] sm:left-4 sm:right-auto sm:w-[320px]">
+          <div className="absolute bottom-3 left-3 right-3 z-20 rounded-[16px] border border-[color:var(--border-strong)] bg-[rgba(255,255,255,0.96)] p-4 shadow-[var(--panel-shadow-strong)] sm:left-4 sm:right-auto sm:w-[320px]">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-[color:var(--text-primary)]">{selectedPoint.deviceName}</p>
@@ -332,7 +332,7 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
                   event.stopPropagation();
                   setSelectedPoint(null);
                 }}
-                className="rounded-full border border-[color:var(--border)] px-2.5 py-1 text-[11px] text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)]"
+                className="sf-button sf-button-secondary px-2.5 py-1 text-[11px]"
               >
                 关闭
               </button>
@@ -358,7 +358,7 @@ export function InteractiveMapPanel({ zones }: { zones: FloorZone[] }) {
 
         {hoveredPoint ? (
           <div
-            className="pointer-events-none absolute z-20 hidden w-[280px] rounded-[18px] border border-[color:var(--border-strong)] bg-[var(--surface-strong)] p-4 text-left shadow-[var(--panel-shadow)] sm:block"
+            className="pointer-events-none absolute z-20 hidden w-[280px] rounded-[16px] border border-[color:var(--border-strong)] bg-[rgba(255,255,255,0.96)] p-4 text-left shadow-[var(--panel-shadow-strong)] sm:block"
             style={{ left: hoveredPoint.x, top: hoveredPoint.y }}
           >
             <div className="flex items-start justify-between gap-3">

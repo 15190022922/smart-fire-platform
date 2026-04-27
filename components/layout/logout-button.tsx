@@ -17,8 +17,8 @@ export function LogoutButton({ compact = false }: { compact?: boolean }) {
       onClick={handleLogout}
       className={
         compact
-          ? "rounded-full border border-[color:var(--border)] bg-[var(--surface-strong)] px-3 py-1.5 text-sm text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)]"
-          : "rounded-full border border-[color:var(--border)] bg-[var(--surface-strong)] px-4 py-2 text-sm text-[color:var(--text-secondary)] transition hover:bg-[var(--surface-muted)]"
+          ? "sf-button sf-button-secondary px-3 py-1.5 text-sm"
+          : "sf-button sf-button-secondary px-4 py-2 text-sm"
       }
     >
       退出登录
