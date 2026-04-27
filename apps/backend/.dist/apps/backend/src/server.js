@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createBackendServer = createBackendServer;
 const http_1 = require("http");
+const bootstrap_1 = require("../../../packages/database/src/bootstrap");
 const load_env_1 = require("./lib/load-env");
 const http_2 = require("./lib/http");
 const runtime_metrics_1 = require("./lib/runtime-metrics");
@@ -22,6 +23,7 @@ const realtime_controller_1 = require("./modules/realtime/realtime-controller");
 const spatial_controller_1 = require("./modules/spatial/spatial-controller");
 const user_controller_1 = require("./modules/users/user-controller");
 (0, load_env_1.loadBackendEnv)();
+const backendBootstrapPromise = (0, bootstrap_1.bootstrapDatabase)({ includeDemoSeed: true });
 const port = Number(process.env.BACKEND_PORT ?? 4001);
 function createBackendServer() {
     return (0, http_1.createServer)(async (req, res) => {
@@ -40,6 +42,7 @@ function createBackendServer() {
         const url = new URL(req.url, `http://${req.headers.host}`);
         const context = (0, auth_context_1.resolveRequestContext)(req);
         try {
+            await backendBootstrapPromise;
             if (req.method === "GET" && url.pathname === "/healthz") {
                 await (0, health_controller_1.getBackendHealth)(res);
                 return;

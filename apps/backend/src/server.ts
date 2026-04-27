@@ -1,4 +1,5 @@
 import { createServer } from "http";
+import { bootstrapDatabase } from "../../../packages/database/src/bootstrap";
 import { loadBackendEnv } from "./lib/load-env";
 import { sendJson } from "./lib/http";
 import { recordRuntimeError } from "./lib/runtime-metrics";
@@ -36,6 +37,8 @@ import { getUsers, postUser, deleteUser } from "./modules/users/user-controller"
 
 loadBackendEnv();
 
+const backendBootstrapPromise = bootstrapDatabase({ includeDemoSeed: true });
+
 const port = Number(process.env.BACKEND_PORT ?? 4001);
 
 export function createBackendServer() {
@@ -61,6 +64,8 @@ export function createBackendServer() {
     const context = resolveRequestContext(req);
 
     try {
+      await backendBootstrapPromise;
+
       if (req.method === "GET" && url.pathname === "/healthz") {
         await getBackendHealth(res);
         return;
