@@ -18,6 +18,7 @@ import type {
   ProcessStatus,
 } from "@/types/platform";
 import type { TenantSpatialModel } from "@/types/hardware";
+import type { AlarmCenterItem } from "@/types/ops";
 import type { RealtimeConnectionState, RealtimeEnvelope } from "@/types/realtime";
 import type { TenantDeviceRecord } from "@/types/saas";
 
@@ -159,14 +160,14 @@ function toMetricData(devices: TenantDeviceRecord[], alarms: AlarmRecord[]): Das
   ];
 }
 
-function toAlarmFeed(alarms: TenantOverviewPayload["alarms"] | undefined | null): AlarmRecord[] {
+function toAlarmFeed(alarms: AlarmCenterItem[] | undefined | null): AlarmRecord[] {
   const now = new Date();
   const source = Array.isArray(alarms) ? alarms : [];
 
   return source
     .map<AlarmRecord>((alarm) => {
       const alarmDate = parseLocalDateTime(alarm.time);
-      const processStatus = normalizeProcessStatus(alarm.processStatus);
+      const processStatus = normalizeProcessStatus(alarm.workflowStatus as ProcessStatus);
       const isToday = isSameLocalDay(alarmDate, now);
       const isActive = isOpenAlarm(processStatus);
 
@@ -394,12 +395,15 @@ function applyRealtimeEventToSpatialModel(current: TenantSpatialModel, event: Te
 export function LiveVisualizationPage({
   initialOverview,
   initialSpatialModel,
+  initialAlarmCenterItems,
 }: {
   initialOverview: TenantOverviewPayload;
   initialSpatialModel: TenantSpatialModel;
+  initialAlarmCenterItems: AlarmCenterItem[];
 }) {
   const [overview, setOverview] = useState(initialOverview);
   const [spatialModel, setSpatialModel] = useState(initialSpatialModel);
+  const [alarmCenterItems, setAlarmCenterItems] = useState(initialAlarmCenterItems);
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeConnectionState>("connecting");
   const isRefreshingRef = useRef(false);
 
@@ -407,9 +411,10 @@ export function LiveVisualizationPage({
     if (isRefreshingRef.current) return;
     isRefreshingRef.current = true;
 
-    const [overviewResponse, spatialResponse] = await Promise.all([
+    const [overviewResponse, spatialResponse, alarmCenterResponse] = await Promise.all([
       fetch("/api/tenant/overview", { cache: "no-store" }),
       fetch("/api/tenant/spatial-model", { cache: "no-store" }),
+      fetch("/api/tenant/alarm-center", { cache: "no-store" }),
     ]);
 
     try {
@@ -418,6 +423,10 @@ export function LiveVisualizationPage({
       }
       if (spatialResponse.ok) {
         setSpatialModel((await spatialResponse.json()) as TenantSpatialModel);
+      }
+      if (alarmCenterResponse.ok) {
+        const payload = (await alarmCenterResponse.json()) as { alarms?: AlarmCenterItem[] };
+        setAlarmCenterItems(Array.isArray(payload.alarms) ? payload.alarms : []);
       }
     } finally {
       isRefreshingRef.current = false;
@@ -463,7 +472,7 @@ export function LiveVisualizationPage({
     };
   }, [refresh]);
 
-  const alarmFeed = useMemo(() => toAlarmFeed(overview.alarms), [overview.alarms]);
+  const alarmFeed = useMemo(() => toAlarmFeed(alarmCenterItems), [alarmCenterItems]);
   const metrics = useMemo(() => toMetricData(overview.devices, alarmFeed), [alarmFeed, overview.devices]);
   const zones = useMemo(() => toZones(spatialModel, overview.devices), [overview.devices, spatialModel]);
   const deviceOverview = useMemo(() => toDeviceOverview(overview.devices), [overview.devices]);

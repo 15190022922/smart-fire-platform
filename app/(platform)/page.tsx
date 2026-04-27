@@ -2,6 +2,7 @@ import { getServerSession } from "@/lib/server-auth";
 import { fetchBackendJson } from "@/lib/backend-client";
 import { LiveVisualizationPage, type TenantOverviewPayload } from "@/components/dashboard/live-visualization-page";
 import type { TenantSpatialModel } from "@/types/hardware";
+import type { AlarmCenterItem } from "@/types/ops";
 
 export default async function VisualizationPage() {
   const session = await getServerSession();
@@ -10,13 +11,15 @@ export default async function VisualizationPage() {
     return null;
   }
 
-  const [overviewResponse, spatialModelResponse] = await Promise.all([
+  const [overviewResponse, spatialModelResponse, alarmCenterResponse] = await Promise.all([
     fetchBackendJson<Partial<TenantOverviewPayload>>("/api/tenant/overview", { session }),
     fetchBackendJson<TenantSpatialModel>("/api/tenant/spatial-model", { session }),
+    fetchBackendJson<{ alarms?: AlarmCenterItem[] }>("/api/tenant/alarm-center", { session }),
   ]);
 
   const overviewPayload = overviewResponse.ok ? await overviewResponse.json() : {};
   const spatialPayload = spatialModelResponse.ok ? await spatialModelResponse.json() : null;
+  const alarmCenterPayload = alarmCenterResponse.ok ? await alarmCenterResponse.json() : {};
 
   const overview: TenantOverviewPayload = {
     devices: Array.isArray(overviewPayload.devices) ? overviewPayload.devices : [],
@@ -47,5 +50,11 @@ export default async function VisualizationPage() {
       recentEvents: [],
     } satisfies TenantSpatialModel);
 
-  return <LiveVisualizationPage initialOverview={overview} initialSpatialModel={spatialModel} />;
+  return (
+    <LiveVisualizationPage
+      initialOverview={overview}
+      initialSpatialModel={spatialModel}
+      initialAlarmCenterItems={Array.isArray(alarmCenterPayload.alarms) ? alarmCenterPayload.alarms : []}
+    />
+  );
 }
