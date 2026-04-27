@@ -3,30 +3,47 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
+import { useToast } from "@/components/ui/toast-center";
 
-const inputClassName =
+const baseInputClassName =
   "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
 
+type PasswordErrors = Partial<Record<"currentPassword" | "nextPassword" | "confirmPassword", string>>;
+
+function requiredLabel(label: string) {
+  return (
+    <span className="flex items-center gap-1 text-sm text-[color:var(--text-secondary)]">
+      {label}
+      <span className="text-rose-500">*</span>
+    </span>
+  );
+}
+
+function inputClassName(hasError: boolean) {
+  return `${baseInputClassName} ${hasError ? "border-rose-300 text-rose-700 focus:border-rose-300 focus:ring-rose-100" : ""}`;
+}
+
 export function AdminProfile() {
+  const { pushToast } = useToast();
   const [currentPassword, setCurrentPassword] = useState("");
   const [nextPassword, setNextPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [requestError, setRequestError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<PasswordErrors>({});
 
   async function handleChangePassword() {
-    setError("");
-    setMessage("");
+    const nextErrors: PasswordErrors = {};
+    setRequestError("");
 
-    if (!currentPassword || !nextPassword || !confirmPassword) {
-      setError("请完整填写密码信息");
-      return;
+    if (!currentPassword) nextErrors.currentPassword = "请输入当前密码";
+    if (!nextPassword) nextErrors.nextPassword = "请输入新密码";
+    if (!confirmPassword) nextErrors.confirmPassword = "请再次输入新密码";
+    if (nextPassword && confirmPassword && nextPassword !== confirmPassword) {
+      nextErrors.confirmPassword = "两次输入的新密码不一致";
     }
 
-    if (nextPassword !== confirmPassword) {
-      setError("两次输入的新密码不一致");
-      return;
-    }
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
     const response = await fetch("/api/auth/change-password", {
       method: "POST",
@@ -36,14 +53,15 @@ export function AdminProfile() {
 
     const result = (await response.json()) as { message?: string };
     if (!response.ok) {
-      setError(result.message ?? "修改密码失败");
+      setRequestError(result.message ?? "修改密码失败");
       return;
     }
 
-    setMessage("密码已更新，下次登录请使用新密码");
     setCurrentPassword("");
     setNextPassword("");
     setConfirmPassword("");
+    setFieldErrors({});
+    pushToast({ message: "密码已更新，下次登录请使用新密码。", tone: "success" });
   }
 
   return (
@@ -76,43 +94,46 @@ export function AdminProfile() {
         <SectionCard title="修改密码" description="密码修改后会立即写入本地数据库，重新登录时生效。">
           <div className="grid gap-4">
             <label className="space-y-2">
-              <span className="text-sm text-[color:var(--text-secondary)]">当前密码</span>
+              {requiredLabel("当前密码")}
               <input
                 type="password"
                 value={currentPassword}
-                onChange={(event) => setCurrentPassword(event.target.value)}
-                className={inputClassName}
+                onChange={(event) => {
+                  setCurrentPassword(event.target.value);
+                  setFieldErrors((current) => ({ ...current, currentPassword: "" }));
+                }}
+                className={inputClassName(Boolean(fieldErrors.currentPassword))}
               />
+              {fieldErrors.currentPassword ? <div className="text-xs font-medium text-rose-600">{fieldErrors.currentPassword}</div> : null}
             </label>
             <label className="space-y-2">
-              <span className="text-sm text-[color:var(--text-secondary)]">新密码</span>
+              {requiredLabel("新密码")}
               <input
                 type="password"
                 value={nextPassword}
-                onChange={(event) => setNextPassword(event.target.value)}
-                className={inputClassName}
+                onChange={(event) => {
+                  setNextPassword(event.target.value);
+                  setFieldErrors((current) => ({ ...current, nextPassword: "" }));
+                }}
+                className={inputClassName(Boolean(fieldErrors.nextPassword))}
               />
+              {fieldErrors.nextPassword ? <div className="text-xs font-medium text-rose-600">{fieldErrors.nextPassword}</div> : null}
             </label>
             <label className="space-y-2">
-              <span className="text-sm text-[color:var(--text-secondary)]">确认新密码</span>
+              {requiredLabel("确认新密码")}
               <input
                 type="password"
                 value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                className={inputClassName}
+                onChange={(event) => {
+                  setConfirmPassword(event.target.value);
+                  setFieldErrors((current) => ({ ...current, confirmPassword: "" }));
+                }}
+                className={inputClassName(Boolean(fieldErrors.confirmPassword))}
               />
+              {fieldErrors.confirmPassword ? <div className="text-xs font-medium text-rose-600">{fieldErrors.confirmPassword}</div> : null}
             </label>
 
-            {error ? (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                {error}
-              </div>
-            ) : null}
-            {message ? (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                {message}
-              </div>
-            ) : null}
+            {requestError ? <div className="text-sm font-medium text-rose-600">{requestError}</div> : null}
 
             <div>
               <button

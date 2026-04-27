@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SaaSDemoProvider } from "@/components/saas/saas-demo-provider";
+import { ToastProvider } from "@/components/ui/toast-center";
 import { fetchBackendJson } from "@/lib/backend-client";
 import { getServerSession } from "@/lib/server-auth";
 import "./globals.css";
@@ -29,7 +30,9 @@ export default async function RootLayout({
   return (
     <html lang="zh-CN" className="h-full antialiased" data-theme="light">
       <body className="min-h-full font-sans text-[color:var(--text-primary)]">
-        <SaaSDemoProvider initialAdminState={initialAdminState}>{children}</SaaSDemoProvider>
+        <ToastProvider>
+          <SaaSDemoProvider initialAdminState={initialAdminState}>{children}</SaaSDemoProvider>
+        </ToastProvider>
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
 import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useToast } from "@/components/ui/toast-center";
 import { getTenantEventBus } from "@/lib/realtime/event-bus";
 
 type DeviceStatus = "正常" | "报警" | "故障" | "离线" | "维修中";
@@ -34,6 +35,8 @@ type DeviceFormState = {
   lastReportAt: string;
   notes: string;
 };
+
+type DeviceFieldErrors = Partial<Record<"name" | "type" | "area" | "installationLocation", string>>;
 
 const statusFilters: DeviceStatusFilter[] = ["全部", "正常", "报警", "故障", "离线", "维修中"];
 const deviceStatuses: DeviceStatus[] = ["正常", "报警", "故障", "离线", "维修中"];
@@ -66,6 +69,7 @@ function toFormState(device: DeviceRecord): DeviceFormState {
 }
 
 export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string }) {
+  const { pushToast } = useToast();
   const router = useRouter();
   const [devices, setDevices] = useState<DeviceRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +80,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
   const [formState, setFormState] = useState<DeviceFormState>(emptyDeviceForm);
   const [page, setPage] = useState(1);
   const [submitError, setSubmitError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<DeviceFieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
   const loadDevices = useCallback(async () => {
@@ -161,14 +166,14 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
   function openCreateDialog() {
     setFormState(emptyDeviceForm);
     setSelectedDevice(null);
-    setSubmitError("");
+    setFieldErrors({});
     setDialogMode("create");
   }
 
   function openEditDialog(device: DeviceRecord) {
     setSelectedDevice(device);
     setFormState(toFormState(device));
-    setSubmitError("");
+    setFieldErrors({});
     setDialogMode("edit");
   }
 
@@ -180,7 +185,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
   function closeDialog() {
     setDialogMode(null);
     setSelectedDevice(null);
-    setSubmitError("");
+    setFieldErrors({});
     setSubmitting(false);
     if (initialDeviceId) {
       router.replace("/devices");

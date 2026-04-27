@@ -3,16 +3,16 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
+import { useToast } from "@/components/ui/toast-center";
 import { NotificationMessageType, NotificationRule, SystemSettings } from "@/types/platform";
 
 const inputClassName = "sf-input h-11 px-4 text-sm";
-
 const labelClassName = "text-sm text-[color:var(--text-secondary)]";
 const messageTypes: NotificationMessageType[] = ["报警信息", "故障信息"];
 
 export function SettingsManager({ initialSettings }: { initialSettings: SystemSettings }) {
+  const { pushToast } = useToast();
   const [settings, setSettings] = useState<SystemSettings>(initialSettings);
-  const [savedAt, setSavedAt] = useState<string>("");
 
   function updateRule(level: NotificationRule["level"], type: NotificationMessageType) {
     setSettings((current) => ({
@@ -38,25 +38,16 @@ export function SettingsManager({ initialSettings }: { initialSettings: SystemSe
       <PageHeader
         title="系统设置"
         subtitle="基础配置、短信通知默认规则和楼层图占位配置统一在此管理，当前保存为前端本地状态。"
-        aside={
-          savedAt ? (
-            <div className="rounded-full border border-[color:rgba(57,118,91,0.18)] bg-[color:var(--success-soft)] px-4 py-2 text-sm text-[color:var(--success-strong)]">
-              最近保存：{savedAt}
-            </div>
-          ) : null
-        }
       />
 
-      <SectionCard title="基础配置" description="当前为静态演示表单，可直接替换为配置接口返回值。">
+      <SectionCard title="基础配置" description="当前为静态演示表单，后续可直接替换为配置接口返回值。">
         <form className="grid gap-5 lg:grid-cols-2">
           <label className="space-y-2">
             <span className={labelClassName}>项目名称</span>
             <input
               className={inputClassName}
               value={settings.projectName}
-              onChange={(event) =>
-                setSettings((current) => ({ ...current, projectName: event.target.value }))
-              }
+              onChange={(event) => setSettings((current) => ({ ...current, projectName: event.target.value }))}
             />
           </label>
           <label className="space-y-2">
@@ -64,9 +55,7 @@ export function SettingsManager({ initialSettings }: { initialSettings: SystemSe
             <input
               className={inputClassName}
               value={settings.alarmThreshold}
-              onChange={(event) =>
-                setSettings((current) => ({ ...current, alarmThreshold: event.target.value }))
-              }
+              onChange={(event) => setSettings((current) => ({ ...current, alarmThreshold: event.target.value }))}
             />
           </label>
           <label className="space-y-2">
@@ -90,9 +79,7 @@ export function SettingsManager({ initialSettings }: { initialSettings: SystemSe
             <input
               className={inputClassName}
               value={settings.mapPlaceholder}
-              onChange={(event) =>
-                setSettings((current) => ({ ...current, mapPlaceholder: event.target.value }))
-              }
+              onChange={(event) => setSettings((current) => ({ ...current, mapPlaceholder: event.target.value }))}
             />
           </label>
           <label className="space-y-2 lg:col-span-2">
@@ -108,14 +95,11 @@ export function SettingsManager({ initialSettings }: { initialSettings: SystemSe
 
       <SectionCard
         title="短信通知默认规则"
-        description="不同级别用户默认接收的信息类型可在此配置，实际用户仍可在用户管理页单独调整。"
+        description="不同级别用户默认接收的信息类型可在此配置，实际用户仍可在用户管理中单独调整。"
       >
         <div className="grid gap-4 lg:grid-cols-3">
           {settings.notificationRules.map((rule) => (
-            <div
-              key={rule.level}
-              className="sf-panel-subtle p-4"
-            >
+            <div key={rule.level} className="sf-panel-subtle p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-base font-semibold text-[color:var(--text-primary)]">{rule.level}</h3>
@@ -145,7 +129,11 @@ export function SettingsManager({ initialSettings }: { initialSettings: SystemSe
         </div>
 
         <div className="mt-5 flex justify-end">
-          <button type="button" onClick={() => setSavedAt("刚刚")} className="sf-button sf-button-primary h-10 px-5 text-sm">
+          <button
+            type="button"
+            onClick={() => pushToast({ message: "配置已保存", tone: "success" })}
+            className="sf-button sf-button-primary h-10 px-5 text-sm"
+          >
             保存配置
           </button>
         </div>

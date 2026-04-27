@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useToast } from "@/components/ui/toast-center";
 import type { TenantSpatialModel } from "@/types/hardware";
 import type { TenantDeviceRecord, TenantRecord } from "@/types/saas";
 
@@ -18,6 +19,9 @@ const eventOptions = [
   { key: "heartbeat", label: "发送心跳", eventType: "heartbeat" },
 ] as const;
 
+const inputClassName =
+  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+
 async function fetchScene(tenantId: string) {
   const response = await fetch(`/api/platform/tenant-scene?tenantId=${tenantId}`, {
     cache: "no-store",
@@ -34,8 +38,23 @@ function normalizeSnapshotStatus(status?: string) {
   if (status === "alarm") return "报警";
   if (status === "fault") return "故障";
   if (status === "offline") return "离线";
-  if (status === "maintenance") return "维修中";
+  if (status === "maintenance") return "维保中";
   return "正常";
+}
+
+function requiredLabel(label: string) {
+  return (
+    <span className="flex items-center gap-1 text-sm text-[color:var(--text-secondary)]">
+      {label}
+      <span className="text-rose-500">*</span>
+    </span>
+  );
+}
+
+function fieldClassName(hasError: boolean) {
+  return `${inputClassName} ${
+    hasError ? "border-rose-300 text-rose-700 focus:border-rose-300 focus:ring-rose-100" : ""
+  }`;
 }
 
 export function DeviceSimulatorConsole({
@@ -47,12 +66,13 @@ export function DeviceSimulatorConsole({
   initialScene: ScenePayload | null;
   embedded?: boolean;
 }) {
+  const { pushToast } = useToast();
   const [selectedTenantId, setSelectedTenantId] = useState(initialScene?.tenant.id ?? tenants[0]?.id ?? "");
   const [scene, setScene] = useState<ScenePayload | null>(initialScene);
   const [selectedDrawingId, setSelectedDrawingId] = useState(initialScene?.spatialModel.drawings[0]?.id ?? "");
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [sending, setSending] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<"tenantId" | "deviceId", string>>>({});
 
   useEffect(() => {
     let active = true;
@@ -66,10 +86,10 @@ export function DeviceSimulatorConsole({
         setScene(result);
         setSelectedDrawingId(result.spatialModel.drawings[0]?.id ?? "");
         setSelectedDeviceId("");
-        setMessage(null);
+        setFieldErrors({});
       } catch {
         if (active) {
-          setMessage("企业测试场景加载失败。");
+          pushToast({ message: "企业测试场景加载失败，请确认管理端 backend 已启动。", tone: "error" });
         }
       }
     }
@@ -78,7 +98,7 @@ export function DeviceSimulatorConsole({
     return () => {
       active = false;
     };
-  }, [selectedTenantId]);
+  }, [pushToast, selectedTenantId]);
 
   const pointsForDrawing = useMemo(
     () => scene?.spatialModel.devicePoints.filter((point) => point.drawingId === selectedDrawingId) ?? [],
@@ -102,43 +122,60 @@ export function DeviceSimulatorConsole({
   }, [scene]);
 
   async function sendEvent(option: (typeof eventOptions)[number]) {
-    if (!scene || !selectedDevice) {
-      setMessage("请先选择企业和设备。");
+    const nextFieldErrors: Partial<Record<"tenantId" | "deviceId", string>> = {};
+    if (!selectedTenantId) {
+      nextFieldErrors.tenantId = "请选择企业";
+    }
+    if (!selectedDeviceId || !selectedDevice) {
+      nextFieldErrors.deviceId = "请选择设备";
+    }
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
       return;
     }
 
     setSending(true);
-    setMessage(null);
+    setFieldErrors({});
 
     const response = await fetch("/api/ingestion/event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        tenant_id: scene.tenant.id,
-        device_id: selectedDevice.id,
+        tenant_id: scene!.tenant.id,
+        device_id: selectedDevice!.id,
         event_type: option.eventType,
         event_value: {
           operator: "platform_admin",
           simulated: true,
           label: option.label,
-          gateway_id: selectedDevice.gatewayId ?? null,
+          gateway_id: selectedDevice!.gatewayId ?? null,
         },
         event_time: new Date().toISOString(),
       }),
-    });
+    }).catch(() => null);
+
+    if (!response) {
+      pushToast({ message: "模拟信号发送失败，请确认 Web 与 backend 都已启动且可互通。", tone: "error" });
+      setSending(false);
+      return;
+    }
 
     if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+      pushToast({
+        message: payload?.message?.trim() || `模拟信号发送失败（HTTP ${response.status}）`,
+        tone: "error",
+      });
       setSending(false);
-      setMessage("模拟信号发送失败。");
       return;
     }
 
     try {
-      const nextScene = await fetchScene(scene.tenant.id);
+      const nextScene = await fetchScene(scene!.tenant.id);
       setScene(nextScene);
-      setMessage(`已向企业“${scene.tenant.name}”发送“${option.label}”事件。`);
+      pushToast({ message: `已向企业发送${option.label}事件。`, tone: "success" });
     } catch {
-      setMessage("事件已发送，但当前页面刷新企业场景失败。");
+      pushToast({ message: "事件已发送，但当前页面刷新企业场景失败。", tone: "warning" });
     } finally {
       setSending(false);
     }
@@ -153,7 +190,7 @@ export function DeviceSimulatorConsole({
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-700">Device Test Console</p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[color:var(--text-primary)]">设备模拟测试台</h1>
               <p className="mt-3 text-sm leading-7 text-[color:var(--text-muted)]">
-                页面只负责发事件，不直接写报警和设备状态。所有模拟信号统一进入设备接入链路，再由报警引擎、通知、实时推送和审计日志承接。
+                页面只负责发事件，不直接改报警和设备状态。所有模拟信号统一进入设备接入链路，再由报警引擎、通知、实时推送和审计日志承接。
               </p>
             </div>
             <div className="grid min-w-[320px] grid-cols-2 gap-3">
@@ -170,20 +207,19 @@ export function DeviceSimulatorConsole({
         </section>
       ) : null}
 
-      {message ? (
-        <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">{message}</div>
-      ) : null}
-
       <div className="grid gap-6 xl:grid-cols-[0.82fr_1.3fr_0.88fr]">
         <section className="rounded-[28px] border border-[color:var(--border)] bg-[var(--surface)] p-5 shadow-[var(--panel-shadow)]">
           <h2 className="text-lg font-semibold text-[color:var(--text-primary)]">控制面板</h2>
           <div className="mt-4 space-y-4">
             <label className="block space-y-2">
-              <span className="text-sm text-[color:var(--text-secondary)]">选择企业</span>
+              {requiredLabel("选择企业")}
               <select
                 value={selectedTenantId}
-                onChange={(event) => setSelectedTenantId(event.target.value)}
-                className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)]"
+                onChange={(event) => {
+                  setSelectedTenantId(event.target.value);
+                  setFieldErrors((current) => ({ ...current, tenantId: "", deviceId: "" }));
+                }}
+                className={fieldClassName(Boolean(fieldErrors.tenantId))}
               >
                 {tenants.map((tenant) => (
                   <option key={tenant.id} value={tenant.id}>
@@ -191,6 +227,7 @@ export function DeviceSimulatorConsole({
                   </option>
                 ))}
               </select>
+              {fieldErrors.tenantId ? <span className="text-xs font-medium text-rose-600">{fieldErrors.tenantId}</span> : null}
             </label>
 
             <label className="block space-y-2">
@@ -198,7 +235,7 @@ export function DeviceSimulatorConsole({
               <select
                 value={selectedDrawingId}
                 onChange={(event) => setSelectedDrawingId(event.target.value)}
-                className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)]"
+                className={inputClassName}
               >
                 {!hasDrawings ? <option value="">无图纸模式</option> : null}
                 {scene?.spatialModel.drawings.map((drawing) => (
@@ -210,11 +247,14 @@ export function DeviceSimulatorConsole({
             </label>
 
             <label className="block space-y-2">
-              <span className="text-sm text-[color:var(--text-secondary)]">当前设备</span>
+              {requiredLabel("当前设备")}
               <select
                 value={selectedDeviceId}
-                onChange={(event) => setSelectedDeviceId(event.target.value)}
-                className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)]"
+                onChange={(event) => {
+                  setSelectedDeviceId(event.target.value);
+                  setFieldErrors((current) => ({ ...current, deviceId: "" }));
+                }}
+                className={fieldClassName(Boolean(fieldErrors.deviceId))}
               >
                 <option value="">请选择设备</option>
                 {scene?.devices.map((device) => (
@@ -223,6 +263,7 @@ export function DeviceSimulatorConsole({
                   </option>
                 ))}
               </select>
+              {fieldErrors.deviceId ? <span className="text-xs font-medium text-rose-600">{fieldErrors.deviceId}</span> : null}
             </label>
 
             <div className="grid gap-3">
@@ -271,7 +312,10 @@ export function DeviceSimulatorConsole({
                   <button
                     key={point.id}
                     type="button"
-                    onClick={() => setSelectedDeviceId(point.deviceId)}
+                    onClick={() => {
+                      setSelectedDeviceId(point.deviceId);
+                      setFieldErrors((current) => ({ ...current, deviceId: "" }));
+                    }}
                     className={`group absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-lg ${colorClass}`}
                     style={{ left: `${point.x * 100}%`, top: `${point.y * 100}%` }}
                     title={device?.name ?? point.deviceId}
@@ -287,7 +331,7 @@ export function DeviceSimulatorConsole({
           ) : (
             <div className="mt-4 rounded-[28px] border border-[color:var(--border)] bg-[var(--surface-muted)] p-5">
               <div className="rounded-2xl border border-dashed border-[color:var(--border)] bg-white/70 px-4 py-3 text-sm text-[color:var(--text-muted)]">
-                当前企业还没有上传图纸。这里自动切换为无图纸测试模式，仍然可以直接选择设备并发送火警、故障、离线、恢复、心跳事件。
+                当前企业还没有上传图纸。这里会自动切换为无图纸测试模式，仍然可以直接选择设备并发送火警、故障、离线、恢复、心跳事件。
               </div>
               <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {fallbackDevices.map((device) => {
@@ -296,7 +340,10 @@ export function DeviceSimulatorConsole({
                     <button
                       key={device.id}
                       type="button"
-                      onClick={() => setSelectedDeviceId(device.id)}
+                      onClick={() => {
+                        setSelectedDeviceId(device.id);
+                        setFieldErrors((current) => ({ ...current, deviceId: "" }));
+                      }}
                       className={`rounded-2xl border px-4 py-4 text-left transition ${
                         selectedDeviceId === device.id
                           ? "border-sky-200 bg-sky-50"
