@@ -25,7 +25,7 @@ export async function seedDemoCoreData(client: PoolClient) {
     ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO platform_users (id, username, phone, role_key, status, note) VALUES
-    ('platform-user-1', 'super.admin', '13900110001', 'platform_super_admin', '启用', '平台唯一超级管理员账户。')
+    ('platform-user-1', 'super.admin', '13900110001', 'platform_super_admin', '启用', '平台唯一超级管理员账号。')
     ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO tenant_users (id, tenant_id, username, phone, role_key, status, sms_enabled, message_types, note) VALUES
@@ -41,16 +41,16 @@ export async function seedDemoCoreData(client: PoolClient) {
     ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO tenant_devices (id, tenant_id, name, type, area, installation_location, status, last_report_at, notes) VALUES
-    ('device-hx-1', 'tenant-huaxing', '1号厂房烟感 A-101', '烟感探测器', '1号厂房', '东侧配电区', '报警', '2026-04-20 09:12:45', '今日 09:12 触发烟雾报警，等待现场核查。'),
+    ('device-hx-1', 'tenant-huaxing', '1号厂房烟感 A-101', '烟雾探测器', '1号厂房', '东侧配电区', '报警', '2026-04-20 09:12:45', '今日 09:12 触发烟雾报警，等待现场核查。'),
     ('device-hx-2', 'tenant-huaxing', '喷淋联动模块 A-208', '联动控制模块', '2号厂房', '主走廊', '正常', '2026-04-20 09:03:11', '运行稳定。'),
     ('device-hx-3', 'tenant-huaxing', '消防泵压力监测 A-301', '水压监测器', '泵房', '北侧泵房', '故障', '2026-04-20 08:55:10', '设备自检异常，待维护。'),
-    ('device-ah-1', 'tenant-anhe', '中庭烟感 B-101', '烟感探测器', '商业中庭', '一层中庭', '正常', '2026-04-20 09:05:12', '状态正常。'),
+    ('device-ah-1', 'tenant-anhe', '中庭烟感 B-101', '烟雾探测器', '商业中庭', '一层中庭', '正常', '2026-04-20 09:05:12', '状态正常。'),
     ('device-ah-2', 'tenant-anhe', '地下车库手报 B-204', '手动报警按钮', '地下车库', 'B2 电梯前室', '离线', '2026-04-20 07:18:20', '网络链路中断。')
     ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO tenant_alarms (id, tenant_id, device_id, device_name, location, alarm_type, time, process_status) VALUES
     ('alarm-hx-1', 'tenant-huaxing', 'device-hx-1', '1号厂房烟感 A-101', '1号厂房 / 东侧配电区', '烟感触发报警', '2026-04-20 09:12:45', '未处理'),
-    ('alarm-hx-2', 'tenant-huaxing', 'device-hx-3', '消防泵压力监测 A-301', '泵房 / 北侧泵房', '故障报警', '2026-04-20 08:55:10', '处理中'),
+    ('alarm-hx-2', 'tenant-huaxing', 'device-hx-3', '消防泵压力监测 A-301', '泵房 / 北侧泵房', '设备故障', '2026-04-20 08:55:10', '已处理'),
     ('alarm-ah-1', 'tenant-anhe', 'device-ah-2', '地下车库手报 B-204', '地下车库 / B2 电梯前室', '设备离线', '2026-04-20 07:18:20', '未处理')
     ON CONFLICT (id) DO NOTHING;
 
@@ -62,19 +62,19 @@ export async function seedDemoCoreData(client: PoolClient) {
     INSERT INTO quota_usage (id, tenant_id, device_count, user_count, sms_used) VALUES
       ('quota-hx', 'tenant-huaxing', 328, 34, 980),
       ('quota-ah', 'tenant-anhe', 146, 18, 420)
-      ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO notification_templates (id, tenant_id, name, channel, level, target_roles, template_text, enabled, created_at, updated_at) VALUES
       ('template-hx-alarm-sms', 'tenant-huaxing', '火警短信通知', 'sms', 'alarm', '["tenant_level_1","tenant_level_2"]'::jsonb, '【火警报警】{{content}}，请立即核查。', true, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
       ('template-hx-fault-inapp', 'tenant-huaxing', '故障站内通知', 'in_app', 'fault', '["tenant_level_1","tenant_level_3"]'::jsonb, '【设备故障】{{content}}，请尽快处理。', true, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
       ('template-ah-alarm-sms', 'tenant-anhe', '商场火警短信通知', 'sms', 'alarm', '["tenant_level_1","tenant_level_2"]'::jsonb, '【火警报警】{{content}}，请值班人员立即到场。', true, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),
       ('template-ah-fault-inapp', 'tenant-anhe', '商场故障站内通知', 'in_app', 'fault', '["tenant_level_1","tenant_level_3"]'::jsonb, '【设备故障】{{content}}，请安排维保。', true, '2026-04-20 08:00:00', '2026-04-20 08:00:00')
-      ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO audit_logs (id, tenant_id, actor_scope, actor_name, actor_role, action, target_type, target_id, result, detail, created_at) VALUES
       ('audit-seed-1', 'tenant-huaxing', 'tenant', 'hx_admin', 'tenant_level_1', 'system.seed', 'tenant', 'tenant-huaxing', 'success', '初始化企业基础数据', '2026-04-20 08:05:00'),
       ('audit-seed-2', 'tenant-anhe', 'tenant', 'ah_admin', 'tenant_level_1', 'system.seed', 'tenant', 'tenant-anhe', 'success', '初始化企业基础数据', '2026-04-20 08:05:00')
-      ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO NOTHING;
   `);
 }
 
@@ -207,11 +207,11 @@ export async function seedOperationalDefaults(client: PoolClient) {
   await client.query(
     `UPDATE tenant_alarms
      SET workflow_status = CASE
-       WHEN process_status IN ('处理中', '婢跺嫮鎮婃稉?') THEN '处理中'
-       WHEN process_status IN ('已处理', '瀹告彃顦╅悶?') THEN '已完成'
+       WHEN process_status IN ('处理中', '待确认') THEN '处理中'
+       WHEN process_status IN ('已处理', '已完成') THEN '已完成'
        ELSE '未处理'
      END
-     WHERE workflow_status IS NULL OR workflow_status = '' OR workflow_status = '未处理' OR workflow_status = '处理中' OR workflow_status = '已完成'`,
+     WHERE workflow_status IS NULL OR workflow_status = '' OR workflow_status IN ('未处理', '处理中', '已完成')`,
   );
 
   await client.query(`
@@ -252,13 +252,13 @@ export async function seedOperationalDefaults(client: PoolClient) {
   await client.query(`
     INSERT INTO inspection_tasks (id, tenant_id, title, plan_type, target_type, target_id, target_name, due_date, assigned_to, status, note, created_at) VALUES
       ('inspect-hx-1', 'tenant-huaxing', '1号厂房烟感日巡检', 'daily', 'device', 'device-hx-1', '1号厂房烟感 A-101', '2026-04-23', 'hx_admin', 'pending', '重点关注火警探测器采样状态', '2026-04-22 18:00:00'),
-      ('inspect-ah-1', 'tenant-anhe', 'B2 车库周巡检', 'weekly', 'area', 'floor-ah-g-2', 'B2 车库', '2026-04-23', 'ah_admin', 'pending', '检查离线手报与疏散通道设施', '2026-04-22 18:00:00')
+      ('inspect-ah-1', 'tenant-anhe', 'B2车库周巡检', 'weekly', 'area', 'floor-ah-g-2', 'B2车库', '2026-04-23', 'ah_admin', 'pending', '检查离线手报与疏散通道设施', '2026-04-22 18:00:00')
     ON CONFLICT (id) DO NOTHING;
   `);
 
   await client.query(`
     INSERT INTO maintenance_records (id, tenant_id, device_id, device_name, vendor_name, maintenance_date, next_due_date, result, note) VALUES
-      ('maint-hx-1', 'tenant-huaxing', 'device-hx-3', '消防泵压力监测 A-301', '苏州维保中心', '2026-04-10', '2026-05-10', '待复检', '压力传感器更换后待验证'),
+      ('maint-hx-1', 'tenant-huaxing', 'device-hx-3', '消防泵压力监测 A-301', '苏州维保中心', '2026-04-10', '2026-05-10', '待复检', '压力传感器更换后待验收'),
       ('maint-ah-1', 'tenant-anhe', 'device-ah-2', '地下车库手报 B-204', '杭州维保站', '2026-04-08', '2026-05-08', '处理中', '排查离线线路与模块状态')
     ON CONFLICT (id) DO NOTHING;
   `);
