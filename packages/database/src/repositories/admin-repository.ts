@@ -95,74 +95,8 @@ export async function getAdminStateData(): Promise<AdminStatePayload> {
 }
 
 export async function replaceAdminStateData(input: AdminStatePayload) {
-  return withTransaction(async (client) => {
-    await client.query(`
-      DELETE FROM subscriptions;
-      DELETE FROM platform_users;
-      DELETE FROM tenant_users;
-      DELETE FROM tenant_alarms;
-      DELETE FROM tenant_devices;
-      DELETE FROM notification_settings;
-      DELETE FROM quota_usage;
-      DELETE FROM plans;
-      DELETE FROM tenants;
-    `);
-
-    for (const item of input.tenants ?? []) {
-      await client.query(
-        "INSERT INTO tenants (id, name, code, industry, contact_name, contact_phone, status, created_at, note) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
-        [item.id, item.name, item.code, item.industry, item.contactName, item.contactPhone, item.status, item.createdAt, item.note],
-      );
-    }
-    for (const item of input.plans ?? []) {
-      await client.query(
-        "INSERT INTO plans (id, name, code, status, price_monthly, max_devices, max_users, sms_quota, feature_keys, description) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10)",
-        [item.id, item.name, item.code, item.status, item.priceMonthly, item.maxDevices, item.maxUsers, item.smsQuota, JSON.stringify(item.featureKeys ?? []), item.description],
-      );
-    }
-    for (const item of input.subscriptions ?? []) {
-      await client.query(
-        "INSERT INTO subscriptions (id, tenant_id, plan_id, status, start_date, end_date, trial, auto_renew) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
-        [item.id, item.tenantId, item.planId, item.status, item.startDate, item.endDate, !!item.trial, !!item.autoRenew],
-      );
-    }
-    for (const item of input.platformUsers ?? []) {
-      await client.query(
-        "INSERT INTO platform_users (id, username, phone, role_key, status, note) VALUES ($1,$2,$3,$4,$5,$6)",
-        [item.id, item.username, item.phone, item.roleKey, item.status, item.note],
-      );
-    }
-    for (const item of input.tenantUsers ?? []) {
-      await client.query(
-        "INSERT INTO tenant_users (id, tenant_id, username, phone, role_key, status, sms_enabled, message_types, note) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9)",
-        [item.id, item.tenantId, item.username, item.phone, item.roleKey, item.status, !!item.smsEnabled, JSON.stringify(item.messageTypes ?? []), item.note],
-      );
-    }
-    for (const item of input.tenantDevices ?? []) {
-      await client.query(
-        "INSERT INTO tenant_devices (id, tenant_id, name, type, area, installation_location, status, last_report_at, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
-        [item.id, item.tenantId, item.name, item.type, item.area, item.installationLocation ?? item.location, item.status, item.lastReportAt, item.notes ?? ""],
-      );
-    }
-    for (const item of input.tenantAlarms ?? []) {
-      await client.query(
-        "INSERT INTO tenant_alarms (id, tenant_id, device_id, device_name, location, alarm_type, time, process_status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
-        [item.id, item.tenantId, item.deviceId, item.deviceName, item.location, item.alarmType, item.time, item.processStatus],
-      );
-    }
-    for (const item of input.notificationSettings ?? []) {
-      await client.query(
-        "INSERT INTO notification_settings (id, tenant_id, alarm_threshold, notification_enabled, map_placeholder, remark) VALUES ($1,$2,$3,$4,$5,$6)",
-        [("id" in item && item.id) ? item.id : createId("notification"), item.tenantId, item.alarmThreshold, !!item.notificationEnabled, item.mapPlaceholder, item.remark],
-      );
-    }
-    for (const item of input.quotaUsage ?? []) {
-      await client.query(
-        "INSERT INTO quota_usage (id, tenant_id, device_count, user_count, sms_used) VALUES ($1,$2,$3,$4,$5)",
-        [("id" in item && item.id) ? item.id : createId("quota"), item.tenantId, item.deviceCount, item.userCount, item.smsUsed],
-      );
-    }
-  });
+  void input;
+  throw new Error("Full admin-state replacement is disabled. Use scoped admin repository methods.");
 }
 
 export async function createTenantWithAdminRecord(input: CreateTenantWithAdminInput) {

@@ -3,6 +3,7 @@ import { readJsonBody, sendJson } from "../../lib/http";
 import type { BackendRequestContext } from "../auth/auth-context";
 import { requireTenantContext } from "../auth/auth-controller";
 import { tenantDeviceRepository } from "../../../../../packages/database/src/tenant-repositories";
+import { publishTenantEvent } from "../../../../../packages/realtime/src/server";
 
 export async function getDevices(res: ServerResponse, context: BackendRequestContext) {
   if (!requireTenantContext(res, context)) return;
@@ -39,6 +40,16 @@ export async function postDevice(req: IncomingMessage, res: ServerResponse, cont
       lastReportAt: body.lastReportAt || "",
       notes: body.notes || "",
     });
+    publishTenantEvent(context.tenantId!, {
+      type: "device_status_changed",
+      tenantId: context.tenantId!,
+      deviceId: device.id,
+      eventType: body.id ? "device_updated" : "device_created",
+      eventCode: body.id ? "DEVICE_UPDATED" : "DEVICE_CREATED",
+      reportedAt: device.lastReportAt,
+      occurredAt: device.lastReportAt,
+      source: "tenant_console",
+    });
     sendJson(res, 200, { device });
   } catch (error) {
     const message = error instanceof Error ? error.message : "设备保存失败";
@@ -59,5 +70,16 @@ export async function deleteDevice(
     return;
   }
   await tenantDeviceRepository.remove(context.tenantId!, id);
+  const occurredAt = new Date().toISOString();
+  publishTenantEvent(context.tenantId!, {
+    type: "device_status_changed",
+    tenantId: context.tenantId!,
+    deviceId: id,
+    eventType: "device_deleted",
+    eventCode: "DEVICE_DELETED",
+    reportedAt: occurredAt,
+    occurredAt,
+    source: "tenant_console",
+  });
   sendJson(res, 200, { success: true });
 }

@@ -1,14 +1,44 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { StatusBadge } from "@/components/status-badge";
 import { useToast } from "@/components/ui/toast-center";
 import type { TenantSpatialModel } from "@/types/hardware";
+import type { AlarmCenterItem, NotificationRecord } from "@/types/ops";
 import type { TenantDeviceRecord, TenantRecord } from "@/types/saas";
 
 type ScenePayload = {
   tenant: TenantRecord;
   spatialModel: TenantSpatialModel;
   devices: TenantDeviceRecord[];
+  alarms?: AlarmCenterItem[];
+  notificationRecords?: NotificationRecord[];
+};
+
+type IngestionResult = {
+  success: true;
+  raw_event_id: string;
+  alarm_id: string | null;
+  device_status: string;
+  workflow: {
+    alarm_created: boolean;
+    notification_created: boolean;
+    realtime_published: boolean;
+    duplicate_suppressed?: boolean;
+  };
+  processed_at: string;
+};
+
+type SendResult = {
+  eventLabel: string;
+  deviceName: string;
+  processedAt: string;
+  alarmId: string | null;
+  deviceStatus: string;
+  alarmCreated: boolean;
+  notificationCreated: boolean;
+  realtimePublished: boolean;
+  duplicateSuppressed: boolean;
 };
 
 const eventOptions = [
@@ -38,7 +68,7 @@ function normalizeSnapshotStatus(status?: string) {
   if (status === "alarm") return "报警";
   if (status === "fault") return "故障";
   if (status === "offline") return "离线";
-  if (status === "maintenance") return "维保中";
+  if (status === "maintenance") return "维修中";
   return "正常";
 }
 
@@ -72,6 +102,7 @@ export function DeviceSimulatorConsole({
   const [selectedDrawingId, setSelectedDrawingId] = useState(initialScene?.spatialModel.drawings[0]?.id ?? "");
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [sending, setSending] = useState(false);
+  const [lastResult, setLastResult] = useState<SendResult | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<"tenantId" | "deviceId", string>>>({});
 
   useEffect(() => {
@@ -120,6 +151,11 @@ export function DeviceSimulatorConsole({
       return areaCompare !== 0 ? areaCompare : a.name.localeCompare(b.name, "zh-CN");
     });
   }, [scene]);
+  const latestAlarms = useMemo(() => scene?.alarms?.slice(0, 5) ?? [], [scene?.alarms]);
+  const latestNotificationRecords = useMemo(
+    () => scene?.notificationRecords?.filter((record) => !lastResult?.alarmId || record.alarmId === lastResult.alarmId) ?? [],
+    [lastResult?.alarmId, scene?.notificationRecords],
+  );
 
   async function sendEvent(option: (typeof eventOptions)[number]) {
     const nextFieldErrors: Partial<Record<"tenantId" | "deviceId", string>> = {};
@@ -171,9 +207,32 @@ export function DeviceSimulatorConsole({
     }
 
     try {
+      const result = (await response.json()) as IngestionResult;
       const nextScene = await fetchScene(scene!.tenant.id);
       setScene(nextScene);
-      pushToast({ message: `已向企业发送${option.label}事件。`, tone: "success" });
+      const latestAlarm =
+        result.alarm_id
+          ? nextScene.alarms?.find((alarm) => alarm.id === result.alarm_id) ?? null
+          : nextScene.alarms?.find((alarm) => alarm.deviceId === selectedDevice!.id) ?? null;
+      setLastResult({
+        eventLabel: option.label,
+        deviceName: selectedDevice!.name,
+        processedAt: result.processed_at,
+        alarmId: result.alarm_id ?? latestAlarm?.id ?? null,
+        deviceStatus: result.device_status,
+        alarmCreated: Boolean(result.workflow.alarm_created),
+        notificationCreated: Boolean(result.workflow.notification_created),
+        realtimePublished: Boolean(result.workflow.realtime_published),
+        duplicateSuppressed: Boolean(result.workflow.duplicate_suppressed),
+      });
+      pushToast({
+        message: result.workflow.alarm_created
+          ? `${option.label}已创建报警，报警中心已更新。`
+          : result.workflow.duplicate_suppressed
+            ? `${option.label}已接收，原始事件已去重。`
+            : `${option.label}已接收，设备状态已更新。`,
+        tone: "success",
+      });
     } catch {
       pushToast({ message: "事件已发送，但当前页面刷新企业场景失败。", tone: "warning" });
     } finally {
@@ -409,6 +468,76 @@ export function DeviceSimulatorConsole({
               先从左侧选择一台设备，再发送测试事件。
             </div>
           )}
+
+          {lastResult ? (
+            <div className="mt-4 rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs text-[color:var(--text-muted)]">最近发送结果</p>
+                  <p className="mt-1 text-sm font-semibold text-[color:var(--text-primary)]">
+                    {lastResult.deviceName} / {lastResult.eventLabel}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full border px-2.5 py-1 text-xs ${
+                    lastResult.realtimePublished
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "border-amber-200 bg-amber-50 text-amber-700"
+                  }`}
+                >
+                  {lastResult.realtimePublished ? "已推送实时事件" : "实时推送未确认"}
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-xl border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
+                  <p className="text-[color:var(--text-muted)]">报警写入</p>
+                  <p className="mt-1 font-semibold text-[color:var(--text-primary)]">
+                    {lastResult.alarmCreated ? "新增报警" : lastResult.duplicateSuppressed ? "原始事件已去重" : "设备状态更新"}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
+                  <p className="text-[color:var(--text-muted)]">通知记录</p>
+                  <p className="mt-1 font-semibold text-[color:var(--text-primary)]">
+                    {latestNotificationRecords.length > 0 || lastResult.notificationCreated ? `${latestNotificationRecords.length} 条` : "未生成"}
+                  </p>
+                </div>
+                <div className="col-span-2 rounded-xl border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
+                  <p className="text-[color:var(--text-muted)]">报警 ID</p>
+                  <p className="mt-1 break-all font-semibold text-[color:var(--text-primary)]">
+                    {lastResult.alarmId ?? "无"}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-[color:var(--text-muted)]">处理时间：{lastResult.processedAt}</p>
+            </div>
+          ) : null}
+
+          <div className="mt-4 rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-[color:var(--text-primary)]">该企业最新报警中心记录</h3>
+              <span className="text-xs text-[color:var(--text-muted)]">{latestAlarms.length} 条</span>
+            </div>
+            <div className="mt-3 space-y-2">
+              {latestAlarms.length > 0 ? (
+                latestAlarms.map((alarm) => (
+                  <div key={alarm.id} className="rounded-xl border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-[color:var(--text-primary)]">{alarm.alarmType}</p>
+                        <p className="mt-1 truncate text-xs text-[color:var(--text-muted)]">{alarm.deviceName}</p>
+                      </div>
+                      <StatusBadge status={alarm.workflowStatus} />
+                    </div>
+                    <p className="mt-2 text-xs text-[color:var(--text-muted)]">{alarm.time}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-xl border border-dashed border-[color:var(--border)] px-3 py-4 text-center text-xs text-[color:var(--text-muted)]">
+                  当前企业暂无报警中心记录。
+                </div>
+              )}
+            </div>
+          </div>
         </section>
       </div>
     </div>

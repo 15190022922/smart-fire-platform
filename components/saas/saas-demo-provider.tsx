@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { featureDefinitions, roleDefinitions } from "@/data/saas-data";
 import type {
   FeatureDefinition,
@@ -138,15 +138,6 @@ export function SaaSDemoProvider({ children, initialAdminState = null }: SaaSDem
   const [selectedTenantUserIdState, setSelectedTenantUserId] = useState(
     storedState?.selectedTenantUserId ?? initialAdminState?.tenantUsers?.[0]?.id ?? "",
   );
-  const initializedRef = useRef(false);
-  const persistTimerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (initialAdminState) {
-      initializedRef.current = true;
-    }
-  }, [initialAdminState]);
-
   useEffect(() => {
     let active = true;
 
@@ -187,7 +178,6 @@ export function SaaSDemoProvider({ children, initialAdminState = null }: SaaSDem
             setSelectedTenantUserId(result.tenantUsers[0].id);
           }
 
-          initializedRef.current = true;
           setLoading(false);
           return;
         } catch {
@@ -219,51 +209,6 @@ export function SaaSDemoProvider({ children, initialAdminState = null }: SaaSDem
       }),
     );
   }, [mode, selectedTenantId, selectedTenantUserIdState]);
-
-  useEffect(() => {
-    if (!initializedRef.current || loading) {
-      return;
-    }
-
-    if (persistTimerRef.current) {
-      window.clearTimeout(persistTimerRef.current);
-    }
-
-    persistTimerRef.current = window.setTimeout(() => {
-      void fetch("/api/admin/state", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tenants,
-          plans,
-          subscriptions,
-          platformUsers,
-          tenantUsers,
-          tenantDevices,
-          tenantAlarms,
-          notificationSettings,
-          quotaUsage,
-        }),
-      });
-    }, 300);
-
-    return () => {
-      if (persistTimerRef.current) {
-        window.clearTimeout(persistTimerRef.current);
-      }
-    };
-  }, [
-    loading,
-    tenants,
-    plans,
-    subscriptions,
-    platformUsers,
-    tenantUsers,
-    tenantDevices,
-    tenantAlarms,
-    notificationSettings,
-    quotaUsage,
-  ]);
 
   const currentPlatformUser = platformUsers[0] ?? null;
   const effectivePlatformUser = currentPlatformUser ?? platformAdminFallback;

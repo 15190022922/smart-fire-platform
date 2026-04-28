@@ -19,7 +19,7 @@ import type {
 } from "@/types/platform";
 import type { TenantSpatialModel } from "@/types/hardware";
 import type { AlarmCenterItem } from "@/types/ops";
-import type { RealtimeConnectionState, RealtimeEnvelope } from "@/types/realtime";
+import type { RealtimeConnectionState } from "@/types/realtime";
 import type { TenantDeviceRecord } from "@/types/saas";
 
 export type TenantOverviewPayload = {
@@ -32,15 +32,6 @@ export type TenantOverviewPayload = {
     alarmType: string;
     processStatus: AlarmRecord["processStatus"];
   }[];
-};
-
-type TenantRealtimeEvent = {
-  tenantId: string;
-  deviceId: string;
-  eventType: string;
-  eventCode: string;
-  reportedAt: string;
-  source?: string;
 };
 
 function parseLocalDateTime(value: string) {
@@ -91,24 +82,6 @@ function normalizeAlarmType(alarmType: string) {
   if (text.includes("鎭㈠") || text.includes("恢复")) return "设备恢复";
   if (text.includes("蹇冭烦") || text.includes("心跳")) return "设备心跳";
   return text;
-}
-
-function resolveAlarmTypeFromRealtimeEvent(event: TenantRealtimeEvent) {
-  if (event.eventType === "alarm" || event.eventCode === "FIRE_ALARM") return "火警报警";
-  if (event.eventType === "fault" || event.eventCode === "DEVICE_FAULT") return "设备故障";
-  if (event.eventCode === "DEVICE_OFFLINE") return "设备离线";
-  if (event.eventType === "recover" || event.eventCode === "DEVICE_RECOVER") return "设备恢复";
-  if (event.eventType === "heartbeat" || event.eventCode === "HEARTBEAT_OK") return "设备心跳";
-  return event.eventCode;
-}
-
-function resolveStatusFromRealtimeEvent(event: TenantRealtimeEvent): TenantDeviceRecord["status"] {
-  if (event.eventType === "alarm" || event.eventCode === "FIRE_ALARM") return "报警";
-  if (event.eventType === "fault" || event.eventCode === "DEVICE_FAULT") return "故障";
-  if (event.eventCode === "DEVICE_OFFLINE") return "离线";
-  if (event.eventType === "recover" || event.eventCode === "DEVICE_RECOVER") return "正常";
-  if (event.eventType === "heartbeat" || event.eventCode === "HEARTBEAT_OK") return "正常";
-  return "正常";
 }
 
 function toMetricData(devices: TenantDeviceRecord[], alarms: AlarmRecord[]): DashboardMetric[] {
@@ -303,95 +276,6 @@ function toTrendData(alarms: AlarmRecord[]): AlarmTrendPoint[] {
   });
 }
 
-function applyRealtimeEventToOverview(current: TenantOverviewPayload, event: TenantRealtimeEvent): TenantOverviewPayload {
-  const targetDevice = current.devices.find((device) => device.id === event.deviceId);
-  const nextDeviceStatus = resolveStatusFromRealtimeEvent(event);
-  const nextAlarmType = resolveAlarmTypeFromRealtimeEvent(event);
-
-  const devices = current.devices.map((device) =>
-    device.id === event.deviceId
-      ? {
-          ...device,
-          status: nextDeviceStatus,
-          lastReportAt: event.reportedAt,
-        }
-      : device,
-  );
-
-  let alarms = current.alarms;
-
-  if (event.eventType === "alarm" || event.eventType === "fault" || event.eventCode === "DEVICE_OFFLINE") {
-    const syntheticId = `live-${event.deviceId}-${event.eventCode}-${event.reportedAt}`;
-    alarms = [
-      {
-        id: syntheticId,
-        time: event.reportedAt,
-        deviceName: targetDevice?.name ?? event.deviceId,
-        location: targetDevice?.location ?? targetDevice?.area ?? "未定位",
-        alarmType: nextAlarmType,
-        processStatus: "未处理",
-      },
-      ...current.alarms.filter((alarm) => alarm.id !== syntheticId),
-    ];
-  }
-
-  return {
-    devices,
-    alarms,
-  };
-}
-
-function applyRealtimeEventToSpatialModel(current: TenantSpatialModel, event: TenantRealtimeEvent): TenantSpatialModel {
-  const nextStatus =
-    event.eventType === "alarm" || event.eventCode === "FIRE_ALARM"
-      ? "alarm"
-      : event.eventType === "fault" || event.eventCode === "DEVICE_FAULT"
-        ? "fault"
-        : event.eventCode === "DEVICE_OFFLINE"
-          ? "offline"
-          : "normal";
-
-  const nextPointStyle = nextStatus === "alarm" ? "alarm" : nextStatus === "fault" ? "fault" : nextStatus === "offline" ? "offline" : "normal";
-
-  return {
-    ...current,
-    statusSnapshots: current.statusSnapshots.some((item) => item.deviceId === event.deviceId)
-      ? current.statusSnapshots.map((item) =>
-          item.deviceId === event.deviceId
-            ? {
-                ...item,
-                status: nextStatus,
-                lastEventType: event.eventType as TenantSpatialModel["statusSnapshots"][number]["lastEventType"],
-                lastEventCode: event.eventCode,
-                lastReportedAt: event.reportedAt,
-                updatedAt: event.reportedAt,
-              }
-            : item,
-        )
-      : [
-          ...current.statusSnapshots,
-          {
-            deviceId: event.deviceId,
-            tenantId: event.tenantId,
-            status: nextStatus,
-            lastEventType: event.eventType as TenantSpatialModel["statusSnapshots"][number]["lastEventType"],
-            lastEventCode: event.eventCode,
-            lastReportedAt: event.reportedAt,
-            updatedAt: event.reportedAt,
-          },
-        ],
-    devicePoints: current.devicePoints.map((point) =>
-      point.deviceId === event.deviceId
-        ? {
-            ...point,
-            statusStyle: nextPointStyle,
-            updatedAt: event.reportedAt,
-          }
-        : point,
-    ),
-  };
-}
-
 export function LiveVisualizationPage({
   initialOverview,
   initialSpatialModel,
@@ -406,28 +290,35 @@ export function LiveVisualizationPage({
   const [alarmCenterItems, setAlarmCenterItems] = useState(initialAlarmCenterItems);
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeConnectionState>("connecting");
   const isRefreshingRef = useRef(false);
+  const pendingRefreshRef = useRef(false);
 
   const refresh = useCallback(async () => {
-    if (isRefreshingRef.current) return;
+    if (isRefreshingRef.current) {
+      pendingRefreshRef.current = true;
+      return;
+    }
     isRefreshingRef.current = true;
 
-    const [overviewResponse, spatialResponse, alarmCenterResponse] = await Promise.all([
-      fetch("/api/tenant/overview", { cache: "no-store" }),
-      fetch("/api/tenant/spatial-model", { cache: "no-store" }),
-      fetch("/api/tenant/alarm-center", { cache: "no-store" }),
-    ]);
-
     try {
-      if (overviewResponse.ok) {
-        setOverview((await overviewResponse.json()) as TenantOverviewPayload);
-      }
-      if (spatialResponse.ok) {
-        setSpatialModel((await spatialResponse.json()) as TenantSpatialModel);
-      }
-      if (alarmCenterResponse.ok) {
-        const payload = (await alarmCenterResponse.json()) as { alarms?: AlarmCenterItem[] };
-        setAlarmCenterItems(Array.isArray(payload.alarms) ? payload.alarms : []);
-      }
+      do {
+        pendingRefreshRef.current = false;
+        const [overviewResponse, spatialResponse, alarmCenterResponse] = await Promise.all([
+          fetch("/api/tenant/overview", { cache: "no-store" }),
+          fetch("/api/tenant/spatial-model", { cache: "no-store" }),
+          fetch("/api/tenant/alarm-center", { cache: "no-store" }),
+        ]);
+
+        if (overviewResponse.ok) {
+          setOverview((await overviewResponse.json()) as TenantOverviewPayload);
+        }
+        if (spatialResponse.ok) {
+          setSpatialModel((await spatialResponse.json()) as TenantSpatialModel);
+        }
+        if (alarmCenterResponse.ok) {
+          const payload = (await alarmCenterResponse.json()) as { alarms?: AlarmCenterItem[] };
+          setAlarmCenterItems(Array.isArray(payload.alarms) ? payload.alarms : []);
+        }
+      } while (pendingRefreshRef.current);
     } finally {
       isRefreshingRef.current = false;
     }
@@ -436,7 +327,7 @@ export function LiveVisualizationPage({
   useEffect(() => {
     const pollTimer = window.setInterval(() => {
       void refresh();
-    }, 60000);
+    }, 30000);
     const bus = getTenantEventBus();
 
     const handleFocus = () => void refresh();
@@ -445,15 +336,7 @@ export function LiveVisualizationPage({
         void refresh();
       }
     };
-    const handleUpdate = (event: RealtimeEnvelope) => {
-      try {
-        const payload = event.payload as unknown as TenantRealtimeEvent;
-        setOverview((current) => applyRealtimeEventToOverview(current, payload));
-        setSpatialModel((current) => applyRealtimeEventToSpatialModel(current, payload));
-      } catch {
-        // Ignore parse failure and fall back to refresh below.
-      }
-
+    const handleUpdate = () => {
       void refresh();
     };
     const unsubscribe = bus.subscribe({

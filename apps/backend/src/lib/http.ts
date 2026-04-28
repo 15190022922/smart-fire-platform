@@ -26,5 +26,9 @@ export function setSseHeaders(res: ServerResponse) {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
   res.setHeader("Access-Control-Allow-Origin", "*");
+  res.flushHeaders();
+  res.socket?.setNoDelay(true);
+  res.socket?.setKeepAlive(true);
 }

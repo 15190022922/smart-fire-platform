@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { PaginationBar } from "@/components/ui/pagination-bar";
+import { getTenantEventBus } from "@/lib/realtime/event-bus";
 import type { NotificationRecord, NotificationTemplateRecord } from "@/types/ops";
 
 const TEMPLATE_PAGE_SIZE = 6;
@@ -17,27 +18,49 @@ export function NotificationCenterBoard({
   initialRecords: NotificationRecord[];
 }) {
   const safeInitialRecords = Array.isArray(initialRecords) ? initialRecords : [];
+  const safeInitialTemplates = Array.isArray(initialTemplates) ? initialTemplates : [];
+  const [templates, setTemplates] = useState(safeInitialTemplates);
   const [records, setRecords] = useState(safeInitialRecords);
   const [errorMessage, setErrorMessage] = useState("");
   const [templatePage, setTemplatePage] = useState(1);
   const [recordPage, setRecordPage] = useState(1);
 
-  const templateCount = Array.isArray(initialTemplates) ? initialTemplates.length : 0;
+  const templateCount = templates.length;
   const templateTotalPages = Math.max(1, Math.ceil(templateCount / TEMPLATE_PAGE_SIZE));
   const recordTotalPages = Math.max(1, Math.ceil(records.length / RECORD_PAGE_SIZE));
   const safeTemplatePage = Math.min(templatePage, templateTotalPages);
   const safeRecordPage = Math.min(recordPage, recordTotalPages);
 
   const visibleTemplates = useMemo(() => {
-    const safeInitialTemplates = Array.isArray(initialTemplates) ? initialTemplates : [];
     const start = (safeTemplatePage - 1) * TEMPLATE_PAGE_SIZE;
-    return safeInitialTemplates.slice(start, start + TEMPLATE_PAGE_SIZE);
-  }, [initialTemplates, safeTemplatePage]);
+    return templates.slice(start, start + TEMPLATE_PAGE_SIZE);
+  }, [safeTemplatePage, templates]);
 
   const visibleRecords = useMemo(() => {
     const start = (safeRecordPage - 1) * RECORD_PAGE_SIZE;
     return records.slice(start, start + RECORD_PAGE_SIZE);
   }, [records, safeRecordPage]);
+
+  const refresh = useCallback(async () => {
+    const refreshed = await fetch("/api/tenant/notification-center", { cache: "no-store" });
+    if (!refreshed.ok) return;
+    const data = (await refreshed.json()) as {
+      templates?: NotificationTemplateRecord[];
+      records?: NotificationRecord[];
+    };
+    setTemplates(Array.isArray(data.templates) ? data.templates : []);
+    setRecords(Array.isArray(data.records) ? data.records : []);
+  }, []);
+
+  useEffect(() => {
+    const bus = getTenantEventBus();
+    return bus.subscribe({
+      types: ["alarm_created", "alarm_updated", "device_status_changed", "system_alert"],
+      onEvent: () => {
+        void refresh();
+      },
+    });
+  }, [refresh]);
 
   async function retryRecord(recordId: string) {
     setErrorMessage("");
@@ -52,12 +75,7 @@ export function NotificationCenterBoard({
       return;
     }
 
-    const refreshed = await fetch("/api/tenant/notification-center", { cache: "no-store" });
-    const data = (await refreshed.json()) as {
-      templates?: NotificationTemplateRecord[];
-      records?: NotificationRecord[];
-    };
-    setRecords(Array.isArray(data.records) ? data.records : []);
+    await refresh();
   }
 
   return (

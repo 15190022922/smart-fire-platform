@@ -9,11 +9,21 @@ exports.updateTenantDeviceRuntime = updateTenantDeviceRuntime;
 const client_1 = require("../client");
 const errors_1 = require("../errors");
 const _shared_1 = require("./_shared");
-const _shared_2 = require("./_shared");
+function runtimeStatusFromDeviceStatus(status) {
+    if (status === "报警")
+        return "alarm";
+    if (status === "故障")
+        return "fault";
+    if (status === "离线")
+        return "offline";
+    if (status === "维保中" || status === "维修中")
+        return "maintenance";
+    return "normal";
+}
 async function listTenantDevices(tenantId) {
     (0, errors_1.assertTenantId)(tenantId);
     const result = await (0, client_1.queryDb)("SELECT * FROM tenant_devices WHERE tenant_id = $1 ORDER BY name ASC", [tenantId]);
-    return result.rows.map(_shared_2.mapTenantDevice);
+    return result.rows.map(_shared_1.mapTenantDevice);
 }
 async function getTenantDeviceById(executor, tenantId, id) {
     (0, errors_1.assertTenantId)(tenantId);
@@ -26,6 +36,9 @@ async function getTenantDeviceById(executor, tenantId, id) {
 async function upsertTenantDevice(executor, tenantId, input) {
     (0, errors_1.assertTenantId)(tenantId);
     const id = input.id ?? (0, _shared_1.createId)("device");
+    const reportedAt = input.lastReportAt || (0, _shared_1.formatLocalTimestamp)();
+    const runtime = runtimeStatusFromDeviceStatus(input.status);
+    const mapped = (0, _shared_1.mapRuntimeStatus)(runtime);
     await executor.query(`
       INSERT INTO tenant_devices (id, tenant_id, name, type, area, installation_location, status, last_report_at, notes)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
@@ -37,16 +50,32 @@ async function upsertTenantDevice(executor, tenantId, input) {
         status = EXCLUDED.status,
         last_report_at = EXCLUDED.last_report_at,
         notes = EXCLUDED.notes
-    `, [id, tenantId, input.name, input.type, input.area, input.installationLocation, input.status, input.lastReportAt, input.notes ?? ""]);
+    `, [id, tenantId, input.name, input.type, input.area, input.installationLocation, input.status, reportedAt, input.notes ?? ""]);
+    await executor.query(`
+      INSERT INTO device_status_snapshots (
+        device_id, tenant_id, gateway_id, status, last_event_type, last_event_code, last_reported_at, updated_at
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      ON CONFLICT (device_id) DO UPDATE SET
+        tenant_id = EXCLUDED.tenant_id,
+        status = EXCLUDED.status,
+        last_event_type = EXCLUDED.last_event_type,
+        last_event_code = EXCLUDED.last_event_code,
+        last_reported_at = EXCLUDED.last_reported_at,
+        updated_at = EXCLUDED.updated_at
+    `, [id, tenantId, input.gatewayId ?? null, runtime, "manual_update", "DEVICE_MANUAL_UPDATE", reportedAt, reportedAt]);
+    await executor.query("UPDATE tenant_device_points SET status_style = $1, updated_at = $2 WHERE tenant_id = $3 AND device_id = $4", [mapped.pointStatusStyle, reportedAt, tenantId, id]);
     const rowResult = await executor.query("SELECT * FROM tenant_devices WHERE id = $1 AND tenant_id = $2", [id, tenantId]);
     const row = rowResult.rows[0];
     if (!row) {
         throw new Error("设备保存成功后未能读取到最新记录");
     }
-    return (0, _shared_2.mapTenantDevice)(row);
+    return (0, _shared_1.mapTenantDevice)(row);
 }
 async function deleteTenantDevice(executor, tenantId, id) {
     (0, errors_1.assertTenantId)(tenantId);
+    await executor.query("DELETE FROM tenant_device_points WHERE device_id = $1 AND tenant_id = $2", [id, tenantId]);
+    await executor.query("DELETE FROM device_status_snapshots WHERE device_id = $1 AND tenant_id = $2", [id, tenantId]);
     await executor.query("DELETE FROM tenant_devices WHERE id = $1 AND tenant_id = $2", [id, tenantId]);
 }
 async function upsertDeviceStatusSnapshot(executor, input) {

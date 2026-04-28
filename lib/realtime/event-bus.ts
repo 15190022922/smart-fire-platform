@@ -1,6 +1,7 @@
 "use client";
 
 import type { RealtimeConnectionState, RealtimeEnvelope, RealtimeEventType } from "@/types/realtime";
+import { getPinnedTenantSessionToken } from "@/components/auth/tenant-session-bridge";
 
 type Subscriber = {
   id: string;
@@ -44,7 +45,11 @@ class TenantEventBus {
     }
 
     this.setState("connecting");
-    const eventSource = new EventSource("/api/tenant/realtime-events");
+    const pinnedToken = getPinnedTenantSessionToken();
+    const eventSourceUrl = pinnedToken
+      ? `/api/tenant/realtime-events?session=${encodeURIComponent(pinnedToken)}`
+      : "/api/tenant/realtime-events";
+    const eventSource = new EventSource(eventSourceUrl);
     this.eventSource = eventSource;
 
     eventSource.onopen = () => {

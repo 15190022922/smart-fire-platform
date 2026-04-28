@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { Dialog } from "@/components/ui/dialog";
@@ -41,19 +41,44 @@ type DeviceFieldErrors = Partial<Record<"name" | "type" | "area" | "installation
 const statusFilters: DeviceStatusFilter[] = ["全部", "正常", "报警", "故障", "离线", "维修中"];
 const deviceStatuses: DeviceStatus[] = ["正常", "报警", "故障", "离线", "维修中"];
 const pageSize = 6;
+const inputClassName = "sf-input h-11 px-4 text-sm";
 
-const inputClassName =
-  "sf-input h-11 px-4 text-sm";
+function formatLocalTimestamp(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hour = String(date.getHours()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  const second = String(date.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+}
 
-const emptyDeviceForm: DeviceFormState = {
-  name: "",
-  type: "",
-  area: "",
-  installationLocation: "",
-  status: "正常",
-  lastReportAt: "2026-04-20 09:00:00",
-  notes: "",
-};
+function createEmptyDeviceForm(): DeviceFormState {
+  return {
+    name: "",
+    type: "",
+    area: "",
+    installationLocation: "",
+    status: "正常",
+    lastReportAt: formatLocalTimestamp(),
+    notes: "",
+  };
+}
+
+function requiredLabel(label: string) {
+  return (
+    <span className="flex items-center gap-1 text-sm text-[color:var(--text-secondary)]">
+      {label}
+      <span className="text-rose-500">*</span>
+    </span>
+  );
+}
+
+function fieldClassName(hasError: boolean) {
+  return `${inputClassName} ${
+    hasError ? "border-rose-300 text-rose-700 focus:border-rose-300 focus:ring-rose-100" : ""
+  }`;
+}
 
 function toFormState(device: DeviceRecord): DeviceFormState {
   return {
@@ -77,46 +102,63 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
   const [activeFilter, setActiveFilter] = useState<DeviceStatusFilter>("全部");
   const [dialogMode, setDialogMode] = useState<"create" | "edit" | "view" | null>(null);
   const [selectedDevice, setSelectedDevice] = useState<DeviceRecord | null>(null);
-  const [formState, setFormState] = useState<DeviceFormState>(emptyDeviceForm);
+  const [formState, setFormState] = useState<DeviceFormState>(() => createEmptyDeviceForm());
   const [page, setPage] = useState(1);
   const [submitError, setSubmitError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<DeviceFieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
+  const isRefreshingRef = useRef(false);
+  const pendingRefreshRef = useRef(false);
 
   const loadDevices = useCallback(async () => {
-    const response = await fetch("/api/tenant/devices", { cache: "no-store" });
-    if (!response.ok) {
-      setLoading(false);
+    if (isRefreshingRef.current) {
+      pendingRefreshRef.current = true;
       return;
     }
-    const result = (await response.json()) as { devices: DeviceRecord[] };
-    setDevices(result.devices ?? []);
-    setLoading(false);
+    isRefreshingRef.current = true;
+
+    try {
+      do {
+        pendingRefreshRef.current = false;
+        const response = await fetch("/api/tenant/devices", { cache: "no-store" });
+        if (!response.ok) {
+          setLoading(false);
+          return;
+        }
+        const result = (await response.json()) as { devices: DeviceRecord[] };
+        const nextDevices = result.devices ?? [];
+        setDevices(nextDevices);
+        setSelectedDevice((current) =>
+          current ? nextDevices.find((device) => device.id === current.id) ?? null : current,
+        );
+        setLoading(false);
+      } while (pendingRefreshRef.current);
+    } finally {
+      isRefreshingRef.current = false;
+    }
   }, []);
 
   useEffect(() => {
-    let active = true;
-
-    async function bootstrap() {
-      const response = await fetch("/api/tenant/devices", { cache: "no-store" });
-      if (!response.ok) {
-        if (active) {
-          setLoading(false);
-        }
-        return;
+    const pollTimer = window.setInterval(() => {
+      void loadDevices();
+    }, 30000);
+    const handleFocus = () => void loadDevices();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void loadDevices();
       }
-      const result = (await response.json()) as { devices: DeviceRecord[] };
-      if (active) {
-        setDevices(result.devices ?? []);
-        setLoading(false);
-      }
-    }
-
-    void bootstrap();
-    return () => {
-      active = false;
     };
-  }, []);
+
+    void loadDevices();
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.clearInterval(pollTimer);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [loadDevices]);
 
   useEffect(() => {
     const bus = getTenantEventBus();
@@ -163,9 +205,17 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
     [devices],
   );
 
+  function updateFormField<K extends keyof DeviceFormState>(key: K, value: DeviceFormState[K]) {
+    setFormState((current) => ({ ...current, [key]: value }));
+    if (key in fieldErrors) {
+      setFieldErrors((current) => ({ ...current, [key]: "" }));
+    }
+  }
+
   function openCreateDialog() {
-    setFormState(emptyDeviceForm);
+    setFormState(createEmptyDeviceForm());
     setSelectedDevice(null);
+    setSubmitError("");
     setFieldErrors({});
     setDialogMode("create");
   }
@@ -173,6 +223,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
   function openEditDialog(device: DeviceRecord) {
     setSelectedDevice(device);
     setFormState(toFormState(device));
+    setSubmitError("");
     setFieldErrors({});
     setDialogMode("edit");
   }
@@ -185,6 +236,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
   function closeDialog() {
     setDialogMode(null);
     setSelectedDevice(null);
+    setSubmitError("");
     setFieldErrors({});
     setSubmitting(false);
     if (initialDeviceId) {
@@ -193,13 +245,21 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
   }
 
   async function handleSubmit() {
-    if (!formState.name || !formState.type || !formState.area || !formState.installationLocation) {
-      setSubmitError("设备名称、设备类型、所属区域和安装位置不能为空。");
+    const nextFieldErrors: DeviceFieldErrors = {};
+    if (!formState.name.trim()) nextFieldErrors.name = "请填写设备名称";
+    if (!formState.type.trim()) nextFieldErrors.type = "请填写设备类型";
+    if (!formState.area.trim()) nextFieldErrors.area = "请填写所属区域/楼层";
+    if (!formState.installationLocation.trim()) nextFieldErrors.installationLocation = "请填写安装位置";
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setSubmitError("");
       return;
     }
 
     setSubmitting(true);
     setSubmitError("");
+    setFieldErrors({});
 
     const response = await fetch("/api/tenant/devices", {
       method: "POST",
@@ -214,23 +274,24 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
     }
 
     if (!response.ok) {
-      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+      const rawText = await response.text().catch(() => "");
+      let payload: { message?: string } | null = null;
+      try {
+        payload = rawText ? (JSON.parse(rawText) as { message?: string }) : null;
+      } catch {
+        payload = null;
+      }
       setSubmitting(false);
-      setSubmitError(payload?.message ?? "设备保存失败，请稍后重试。");
+      setSubmitError(payload?.message?.trim() || `设备保存失败（HTTP ${response.status}）`);
       return;
     }
 
-    const result = (await response.json()) as { device: DeviceRecord };
-    if (dialogMode === "create") {
-      setDevices((current) => [result.device, ...current]);
-      setPage(1);
-    } else if (dialogMode === "edit" && selectedDevice) {
-      setDevices((current) =>
-        current.map((device) => (device.id === selectedDevice.id ? result.device : device)),
-      );
-    }
+    await response.json();
+    await loadDevices();
+    setPage(1);
 
     setSubmitting(false);
+    pushToast({ message: dialogMode === "create" ? "设备已创建" : "设备已更新", tone: "success" });
     closeDialog();
   }
 
@@ -241,10 +302,12 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
 
     const response = await fetch(`/api/tenant/devices?id=${device.id}`, { method: "DELETE" });
     if (!response.ok) {
+      pushToast({ message: "设备删除失败", tone: "error" });
       return;
     }
 
     setDevices((current) => current.filter((item) => item.id !== device.id));
+    pushToast({ message: "设备已删除", tone: "success" });
   }
 
   return (
@@ -254,15 +317,12 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
         subtitle="统一维护设备台账、状态筛选和详情查看，列表与地图点位使用同一份设备数据。"
         aside={
           <button type="button" onClick={openCreateDialog} className="sf-button sf-button-primary h-10 px-4 text-sm">
-            新增设备
+            新建设备
           </button>
         }
       />
 
-      <SectionCard
-        title="设备总表"
-        description="当前设备列表与增删改查已接入持久化存储，刷新页面或重新登录后会保留。"
-      >
+      <SectionCard title="设备总表" description="当前设备列表与增删改查均接入持久化存储，刷新页面后仍会保留。">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <div className="sf-kpi px-4 py-4">
@@ -278,7 +338,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
               <p className="mt-3 text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--warning-strong)]">{summary.fault}</p>
             </div>
             <div className="sf-kpi px-4 py-4" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, var(--info-soft) 180%)" }}>
-              <p className="sf-label text-[color:var(--info)]">维修中</p>
+              <p className="sf-label text-[color:var(--info)]">维保中</p>
               <p className="mt-3 text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--info)]">{summary.maintenance}</p>
             </div>
           </div>
@@ -313,13 +373,9 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
           <div className="sf-metric-block flex items-center justify-between gap-3 px-4 py-3">
             <div>
               <p className="sf-label">Device Scope</p>
-              <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
-                {loading ? "正在加载设备数据..." : "当前检索结果"}
-              </p>
+              <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{loading ? "正在加载设备数据..." : "当前检索结果"}</p>
             </div>
-            <p className="text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">
-              {loading ? "--" : filteredDevices.length}
-            </p>
+            <p className="text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">{loading ? "--" : filteredDevices.length}</p>
           </div>
         </div>
 
@@ -340,9 +396,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
                 <tr
                   key={device.id}
                   className="border-t border-[color:var(--border-soft)] text-[color:var(--text-secondary)] transition-colors duration-150 hover:bg-[color:var(--surface-muted)]"
-                  style={{
-                    backgroundColor: index % 2 === 0 ? "var(--table-row)" : "var(--table-row-alt)",
-                  }}
+                  style={{ backgroundColor: index % 2 === 0 ? "var(--table-row)" : "var(--table-row-alt)" }}
                 >
                   <td className="px-4 py-4">
                     <div>
@@ -362,25 +416,13 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
                   <td className="px-4 py-4">{device.lastReportAt}</td>
                   <td className="px-4 py-4">
                     <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openViewDialog(device)}
-                        className="sf-button sf-button-secondary h-8 px-3 text-xs"
-                      >
+                      <button type="button" onClick={() => openViewDialog(device)} className="sf-button sf-button-secondary h-8 px-3 text-xs">
                         详情
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => openEditDialog(device)}
-                        className="sf-button sf-button-primary h-8 px-3 text-xs"
-                      >
+                      <button type="button" onClick={() => openEditDialog(device)} className="sf-button sf-button-primary h-8 px-3 text-xs">
                         编辑
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(device)}
-                        className="sf-button sf-button-danger h-8 px-3 text-xs"
-                      >
+                      <button type="button" onClick={() => handleDelete(device)} className="sf-button sf-button-danger h-8 px-3 text-xs">
                         删除
                       </button>
                     </div>
@@ -404,24 +446,14 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
       <Dialog
         open={dialogMode === "create" || dialogMode === "edit"}
         onClose={closeDialog}
-        title={dialogMode === "create" ? "新增设备" : "编辑设备"}
-        description="设备修改会直接写入本地数据库。"
+        title={dialogMode === "create" ? "新建设备" : "编辑设备"}
+        description="设备修改会直接写入持久化存储。"
         footer={
           <>
-            <button
-              type="button"
-              onClick={closeDialog}
-              disabled={submitting}
-              className="sf-button sf-button-secondary h-10 px-4 text-sm"
-            >
+            <button type="button" onClick={closeDialog} disabled={submitting} className="sf-button sf-button-secondary h-10 px-4 text-sm">
               取消
             </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="sf-button sf-button-primary h-10 px-4 text-sm"
-            >
+            <button type="button" onClick={handleSubmit} disabled={submitting} className="sf-button sf-button-primary h-10 px-4 text-sm">
               保存
             </button>
           </>
@@ -429,37 +461,56 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
       >
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-2">
-            <span className="text-sm text-[color:var(--text-secondary)]">设备名称</span>
-            <input value={formState.name} onChange={(event) => setFormState((current) => ({ ...current, name: event.target.value }))} className={inputClassName} />
+            {requiredLabel("设备名称")}
+            <input value={formState.name} onChange={(event) => updateFormField("name", event.target.value)} className={fieldClassName(Boolean(fieldErrors.name))} />
+            {fieldErrors.name ? <span className="text-xs font-medium text-rose-600">{fieldErrors.name}</span> : null}
           </label>
+
           <label className="space-y-2">
-            <span className="text-sm text-[color:var(--text-secondary)]">设备类型</span>
-            <input value={formState.type} onChange={(event) => setFormState((current) => ({ ...current, type: event.target.value }))} className={inputClassName} />
+            {requiredLabel("设备类型")}
+            <input value={formState.type} onChange={(event) => updateFormField("type", event.target.value)} className={fieldClassName(Boolean(fieldErrors.type))} />
+            {fieldErrors.type ? <span className="text-xs font-medium text-rose-600">{fieldErrors.type}</span> : null}
           </label>
+
           <label className="space-y-2">
-            <span className="text-sm text-[color:var(--text-secondary)]">所属区域/楼层</span>
-            <input value={formState.area} onChange={(event) => setFormState((current) => ({ ...current, area: event.target.value }))} className={inputClassName} />
+            {requiredLabel("所属区域/楼层")}
+            <input value={formState.area} onChange={(event) => updateFormField("area", event.target.value)} className={fieldClassName(Boolean(fieldErrors.area))} />
+            {fieldErrors.area ? <span className="text-xs font-medium text-rose-600">{fieldErrors.area}</span> : null}
           </label>
+
           <label className="space-y-2">
-            <span className="text-sm text-[color:var(--text-secondary)]">安装位置</span>
-            <input value={formState.installationLocation} onChange={(event) => setFormState((current) => ({ ...current, installationLocation: event.target.value }))} className={inputClassName} />
+            {requiredLabel("安装位置")}
+            <input
+              value={formState.installationLocation}
+              onChange={(event) => updateFormField("installationLocation", event.target.value)}
+              className={fieldClassName(Boolean(fieldErrors.installationLocation))}
+            />
+            {fieldErrors.installationLocation ? (
+              <span className="text-xs font-medium text-rose-600">{fieldErrors.installationLocation}</span>
+            ) : null}
           </label>
+
           <label className="space-y-2">
             <span className="text-sm text-[color:var(--text-secondary)]">设备状态</span>
-            <select value={formState.status} onChange={(event) => setFormState((current) => ({ ...current, status: event.target.value as DeviceStatus }))} className={inputClassName}>
+            <select value={formState.status} onChange={(event) => updateFormField("status", event.target.value as DeviceStatus)} className={inputClassName}>
               {deviceStatuses.map((status) => (
-                <option key={status}>{status}</option>
+                <option key={status} value={status}>
+                  {status}
+                </option>
               ))}
             </select>
           </label>
+
           <label className="space-y-2">
             <span className="text-sm text-[color:var(--text-secondary)]">最近上报时间</span>
-            <input value={formState.lastReportAt} onChange={(event) => setFormState((current) => ({ ...current, lastReportAt: event.target.value }))} className={inputClassName} />
+            <input value={formState.lastReportAt} onChange={(event) => updateFormField("lastReportAt", event.target.value)} className={inputClassName} />
           </label>
+
           <label className="space-y-2 md:col-span-2">
             <span className="text-sm text-[color:var(--text-secondary)]">备注</span>
-            <textarea value={formState.notes} onChange={(event) => setFormState((current) => ({ ...current, notes: event.target.value }))} className={`${inputClassName} min-h-28 py-3`} />
+            <textarea value={formState.notes} onChange={(event) => updateFormField("notes", event.target.value)} className={`${inputClassName} min-h-28 py-3`} />
           </label>
+
           {submitError ? (
             <div className="md:col-span-2 rounded-[14px] border border-[color:rgba(176,72,79,0.18)] bg-[color:var(--danger-soft)] px-4 py-3 text-sm text-[color:var(--danger-strong)]">
               {submitError}
@@ -472,7 +523,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
         open={(dialogMode === "view" && !!selectedDevice) || (!!initialDeviceId && !!queryDevice)}
         onClose={closeDialog}
         title="设备详情"
-        description="点击地图点位或列表详情时会显示当前设备的最新数据库记录。"
+        description="这里显示当前设备的最新持久化记录。"
       >
         {viewingDevice ? (
           <div className="grid gap-4 md:grid-cols-2">

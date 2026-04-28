@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
@@ -27,6 +27,8 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
   const [assignedUserName, setAssignedUserName] = useState(firstAlarm?.assignedUserName ?? "");
   const [falseAlarm, setFalseAlarm] = useState(firstAlarm?.falseAlarm ?? false);
   const [errorMessage, setErrorMessage] = useState("");
+  const isRefreshingRef = useRef(false);
+  const pendingRefreshRef = useRef(false);
 
   const filteredAlarms = useMemo(() => {
     return alarms.filter((alarm) => {
@@ -46,23 +48,52 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
 
   const selectedAlarm = alarms.find((alarm) => alarm.id === selectedAlarmId) ?? visibleAlarms[0] ?? alarms[0] ?? null;
 
-  async function refresh() {
-    const refreshed = await fetch("/api/tenant/alarm-center", { cache: "no-store" });
-    if (!refreshed.ok) return;
-    const data = (await refreshed.json()) as { alarms?: AlarmCenterItem[] };
-    setAlarms(Array.isArray(data.alarms) ? data.alarms : []);
-  }
+  const refresh = useCallback(async () => {
+    if (isRefreshingRef.current) {
+      pendingRefreshRef.current = true;
+      return;
+    }
+    isRefreshingRef.current = true;
+
+    try {
+      do {
+        pendingRefreshRef.current = false;
+        const refreshed = await fetch("/api/tenant/alarm-center", { cache: "no-store" });
+        if (!refreshed.ok) return;
+        const data = (await refreshed.json()) as { alarms?: AlarmCenterItem[] };
+        setAlarms(Array.isArray(data.alarms) ? data.alarms : []);
+      } while (pendingRefreshRef.current);
+    } finally {
+      isRefreshingRef.current = false;
+    }
+  }, []);
 
   useEffect(() => {
     const bus = getTenantEventBus();
+    const pollTimer = window.setInterval(() => {
+      void refresh();
+    }, 30000);
+    const handleFocus = () => void refresh();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void refresh();
+      }
+    };
     const unsubscribe = bus.subscribe({
-      types: ["alarm_created", "alarm_updated"],
+      types: ["alarm_created", "alarm_updated", "device_status_changed", "system_alert"],
       onEvent: () => {
         void refresh();
       },
     });
-    return unsubscribe;
-  }, []);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      unsubscribe();
+      window.clearInterval(pollTimer);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [refresh]);
 
   async function updateAlarm(nextStatus: AlarmWorkflowStatus) {
     if (!selectedAlarm) return;

@@ -6,6 +6,7 @@ exports.deleteDevice = deleteDevice;
 const http_1 = require("../../lib/http");
 const auth_controller_1 = require("../auth/auth-controller");
 const tenant_repositories_1 = require("../../../../../packages/database/src/tenant-repositories");
+const server_1 = require("../../../../../packages/realtime/src/server");
 async function getDevices(res, context) {
     if (!(0, auth_controller_1.requireTenantContext)(res, context))
         return;
@@ -31,6 +32,16 @@ async function postDevice(req, res, context) {
             lastReportAt: body.lastReportAt || "",
             notes: body.notes || "",
         });
+        (0, server_1.publishTenantEvent)(context.tenantId, {
+            type: "device_status_changed",
+            tenantId: context.tenantId,
+            deviceId: device.id,
+            eventType: body.id ? "device_updated" : "device_created",
+            eventCode: body.id ? "DEVICE_UPDATED" : "DEVICE_CREATED",
+            reportedAt: device.lastReportAt,
+            occurredAt: device.lastReportAt,
+            source: "tenant_console",
+        });
         (0, http_1.sendJson)(res, 200, { device });
     }
     catch (error) {
@@ -47,5 +58,16 @@ async function deleteDevice(req, res, context, url) {
         return;
     }
     await tenant_repositories_1.tenantDeviceRepository.remove(context.tenantId, id);
+    const occurredAt = new Date().toISOString();
+    (0, server_1.publishTenantEvent)(context.tenantId, {
+        type: "device_status_changed",
+        tenantId: context.tenantId,
+        deviceId: id,
+        eventType: "device_deleted",
+        eventCode: "DEVICE_DELETED",
+        reportedAt: occurredAt,
+        occurredAt,
+        source: "tenant_console",
+    });
     (0, http_1.sendJson)(res, 200, { success: true });
 }

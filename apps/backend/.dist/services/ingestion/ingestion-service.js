@@ -60,12 +60,12 @@ function toEventLevel(eventType) {
 }
 function mapDeviceStatusText(status) {
     if (status === "alarm")
-        return "鎶ヨ";
+        return "报警";
     if (status === "fault")
-        return "鏁呴殰";
+        return "故障";
     if (status === "offline")
-        return "绂荤嚎";
-    return "姝ｅ父";
+        return "离线";
+    return "正常";
 }
 function resolveStatusFromAlarmType(alarmType) {
     if (alarmType.includes("鐏") || alarmType.includes("鎶ヨ") || alarmType.includes("閻忣偉顒?"))
@@ -161,72 +161,54 @@ async function processIngestionEvent(input) {
                 reportedAt: processedAt,
             });
             if (engine.decision.shouldCreateAlarm) {
-                if (!engine.hasOpenAlarm) {
-                    alarmId = createId("alarm");
-                    alarmCreated = true;
-                    await (0, alarms_repository_1.createTenantAlarm)(client, {
-                        id: alarmId,
-                        tenantId: input.tenant_id,
-                        deviceId: input.device_id,
-                        deviceName: device.name,
-                        location: `${device.area} / ${device.installation_location}`,
-                        alarmType: engine.decision.alarmTypeLabel,
-                        time: processedAt,
-                    });
-                    await (0, alarms_repository_1.insertAlarmLog)(client, {
+                alarmId = createId("alarm");
+                alarmCreated = true;
+                await (0, alarms_repository_1.createTenantAlarm)(client, {
+                    id: alarmId,
+                    tenantId: input.tenant_id,
+                    deviceId: input.device_id,
+                    deviceName: device.name,
+                    location: `${device.area} / ${device.installation_location}`,
+                    alarmType: engine.decision.alarmTypeLabel,
+                    time: processedAt,
+                });
+                await (0, alarms_repository_1.insertAlarmLog)(client, {
+                    tenantId: input.tenant_id,
+                    alarmId,
+                    action: engine.decision.alarmLogAction,
+                    fromStatus: "鏈鐞?",
+                    toStatus: "鏈鐞?",
+                    operatorName: "device_ingestion",
+                    operatorRole: "device_ingestion",
+                    note: `${engine.decision.alarmTypeLabel} 已进入闭环流程`,
+                    createdAt: processedAt,
+                });
+                try {
+                    notificationCreated = await (0, notification_dispatcher_1.dispatchAlarmNotifications)(client, {
                         tenantId: input.tenant_id,
                         alarmId,
-                        action: engine.decision.alarmLogAction,
-                        fromStatus: "鏈鐞?",
-                        toStatus: "鏈鐞?",
-                        operatorName: "device_ingestion",
-                        operatorRole: "device_ingestion",
-                        note: `${engine.decision.alarmTypeLabel} 已进入闭环流程`,
-                        createdAt: processedAt,
-                    });
-                    try {
-                        notificationCreated = await (0, notification_dispatcher_1.dispatchAlarmNotifications)(client, {
-                            tenantId: input.tenant_id,
-                            alarmId,
-                            deviceId: input.device_id,
-                            level: input.event_type === "fault" ? "fault" : "alarm",
-                            content: `${device.name} ${engine.decision.alarmTypeLabel}，时间 ${processedAt}`,
-                            createdAt: processedAt,
-                        });
-                    }
-                    catch (error) {
-                        (0, runtime_metrics_1.recordRuntimeError)("notification_dispatch", error instanceof Error ? error.message : String(error));
-                    }
-                    await (0, audit_repository_1.insertAuditLog)(client, {
-                        id: createId("audit"),
-                        tenantId: input.tenant_id,
-                        actorScope: "platform",
-                        actorName: "device_ingestion",
-                        actorRole: "device_ingestion",
-                        action: "alarm.created",
-                        targetType: "alarm",
-                        targetId: alarmId ?? input.device_id,
-                        result: "success",
-                        detail: `${engine.decision.alarmTypeLabel} 已创建`,
+                        deviceId: input.device_id,
+                        level: input.event_type === "fault" ? "fault" : "alarm",
+                        content: `${device.name} ${engine.decision.alarmTypeLabel}，时间 ${processedAt}`,
                         createdAt: processedAt,
                     });
                 }
-                else {
-                    alarmId = engine.activeAlarm?.id ?? null;
-                    if (alarmId) {
-                        await (0, alarms_repository_1.insertAlarmLog)(client, {
-                            tenantId: input.tenant_id,
-                            alarmId,
-                            action: "重复事件",
-                            fromStatus: engine.activeAlarm.workflow_status,
-                            toStatus: engine.activeAlarm.workflow_status,
-                            operatorName: "device_ingestion",
-                            operatorRole: "device_ingestion",
-                            note: `${engine.decision.alarmTypeLabel} 再次上报，未重复创建报警`,
-                            createdAt: processedAt,
-                        });
-                    }
+                catch (error) {
+                    (0, runtime_metrics_1.recordRuntimeError)("notification_dispatch", error instanceof Error ? error.message : String(error));
                 }
+                await (0, audit_repository_1.insertAuditLog)(client, {
+                    id: createId("audit"),
+                    tenantId: input.tenant_id,
+                    actorScope: "platform",
+                    actorName: "device_ingestion",
+                    actorRole: "device_ingestion",
+                    action: "alarm.created",
+                    targetType: "alarm",
+                    targetId: alarmId ?? input.device_id,
+                    result: "success",
+                    detail: `${engine.decision.alarmTypeLabel} 已创建`,
+                    createdAt: processedAt,
+                });
             }
             else if (input.event_type === "recovery" && engine.activeAlarm) {
                 alarmId = engine.activeAlarm.id;
@@ -305,6 +287,7 @@ async function processIngestionEvent(input) {
                     alarm_created: alarmCreated,
                     notification_created: notificationCreated,
                     realtime_published: false,
+                    duplicate_suppressed: false,
                 },
                 processed_at: processedAt,
             };
@@ -312,10 +295,10 @@ async function processIngestionEvent(input) {
         try {
             const realtimeType = result.workflow.alarm_created
                 ? "alarm_created"
-                : input.event_type === "heartbeat"
-                    ? "heartbeat"
-                    : input.event_type === "recovery"
-                        ? "alarm_updated"
+                : result.alarm_id && (input.event_type === "alarm" || input.event_type === "fault" || input.event_type === "recovery")
+                    ? "alarm_updated"
+                    : input.event_type === "heartbeat"
+                        ? "heartbeat"
                         : "device_status_changed";
             (0, server_1.publishTenantEvent)(input.tenant_id, {
                 type: realtimeType,
@@ -324,6 +307,7 @@ async function processIngestionEvent(input) {
                 alarmId: result.alarm_id,
                 eventType: input.event_type,
                 eventCode: realtimeEventCode,
+                duplicateSuppressed: Boolean(result.workflow.duplicate_suppressed),
                 reportedAt: processedAt,
                 occurredAt: processedAt,
                 source: input.source ?? "device_ingestion",

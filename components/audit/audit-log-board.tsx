@@ -1,27 +1,45 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { PaginationBar } from "@/components/ui/pagination-bar";
+import { getTenantEventBus } from "@/lib/realtime/event-bus";
 import type { AuditLogRecord } from "@/types/ops";
 
 const PAGE_SIZE = 12;
 
 export function AuditLogBoard({ logs }: { logs: AuditLogRecord[] }) {
+  const [items, setItems] = useState(Array.isArray(logs) ? logs : []);
   const [keyword, setKeyword] = useState("");
   const [resultFilter, setResultFilter] = useState<"all" | "success" | "error">("all");
   const [page, setPage] = useState(1);
 
+  const refresh = useCallback(async () => {
+    const response = await fetch("/api/tenant/audit-log", { cache: "no-store" });
+    if (!response.ok) return;
+    const payload = (await response.json()) as { logs?: AuditLogRecord[] };
+    setItems(Array.isArray(payload.logs) ? payload.logs : []);
+  }, []);
+
+  useEffect(() => {
+    const bus = getTenantEventBus();
+    return bus.subscribe({
+      types: ["alarm_created", "alarm_updated", "device_status_changed", "system_alert"],
+      onEvent: () => {
+        void refresh();
+      },
+    });
+  }, [refresh]);
+
   const filtered = useMemo(() => {
-    const safeLogs = Array.isArray(logs) ? logs : [];
-    return safeLogs.filter((log) => {
+    return items.filter((log) => {
       if (resultFilter !== "all" && log.result !== resultFilter) return false;
       if (!keyword.trim()) return true;
       const text = `${log.actorName} ${log.action} ${log.targetType} ${log.detail}`.toLowerCase();
       return text.includes(keyword.trim().toLowerCase());
     });
-  }, [keyword, logs, resultFilter]);
+  }, [items, keyword, resultFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);

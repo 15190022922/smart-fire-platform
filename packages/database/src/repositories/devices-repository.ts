@@ -1,8 +1,15 @@
 import type { DbExecutor } from "../client";
 import { queryDb } from "../client";
 import { assertTenantId } from "../errors";
-import { createId } from "./_shared";
-import { mapTenantDevice } from "./_shared";
+import { createId, formatLocalTimestamp, mapRuntimeStatus, mapTenantDevice } from "./_shared";
+
+function runtimeStatusFromDeviceStatus(status: string) {
+  if (status === "报警") return "alarm";
+  if (status === "故障") return "fault";
+  if (status === "离线") return "offline";
+  if (status === "维保中" || status === "维修中") return "maintenance";
+  return "normal";
+}
 
 export async function listTenantDevices(tenantId: string) {
   assertTenantId(tenantId);
@@ -25,6 +32,10 @@ export async function getTenantDeviceById(executor: DbExecutor, tenantId: string
 export async function upsertTenantDevice(executor: DbExecutor, tenantId: string, input: any) {
   assertTenantId(tenantId);
   const id = input.id ?? createId("device");
+  const reportedAt = input.lastReportAt || formatLocalTimestamp();
+  const runtime = runtimeStatusFromDeviceStatus(input.status);
+  const mapped = mapRuntimeStatus(runtime);
+
   await executor.query(
     `
       INSERT INTO tenant_devices (id, tenant_id, name, type, area, installation_location, status, last_report_at, notes)
@@ -38,7 +49,29 @@ export async function upsertTenantDevice(executor: DbExecutor, tenantId: string,
         last_report_at = EXCLUDED.last_report_at,
         notes = EXCLUDED.notes
     `,
-    [id, tenantId, input.name, input.type, input.area, input.installationLocation, input.status, input.lastReportAt, input.notes ?? ""],
+    [id, tenantId, input.name, input.type, input.area, input.installationLocation, input.status, reportedAt, input.notes ?? ""],
+  );
+
+  await executor.query(
+    `
+      INSERT INTO device_status_snapshots (
+        device_id, tenant_id, gateway_id, status, last_event_type, last_event_code, last_reported_at, updated_at
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      ON CONFLICT (device_id) DO UPDATE SET
+        tenant_id = EXCLUDED.tenant_id,
+        status = EXCLUDED.status,
+        last_event_type = EXCLUDED.last_event_type,
+        last_event_code = EXCLUDED.last_event_code,
+        last_reported_at = EXCLUDED.last_reported_at,
+        updated_at = EXCLUDED.updated_at
+    `,
+    [id, tenantId, input.gatewayId ?? null, runtime, "manual_update", "DEVICE_MANUAL_UPDATE", reportedAt, reportedAt],
+  );
+
+  await executor.query(
+    "UPDATE tenant_device_points SET status_style = $1, updated_at = $2 WHERE tenant_id = $3 AND device_id = $4",
+    [mapped.pointStatusStyle, reportedAt, tenantId, id],
   );
 
   const rowResult = await executor.query("SELECT * FROM tenant_devices WHERE id = $1 AND tenant_id = $2", [id, tenantId]);
@@ -51,6 +84,8 @@ export async function upsertTenantDevice(executor: DbExecutor, tenantId: string,
 
 export async function deleteTenantDevice(executor: DbExecutor, tenantId: string, id: string) {
   assertTenantId(tenantId);
+  await executor.query("DELETE FROM tenant_device_points WHERE device_id = $1 AND tenant_id = $2", [id, tenantId]);
+  await executor.query("DELETE FROM device_status_snapshots WHERE device_id = $1 AND tenant_id = $2", [id, tenantId]);
   await executor.query("DELETE FROM tenant_devices WHERE id = $1 AND tenant_id = $2", [id, tenantId]);
 }
 

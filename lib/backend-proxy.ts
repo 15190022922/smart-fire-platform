@@ -44,6 +44,7 @@ export async function proxyBackendStream(
       "Content-Type": response.headers.get("content-type") || "text/event-stream",
       "Cache-Control": response.headers.get("cache-control") || "no-cache, no-transform",
       Connection: response.headers.get("connection") || "keep-alive",
+      "X-Accel-Buffering": response.headers.get("x-accel-buffering") || "no",
     },
   });
 }

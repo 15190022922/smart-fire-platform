@@ -78,10 +78,10 @@ function toEventLevel(eventType: IngestionEventPayload["event_type"]) {
 }
 
 function mapDeviceStatusText(status: "normal" | "alarm" | "fault" | "offline") {
-  if (status === "alarm") return "鎶ヨ";
-  if (status === "fault") return "鏁呴殰";
-  if (status === "offline") return "绂荤嚎";
-  return "姝ｅ父";
+  if (status === "alarm") return "报警";
+  if (status === "fault") return "故障";
+  if (status === "offline") return "离线";
+  return "正常";
 }
 
 function resolveStatusFromAlarmType(alarmType: string): "normal" | "alarm" | "fault" | "offline" {
@@ -185,8 +185,7 @@ export async function processIngestionEvent(input: IngestionEventPayload): Promi
       });
 
       if (engine.decision.shouldCreateAlarm) {
-        if (!engine.hasOpenAlarm) {
-          alarmId = createId("alarm");
+        alarmId = createId("alarm");
           alarmCreated = true;
 
           await createTenantAlarm(client, {
@@ -237,22 +236,6 @@ export async function processIngestionEvent(input: IngestionEventPayload): Promi
             detail: `${engine.decision.alarmTypeLabel} 已创建`,
             createdAt: processedAt,
           });
-        } else {
-          alarmId = engine.activeAlarm?.id ?? null;
-          if (alarmId) {
-            await insertAlarmLog(client, {
-              tenantId: input.tenant_id,
-              alarmId,
-              action: "重复事件",
-              fromStatus: engine.activeAlarm.workflow_status,
-              toStatus: engine.activeAlarm.workflow_status,
-              operatorName: "device_ingestion",
-              operatorRole: "device_ingestion",
-              note: `${engine.decision.alarmTypeLabel} 再次上报，未重复创建报警`,
-              createdAt: processedAt,
-            });
-          }
-        }
       } else if (input.event_type === "recovery" && engine.activeAlarm) {
         alarmId = engine.activeAlarm.id;
         await insertAlarmLog(client, {
@@ -335,6 +318,7 @@ export async function processIngestionEvent(input: IngestionEventPayload): Promi
           alarm_created: alarmCreated,
           notification_created: notificationCreated,
           realtime_published: false,
+          duplicate_suppressed: false,
         },
         processed_at: processedAt,
       };
@@ -343,10 +327,10 @@ export async function processIngestionEvent(input: IngestionEventPayload): Promi
     try {
       const realtimeType = result.workflow.alarm_created
         ? "alarm_created"
-        : input.event_type === "heartbeat"
-          ? "heartbeat"
-          : input.event_type === "recovery"
-            ? "alarm_updated"
+        : result.alarm_id && (input.event_type === "alarm" || input.event_type === "fault" || input.event_type === "recovery")
+          ? "alarm_updated"
+          : input.event_type === "heartbeat"
+            ? "heartbeat"
             : "device_status_changed";
       publishTenantEvent(input.tenant_id, {
         type: realtimeType,
@@ -355,6 +339,7 @@ export async function processIngestionEvent(input: IngestionEventPayload): Promi
         alarmId: result.alarm_id,
         eventType: input.event_type,
         eventCode: realtimeEventCode,
+        duplicateSuppressed: Boolean(result.workflow.duplicate_suppressed),
         reportedAt: processedAt,
         occurredAt: processedAt,
         source: input.source ?? "device_ingestion",

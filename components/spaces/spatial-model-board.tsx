@@ -164,6 +164,7 @@ export function SpatialModelBoard({
   });
   const mapRef = useRef<HTMLDivElement | null>(null);
   const isRefreshingRef = useRef(false);
+  const pendingRefreshRef = useRef(false);
 
   const selectedDrawing = useMemo(
     () => model.drawings.find((drawing) => drawing.id === selectedDrawingId) ?? null,
@@ -190,25 +191,29 @@ export function SpatialModelBoard({
 
   const refresh = useCallback(async () => {
     if (isRefreshingRef.current) {
+      pendingRefreshRef.current = true;
       return;
     }
 
     isRefreshingRef.current = true;
-    const [spatialResponse, deviceResponse] = await Promise.all([
-      fetch("/api/tenant/spatial-model", { cache: "no-store" }),
-      fetch("/api/tenant/devices", { cache: "no-store" }),
-    ]);
-
     try {
-      if (spatialResponse.ok) {
-        const nextModel = (await spatialResponse.json()) as TenantSpatialModel;
-        setModel(nextModel);
-      }
+      do {
+        pendingRefreshRef.current = false;
+        const [spatialResponse, deviceResponse] = await Promise.all([
+          fetch("/api/tenant/spatial-model", { cache: "no-store" }),
+          fetch("/api/tenant/devices", { cache: "no-store" }),
+        ]);
 
-      if (deviceResponse.ok) {
-        const result = (await deviceResponse.json()) as { devices: TenantDeviceRecord[] };
-        setDeviceList(result.devices ?? []);
-      }
+        if (spatialResponse.ok) {
+          const nextModel = (await spatialResponse.json()) as TenantSpatialModel;
+          setModel(nextModel);
+        }
+
+        if (deviceResponse.ok) {
+          const result = (await deviceResponse.json()) as { devices: TenantDeviceRecord[] };
+          setDeviceList(result.devices ?? []);
+        }
+      } while (pendingRefreshRef.current);
     } finally {
       isRefreshingRef.current = false;
     }
@@ -217,7 +222,7 @@ export function SpatialModelBoard({
   useEffect(() => {
     const pollTimer = window.setInterval(() => {
       void refresh();
-    }, 60000);
+    }, 30000);
     const bus = getTenantEventBus();
 
     const handleFocus = () => {

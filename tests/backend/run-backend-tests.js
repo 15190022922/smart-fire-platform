@@ -237,6 +237,13 @@ async function main() {
       const listDevices = await apiFetch(harness.baseUrl, "/api/tenant/devices", { tenantId: "tenant-huaxing" });
       const devicesPayload = await listDevices.json();
       assert.ok(devicesPayload.devices.some((item) => item.id === deviceId));
+      const snapshotRows = await readRows(
+        "SELECT status, last_reported_at FROM device_status_snapshots WHERE tenant_id = $1 AND device_id = $2",
+        ["tenant-huaxing", deviceId],
+      );
+      assert.equal(snapshotRows.length, 1);
+      assert.equal(snapshotRows[0].status, "normal");
+      assert.ok(snapshotRows[0].last_reported_at);
 
       const createUserResponse = await apiFetch(harness.baseUrl, "/api/tenant/users", {
         tenantId: "tenant-huaxing",
@@ -397,6 +404,58 @@ async function main() {
       assert.equal(deletedTenant, null);
     });
 
+    await runCase("admin state snapshot replacement is disabled and preserves alarm workflow", async () => {
+      const alarmId = "itest-admin-state-alarm";
+      const deviceId = "itest-admin-state-device";
+      await ensureTestDevice({ tenantId: "tenant-huaxing", deviceId, name: deviceId });
+      await readRows(
+        `INSERT INTO tenant_alarms (
+          id, tenant_id, device_id, device_name, location, alarm_type, time, process_status, workflow_status
+        )
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+        ON CONFLICT (id) DO UPDATE SET workflow_status = EXCLUDED.workflow_status`,
+        [alarmId, "tenant-huaxing", deviceId, deviceId, "itest", "itest", "2026-04-27 12:00:00", WORKFLOW_COMPLETED, WORKFLOW_COMPLETED],
+      );
+      await readRows(
+        `INSERT INTO alarm_logs (
+          id, tenant_id, alarm_id, action, from_status, to_status, operator_name, operator_role, note, attachments, created_at
+        )
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11)
+        ON CONFLICT (id) DO NOTHING`,
+        [
+          "itest-admin-state-log",
+          "tenant-huaxing",
+          alarmId,
+          "itest-workflow",
+          alarmWorkflowStatuses[0],
+          WORKFLOW_COMPLETED,
+          "itest-operator",
+          "tenant_level_1",
+          "",
+          "[]",
+          "2026-04-27 12:01:00",
+        ],
+      );
+      await readRows("UPDATE tenant_alarms SET workflow_status = $1, process_status = $1 WHERE id = $2", [
+        alarmWorkflowStatuses[0],
+        alarmId,
+      ]);
+      await seedDatabase();
+      let rows = await readRows("SELECT workflow_status FROM tenant_alarms WHERE id = $1", [alarmId]);
+      assert.equal(rows[0]?.workflow_status, WORKFLOW_COMPLETED);
+
+      const response = await apiFetch(harness.baseUrl, "/api/admin/state", {
+        method: "PUT",
+        tenantId: "tenant-huaxing",
+        scope: "platform",
+        role: "platform_super_admin",
+      });
+      assert.equal(response.status, 410);
+
+      rows = await readRows("SELECT workflow_status FROM tenant_alarms WHERE id = $1", [alarmId]);
+      assert.equal(rows[0]?.workflow_status, WORKFLOW_COMPLETED);
+    });
+
     await runCase("platform endpoints and tenant history enforce scope boundaries", async () => {
       const platformSceneResponse = await apiFetch(harness.baseUrl, "/api/platform/tenant-scene?tenantId=tenant-huaxing", {
         tenantId: "tenant-huaxing",
@@ -406,6 +465,10 @@ async function main() {
       assert.equal(platformSceneResponse.status, 200);
       const platformScene = await platformSceneResponse.json();
       assert.equal(platformScene.tenant.id, "tenant-huaxing");
+      assert.ok(Array.isArray(platformScene.alarms));
+      assert.ok(Array.isArray(platformScene.notificationRecords));
+      assert.ok(platformScene.alarms.every((item) => item.tenantId === "tenant-huaxing"));
+      assert.ok(platformScene.notificationRecords.every((item) => item.tenantId === "tenant-huaxing"));
 
       const tenantForbiddenScene = await apiFetch(harness.baseUrl, "/api/platform/tenant-scene?tenantId=tenant-huaxing", {
         tenantId: "tenant-huaxing",
@@ -540,7 +603,7 @@ async function main() {
       assert.ok(auditRows.some((item) => item.action === "drawing.delete"));
     });
 
-    await runCase("ingestion chain creates one alarm and suppresses duplicates", async () => {
+    await runCase("ingestion chain stacks repeated alarms for the same device", async () => {
       const deviceId = "itest-device-alarm";
       await ensureTestDevice({ tenantId: "tenant-huaxing", deviceId, name: "itest-device-alarm" });
 
@@ -558,7 +621,8 @@ async function main() {
             const { value, done } = await reader.read();
             if (done) break;
             realtimeBuffer += Buffer.from(value).toString("utf8");
-            if (realtimeBuffer.includes('"type":"alarm_created"')) {
+            const createdCount = (realtimeBuffer.match(/"type":"alarm_created"/g) ?? []).length;
+            if (createdCount >= 2) {
               return true;
             }
           }
@@ -579,7 +643,11 @@ async function main() {
         scope: "platform",
         role: "platform_super_admin",
         method: "POST",
-        body: JSON.stringify(alarmEvent),
+        body: JSON.stringify({
+          ...alarmEvent,
+          event_id: "itest-event-1-repeat",
+          event_time: new Date(Date.now() + 1000).toISOString(),
+        }),
       });
         assert.equal(firstResponse.status, 200);
 
@@ -592,13 +660,14 @@ async function main() {
       });
         assert.equal(duplicateResponse.status, 200);
         const duplicatePayload = await duplicateResponse.json();
-        assert.equal(duplicatePayload.workflow.duplicate_suppressed, true);
+        assert.equal(duplicatePayload.workflow.alarm_created, true);
+        assert.equal(duplicatePayload.workflow.duplicate_suppressed, false);
 
         const alarmRows = await readRows(
           "SELECT id FROM tenant_alarms WHERE tenant_id = $1 AND device_id = $2",
           ["tenant-huaxing", deviceId],
         );
-        assert.equal(alarmRows.length, 1);
+        assert.equal(alarmRows.length, 2);
 
         const notificationRows = await readRows(
           "SELECT id FROM notification_records WHERE tenant_id = $1 AND device_id = $2",
@@ -635,9 +704,14 @@ async function main() {
           "SELECT workflow_status FROM tenant_alarms WHERE tenant_id = $1 AND device_id = $2",
           ["tenant-huaxing", deviceId],
         );
-        assert.equal(workflowRows.length, 1);
+        assert.equal(workflowRows.length, 2);
         assert.notEqual(workflowRows[0].workflow_status, "已关闭");
         assert.notEqual(workflowRows[0].workflow_status, "已完成");
+        const recoveredDeviceRows = await readRows(
+          "SELECT status FROM tenant_devices WHERE tenant_id = $1 AND id = $2",
+          ["tenant-huaxing", deviceId],
+        );
+        assert.equal(recoveredDeviceRows[0].status, "正常");
 
         const gotRealtime = await realtimePromise;
         assert.equal(gotRealtime, true);
@@ -668,6 +742,44 @@ async function main() {
       const alarmRows = await readRows("SELECT id FROM tenant_alarms WHERE device_id = $1", ["itest-device-missing"]);
       assert.equal(rawRows.length, 0);
       assert.equal(alarmRows.length, 0);
+    });
+
+    await runCase("fault ingestion keeps overview, alarm-center and devices consistent", async () => {
+      const deviceId = "itest-device-fault";
+      await ensureTestDevice({ tenantId: "tenant-huaxing", deviceId, name: "itest-device-fault" });
+
+      const ingestResponse = await apiFetch(harness.baseUrl, "/api/ingestion/event", {
+        tenantId: "tenant-huaxing",
+        scope: "platform",
+        role: "platform_super_admin",
+        method: "POST",
+        body: JSON.stringify({
+          event_id: "itest-event-fault-1",
+          tenant_id: "tenant-huaxing",
+          device_id: deviceId,
+          event_type: "fault",
+          event_value: { code: "E01" },
+          event_time: new Date().toISOString(),
+        }),
+      });
+      assert.equal(ingestResponse.status, 200);
+      const ingestPayload = await ingestResponse.json();
+      assert.equal(ingestPayload.device_status, "fault");
+
+      const devicesPayload = await (await apiFetch(harness.baseUrl, "/api/tenant/devices", { tenantId: "tenant-huaxing" })).json();
+      const device = devicesPayload.devices.find((item) => item.id === deviceId);
+      assert.equal(device?.status, "故障");
+
+      const alarmCenterPayload = await (await apiFetch(harness.baseUrl, "/api/tenant/alarm-center", { tenantId: "tenant-huaxing" })).json();
+      const alarm = alarmCenterPayload.alarms.find((item) => item.deviceId === deviceId);
+      assert.ok(alarm);
+      assert.equal(alarm.alarmType, "设备故障");
+
+      const overviewPayload = await (await apiFetch(harness.baseUrl, "/api/tenant/overview", { tenantId: "tenant-huaxing" })).json();
+      const overviewDevice = overviewPayload.devices.find((item) => item.id === deviceId);
+      const overviewAlarm = overviewPayload.alarms.find((item) => item.deviceId === deviceId);
+      assert.equal(overviewDevice?.status, device.status);
+      assert.equal(overviewAlarm?.alarmType, alarm.alarmType);
     });
 
     await runCase("alarm workflow transition updates logs and device state transactionally", async () => {

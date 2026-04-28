@@ -13,9 +13,10 @@ export async function getAdminState(res: ServerResponse, context: BackendRequest
 
 export async function putAdminState(req: IncomingMessage, res: ServerResponse, context: BackendRequestContext) {
   if (!requirePlatformContext(res, context)) return;
-  const body = await readJsonBody(req);
-  await adminRepository.replaceAdminStateData(body as never);
-  sendJson(res, 200, { success: true });
+  req.resume();
+  sendJson(res, 410, {
+    message: "Full admin-state replacement is disabled. Use scoped admin endpoints so tenant alarm workflow data is not overwritten.",
+  });
 }
 
 export async function postAdminTenant(req: IncomingMessage, res: ServerResponse, context: BackendRequestContext) {

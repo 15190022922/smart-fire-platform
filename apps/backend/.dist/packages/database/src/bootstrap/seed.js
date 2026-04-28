@@ -4,6 +4,7 @@ exports.seedDemoCoreData = seedDemoCoreData;
 exports.seedDemoSpatialData = seedDemoSpatialData;
 exports.seedOperationalDefaults = seedOperationalDefaults;
 const password_1 = require("../../../../lib/password");
+const _shared_1 = require("../repositories/_shared");
 async function seedDemoCoreData(client) {
     const existing = await client.query("SELECT COUNT(*)::text AS count FROM tenants");
     if (Number(existing.rows[0]?.count ?? 0) > 0) {
@@ -202,6 +203,46 @@ async function seedDemoSpatialData(client) {
     WHERE tenant_id = 'tenant-anhe';
   `);
 }
+async function repairAlarmWorkflowFromLogs(client) {
+    await client.query(`WITH latest_workflow_log AS (
+       SELECT DISTINCT ON (tenant_id, alarm_id)
+         tenant_id,
+         alarm_id,
+         to_status,
+         operator_name,
+         created_at
+       FROM alarm_logs
+       WHERE to_status IS NOT NULL
+         AND to_status <> ''
+       ORDER BY tenant_id, alarm_id, created_at DESC, id DESC
+     )
+     UPDATE tenant_alarms AS alarm
+     SET workflow_status = latest.to_status,
+         process_status = CASE
+           WHEN latest.to_status IN ($1, $2) THEN $3
+           WHEN latest.to_status = $4 THEN $4
+           ELSE $5
+         END,
+         last_operator_name = COALESCE(NULLIF(latest.operator_name, ''), alarm.last_operator_name),
+         completed_at = CASE
+           WHEN latest.to_status = $1 AND alarm.completed_at IS NULL THEN latest.created_at
+           ELSE alarm.completed_at
+         END,
+         closed_at = CASE
+           WHEN latest.to_status = $2 AND alarm.closed_at IS NULL THEN latest.created_at
+           ELSE alarm.closed_at
+         END
+     FROM latest_workflow_log AS latest
+     WHERE alarm.tenant_id = latest.tenant_id
+       AND alarm.id = latest.alarm_id
+       AND alarm.workflow_status IS DISTINCT FROM latest.to_status`, [
+        _shared_1.ALARM_WORKFLOW_COMPLETED,
+        _shared_1.ALARM_WORKFLOW_CLOSED,
+        _shared_1.ALARM_PROCESS_RESOLVED,
+        _shared_1.ALARM_WORKFLOW_PROCESSING,
+        _shared_1.ALARM_WORKFLOW_PENDING,
+    ]);
+}
 async function seedOperationalDefaults(client) {
     await client.query(`UPDATE tenant_alarms
      SET workflow_status = CASE
@@ -210,6 +251,7 @@ async function seedOperationalDefaults(client) {
        ELSE '未处理'
      END
      WHERE workflow_status IS NULL OR workflow_status = '' OR workflow_status IN ('未处理', '处理中', '已完成')`);
+    await repairAlarmWorkflowFromLogs(client);
     await client.query(`
     INSERT INTO notification_templates (id, tenant_id, name, channel, level, target_roles, template_text, enabled, created_at, updated_at) VALUES
       ('template-hx-alarm-sms', 'tenant-huaxing', '火警短信通知', 'sms', 'alarm', '["tenant_level_1","tenant_level_2"]'::jsonb, '【火警报警】{{content}}，请立即核查。', true, '2026-04-20 08:00:00', '2026-04-20 08:00:00'),

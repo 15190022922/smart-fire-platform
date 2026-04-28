@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { PaginationBar } from "@/components/ui/pagination-bar";
+import { getTenantEventBus } from "@/lib/realtime/event-bus";
 import type { DutyCenterPayload, DutyLogRecord, DutyScheduleRecord } from "@/types/duty";
 
 const inputClassName = "sf-input h-10 px-3 text-sm";
@@ -51,12 +52,22 @@ export function DutyCenterBoard({ initialData }: { initialData: DutyCenterPayloa
     return filteredLogs.slice(start, start + LOG_PAGE_SIZE);
   }, [filteredLogs, safeLogPage]);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     const response = await fetch("/api/tenant/duty-center", { cache: "no-store" });
     if (response.ok) {
       setData((await response.json()) as DutyCenterPayload);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    const bus = getTenantEventBus();
+    return bus.subscribe({
+      types: ["alarm_created", "alarm_updated", "device_status_changed", "system_alert"],
+      onEvent: () => {
+        void refresh();
+      },
+    });
+  }, [refresh]);
 
   async function submitSchedule() {
     const response = await fetch("/api/tenant/duty-center", {
