@@ -32,8 +32,8 @@ export function DeviceTable({ devices }: { devices: DeviceRecord[] }) {
               className={cn(
                 "rounded-full border px-4 py-2 text-sm transition",
                 activeFilter === filter
-                  ? "border-sky-300/45 bg-sky-400/12 text-sky-100"
-                  : "border-white/8 bg-slate-950/65 text-slate-300 hover:border-sky-400/20",
+                  ? "border-[color:var(--accent)] bg-[var(--accent-soft)] text-[color:var(--accent-strong)]"
+                  : "border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)] text-[color:var(--text-secondary)] hover:border-[color:var(--border)]",
               )}
             >
               {filter}
@@ -43,9 +43,9 @@ export function DeviceTable({ devices }: { devices: DeviceRecord[] }) {
       }
     >
       <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm text-slate-200">
-          <thead className="text-xs uppercase tracking-[0.24em] text-slate-400">
-            <tr className="border-b border-white/8">
+        <table className="min-w-full text-left text-sm text-[color:var(--text-secondary)]">
+          <thead className="text-xs uppercase tracking-[0.24em] text-[color:var(--text-muted)]">
+            <tr className="border-b border-[color:var(--border-soft)]">
               <th className="px-4 py-3 font-medium">设备名称</th>
               <th className="px-4 py-3 font-medium">类型</th>
               <th className="px-4 py-3 font-medium">位置</th>
@@ -55,14 +55,14 @@ export function DeviceTable({ devices }: { devices: DeviceRecord[] }) {
           </thead>
           <tbody>
             {filteredDevices.map((device) => (
-              <tr key={device.id} className="border-b border-white/6 last:border-b-0">
-                <td className="px-4 py-4 font-medium text-slate-50">{device.name}</td>
-                <td className="px-4 py-4 text-slate-300">{device.type}</td>
-                <td className="px-4 py-4 text-slate-300">{device.location}</td>
+              <tr key={device.id} className="border-b border-[color:var(--border-soft)] last:border-b-0">
+                <td className="px-4 py-4 font-medium text-[color:var(--text-primary)]">{device.name}</td>
+                <td className="px-4 py-4 text-[color:var(--text-secondary)]">{device.type}</td>
+                <td className="px-4 py-4 text-[color:var(--text-secondary)]">{device.location}</td>
                 <td className="px-4 py-4">
                   <StatusBadge status={device.status} />
                 </td>
-                <td className="px-4 py-4 text-slate-300">{device.lastReportAt}</td>
+                <td className="px-4 py-4 text-[color:var(--text-secondary)]">{device.lastReportAt}</td>
               </tr>
             ))}
           </tbody>

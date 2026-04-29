@@ -17,8 +17,8 @@ export function LogoutButton({ compact = false }: { compact?: boolean }) {
       onClick={handleLogout}
       className={
         compact
-          ? "sf-button sf-button-secondary px-3 py-1.5 text-sm"
-          : "sf-button sf-button-secondary px-4 py-2 text-sm"
+          ? "sf-button sf-button-secondary h-9 whitespace-nowrap px-3 text-sm leading-none"
+          : "sf-button sf-button-secondary whitespace-nowrap px-4 py-2 text-sm leading-none"
       }
     >
       退出登录

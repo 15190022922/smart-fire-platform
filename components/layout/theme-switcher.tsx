@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type ThemePreference = "system" | "light" | "dark" | "warm" | "mist";
-type ResolvedTheme = Exclude<ThemePreference, "system">;
+type ThemePreference = "black" | "blue" | "white";
 
 type ThemeOption = {
   id: ThemePreference;
@@ -13,75 +12,43 @@ type ThemeOption = {
 
 const themeOptions: ThemeOption[] = [
   {
-    id: "system",
-    label: "跟随系统",
-    swatches: ["#eef3f8", "#0c1422", "#7ea5cf"],
+    id: "black",
+    label: "深色-黑",
+    swatches: ["#020202", "#101012", "#d7d7dc"],
   },
   {
-    id: "light",
-    label: "浅色控制台",
+    id: "blue",
+    label: "深色-蓝黑",
+    swatches: ["#05080d", "#121b28", "#78aee7"],
+  },
+  {
+    id: "white",
+    label: "浅色-白",
     swatches: ["#eef3f8", "#ffffff", "#486a8d"],
-  },
-  {
-    id: "dark",
-    label: "夜间值守",
-    swatches: ["#0c1422", "#162334", "#7ea5cf"],
-  },
-  {
-    id: "warm",
-    label: "暖砂工业",
-    swatches: ["#f3ede3", "#fffaf3", "#7c5d41"],
-  },
-  {
-    id: "mist",
-    label: "青雾巡检",
-    swatches: ["#edf6f5", "#fbfefe", "#487d79"],
   },
 ];
 
+function normalizeStoredTheme(value: string | null): ThemePreference {
+  if (value === "blue") return "blue";
+  if (value === "white" || value === "mist") return "white";
+  return "black";
+}
+
 export function ThemeSwitcher() {
-  const [themePreference, setThemePreference] = useState<ThemePreference>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
+  const [themePreference, setThemePreference] = useState<ThemePreference>("black");
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("smart-fire-theme") as ThemePreference | null;
-    const nextPreference = stored ?? "system";
+    const nextPreference = normalizeStoredTheme(window.localStorage.getItem("smart-fire-theme"));
     setThemePreference(nextPreference);
+    document.documentElement.dataset.theme = nextPreference;
+    window.localStorage.setItem("smart-fire-theme", nextPreference);
   }, []);
 
   useEffect(() => {
-    function resolveTheme(preference: ThemePreference): ResolvedTheme {
-      if (preference === "system") {
-        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      }
-
-      return preference;
-    }
-
-    const nextResolvedTheme = resolveTheme(themePreference);
-    setResolvedTheme(nextResolvedTheme);
-    document.documentElement.dataset.theme = nextResolvedTheme;
+    document.documentElement.dataset.theme = themePreference;
     window.localStorage.setItem("smart-fire-theme", themePreference);
-  }, [themePreference]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-    function handleSystemThemeChange() {
-      if (themePreference === "system") {
-        const nextResolvedTheme = mediaQuery.matches ? "dark" : "light";
-        setResolvedTheme(nextResolvedTheme);
-        document.documentElement.dataset.theme = nextResolvedTheme;
-      }
-    }
-
-    mediaQuery.addEventListener("change", handleSystemThemeChange);
-    return () => mediaQuery.removeEventListener("change", handleSystemThemeChange);
   }, [themePreference]);
 
   useEffect(() => {
@@ -101,9 +68,6 @@ export function ThemeSwitcher() {
   }
 
   const activeOption = themeOptions.find((theme) => theme.id === themePreference) ?? themeOptions[0];
-  const buttonSwatches = (themePreference === "system"
-    ? themeOptions.find((theme) => theme.id === resolvedTheme)?.swatches
-    : activeOption.swatches) ?? activeOption.swatches;
 
   return (
     <div ref={rootRef} className="relative z-[90]">
@@ -111,11 +75,11 @@ export function ThemeSwitcher() {
         type="button"
         onClick={() => setOpen((current) => !current)}
         className="sf-button sf-button-secondary h-9 min-w-9 px-0 text-sm shadow-sm"
-        aria-label="Theme"
+        aria-label="主题选择"
         title="主题选择"
       >
         <span className="flex gap-0.5">
-          {buttonSwatches.slice(0, 3).map((swatch) => (
+          {activeOption.swatches.map((swatch) => (
             <span
               key={swatch}
               className="h-2.5 w-2.5 rounded-full border border-white/50 shadow-sm"

@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
+import { PaginationBar } from "@/components/ui/pagination-bar";
 import { getTenantEventBus } from "@/lib/realtime/event-bus";
 import type { SystemHealthPayload } from "@/types/ops";
 import type { RealtimeConnectionState } from "@/types/realtime";
+
+const EVENT_PAGE_SIZE = 6;
 
 export function SystemHealthBoard({ initialData }: { initialData: SystemHealthPayload }) {
   const safeInitialData: SystemHealthPayload = {
@@ -17,6 +20,11 @@ export function SystemHealthBoard({ initialData }: { initialData: SystemHealthPa
   const [data, setData] = useState(safeInitialData);
   const [apiLatency, setApiLatency] = useState<number | null>(null);
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeConnectionState>("connecting");
+  const [eventPage, setEventPage] = useState(1);
+
+  const eventTotalPages = Math.max(1, Math.ceil(data.latestEvents.length / EVENT_PAGE_SIZE));
+  const safeEventPage = Math.min(eventPage, eventTotalPages);
+  const pagedEvents = data.latestEvents.slice((safeEventPage - 1) * EVENT_PAGE_SIZE, safeEventPage * EVENT_PAGE_SIZE);
 
   useEffect(() => {
     let mounted = true;
@@ -34,6 +42,7 @@ export function SystemHealthBoard({ initialData }: { initialData: SystemHealthPa
         latestEvents: Array.isArray(payload.latestEvents) ? payload.latestEvents : [],
       });
       setApiLatency(Math.round(endedAt - startedAt));
+      setEventPage(1);
     }
 
     const bus = getTenantEventBus();
@@ -87,36 +96,68 @@ export function SystemHealthBoard({ initialData }: { initialData: SystemHealthPa
         <SectionCard title="最近错误日志" description="最近失败操作，用于快速定位风险。">
           <div className="space-y-3">
             {data.recentErrors.map((item) => (
-              <div key={item.id} className="rounded-[16px] border border-[color:rgba(176,72,79,0.18)] bg-[color:var(--danger-soft)] px-4 py-3">
+              <div key={item.id} className="rounded-[16px] border border-[color:var(--danger)] bg-[var(--danger-soft)] px-4 py-3">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-rose-700">{item.action}</p>
-                  <span className="text-xs text-rose-600">{item.createdAt}</span>
+                  <p className="text-sm font-semibold text-[color:var(--danger-strong)]">{item.action}</p>
+                  <span className="text-xs text-[color:var(--danger-strong)]">{item.createdAt}</span>
                 </div>
-                <p className="mt-1 text-xs text-rose-700">
+                <p className="mt-1 text-xs text-[color:var(--danger-strong)]">
                   {item.actorName} / {item.targetType} / {item.targetId}
                 </p>
-                <p className="mt-2 text-sm text-rose-700">{item.detail}</p>
+                <p className="mt-2 text-sm text-[color:var(--danger-strong)]">{item.detail}</p>
               </div>
             ))}
           </div>
         </SectionCard>
 
         <SectionCard title="最近设备事件" description="按最近接入顺序展示原始事件流。">
-          <div className="space-y-3">
-            {data.latestEvents.map((event) => (
-              <div key={event.id} className="sf-list-row px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-[color:var(--text-primary)]">{event.deviceId}</p>
-                  <span className="text-xs text-[color:var(--text-muted)]">{event.reportedAt}</span>
-                </div>
-                <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
-                  {event.eventType} / {event.eventCode}
-                </p>
-              </div>
-            ))}
+          <div className="overflow-x-auto rounded-[16px] border border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)]">
+            <table className="min-w-full text-left text-sm text-[color:var(--text-secondary)]">
+              <thead className="bg-[var(--table-head)] text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">
+                <tr>
+                  <th className="px-4 py-3 font-medium">设备</th>
+                  <th className="px-4 py-3 font-medium">事件类型</th>
+                  <th className="px-4 py-3 font-medium">事件编码</th>
+                  <th className="px-4 py-3 font-medium">上报时间</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pagedEvents.map((event, index) => (
+                  <tr
+                    key={event.id}
+                    className="border-t border-[color:var(--border-soft)]"
+                    style={{ backgroundColor: index % 2 === 0 ? "var(--table-row)" : "var(--table-row-alt)" }}
+                  >
+                    <td className="px-4 py-3 font-semibold text-[color:var(--text-primary)]">{event.deviceId}</td>
+                    <td className="px-4 py-3">{eventTypeLabel(event.eventType)}</td>
+                    <td className="px-4 py-3">{event.eventCode}</td>
+                    <td className="px-4 py-3 text-[color:var(--text-muted)]">{event.reportedAt}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          <PaginationBar
+            page={safeEventPage}
+            totalPages={eventTotalPages}
+            totalItems={data.latestEvents.length}
+            pageSize={EVENT_PAGE_SIZE}
+            onPageChange={setEventPage}
+            label="设备事件"
+          />
         </SectionCard>
       </div>
     </div>
   );
+}
+
+function eventTypeLabel(type: string) {
+  if (type === "alarm") return "报警";
+  if (type === "fault") return "故障";
+  if (type === "recover") return "恢复";
+  if (type === "heartbeat") return "心跳";
+  if (type === "status_change") return "状态变更";
+  if (type === "alarm_workflow_updated") return "警情流转";
+  if (type === "alarm_status_changed") return "警情状态";
+  return type;
 }

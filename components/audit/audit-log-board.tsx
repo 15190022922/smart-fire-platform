@@ -105,22 +105,22 @@ export function AuditLogBoard({ logs }: { logs: AuditLogRecord[] }) {
                       {log.actorScope} / {log.actorRole}
                     </div>
                   </td>
-                  <td className="px-4 py-3">{log.action}</td>
+                  <td className="px-4 py-3">{auditActionLabel(log.action)}</td>
                   <td className="px-4 py-3">
-                    {log.targetType} / {log.targetId}
+                    {auditTargetLabel(log.targetType)} / {log.targetId}
                   </td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full border px-2.5 py-1 text-xs ${
                         log.result === "success"
-                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                          : "border-rose-200 bg-rose-50 text-rose-700"
+                          ? "border-[color:var(--success)] bg-[var(--success-soft)] text-[color:var(--success-strong)]"
+                          : "border-[color:var(--danger)] bg-[var(--danger-soft)] text-[color:var(--danger-strong)]"
                       }`}
                     >
                       {log.result === "success" ? "成功" : "失败"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-[color:var(--text-secondary)]">{log.detail}</td>
+                  <td className="px-4 py-3 text-[color:var(--text-secondary)]">{auditDetailLabel(log.detail)}</td>
                 </tr>
               ))}
             </tbody>
@@ -137,4 +137,43 @@ export function AuditLogBoard({ logs }: { logs: AuditLogRecord[] }) {
       </SectionCard>
     </div>
   );
+}
+
+function auditActionLabel(action: string) {
+  const labels: Record<string, string> = {
+    "inspection.record.submit": "提交巡检记录",
+    "issue.status.update": "更新隐患状态",
+    "alarm.workflow.update": "警情流程更新",
+    "alarm.quick_status.update": "警情状态更新",
+    "device.upsert": "保存设备",
+    "device.delete": "删除设备",
+    "drawing.create": "上传图纸",
+    "drawing.delete": "删除图纸",
+    "device_point.upsert": "保存点位",
+    "device_point.delete": "删除点位",
+  };
+  return labels[action] ?? action;
+}
+
+function auditTargetLabel(targetType: string) {
+  const labels: Record<string, string> = {
+    inspection_task: "巡检任务",
+    issue: "隐患",
+    alarm: "警情",
+    device: "设备",
+    drawing: "图纸",
+    device_point: "设备点位",
+  };
+  return labels[targetType] ?? targetType;
+}
+
+function auditDetailLabel(detail: string) {
+  return detail
+    .replaceAll("result=completed", "结果=已完成")
+    .replaceAll("result=abnormal", "结果=异常")
+    .replaceAll("status=pending", "状态=待处理")
+    .replaceAll("status=in_progress", "状态=处理中")
+    .replaceAll("status=completed", "状态=已完成")
+    .replaceAll("status=closed", "状态=已关闭")
+    .replaceAll("process_status ->", "处理状态 ->");
 }

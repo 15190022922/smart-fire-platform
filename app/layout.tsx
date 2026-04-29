@@ -28,7 +28,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="zh-CN" className="h-full antialiased" data-theme="light">
+    <html lang="zh-CN" className="h-full antialiased" data-theme="black">
       <body className="min-h-full font-sans text-[color:var(--text-primary)]">
         <ToastProvider>
           <SaaSDemoProvider initialAdminState={initialAdminState}>{children}</SaaSDemoProvider>

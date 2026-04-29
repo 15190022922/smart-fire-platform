@@ -60,12 +60,12 @@ function toEventLevel(eventType) {
 }
 function mapDeviceStatusText(status) {
     if (status === "alarm")
-        return "报警";
+        return "\u62a5\u8b66";
     if (status === "fault")
-        return "故障";
+        return "\u6545\u969c";
     if (status === "offline")
-        return "离线";
-    return "正常";
+        return "\u79bb\u7ebf";
+    return "\u6b63\u5e38";
 }
 function resolveStatusFromAlarmType(alarmType) {
     if (alarmType.includes("鐏") || alarmType.includes("鎶ヨ") || alarmType.includes("閻忣偉顒?"))

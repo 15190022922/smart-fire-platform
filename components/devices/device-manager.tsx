@@ -329,15 +329,15 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
               <p className="sf-label">设备总数</p>
               <p className="mt-3 text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">{summary.total}</p>
             </div>
-            <div className="sf-kpi px-4 py-4" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, var(--danger-soft) 180%)" }}>
+            <div className="sf-kpi px-4 py-4">
               <p className="sf-label text-[color:var(--danger-strong)]">报警设备</p>
               <p className="mt-3 text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--danger-strong)]">{summary.alarm}</p>
             </div>
-            <div className="sf-kpi px-4 py-4" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, var(--warning-soft) 180%)" }}>
+            <div className="sf-kpi px-4 py-4">
               <p className="sf-label text-[color:var(--warning-strong)]">故障设备</p>
               <p className="mt-3 text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--warning-strong)]">{summary.fault}</p>
             </div>
-            <div className="sf-kpi px-4 py-4" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, var(--info-soft) 180%)" }}>
+            <div className="sf-kpi px-4 py-4">
               <p className="sf-label text-[color:var(--info)]">维保中</p>
               <p className="mt-3 text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--info)]">{summary.maintenance}</p>
             </div>
@@ -372,7 +372,7 @@ export function DeviceManager({ initialDeviceId }: { initialDeviceId?: string })
           />
           <div className="sf-metric-block flex items-center justify-between gap-3 px-4 py-3">
             <div>
-              <p className="sf-label">Device Scope</p>
+              <p className="sf-label">设备范围</p>
               <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{loading ? "正在加载设备数据..." : "当前检索结果"}</p>
             </div>
             <p className="text-2xl font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">{loading ? "--" : filteredDevices.length}</p>

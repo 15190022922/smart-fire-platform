@@ -367,8 +367,8 @@ function TaskCard({
             {task.targetName} / {task.planType === "daily" ? "按天" : "按周"} / 到期 {task.dueDate}
           </p>
         </div>
-        <span className="rounded-full border border-[color:var(--border)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
-          {task.status}
+        <span className="rounded-full border border-[color:var(--border)] bg-[var(--panel-cell-bg)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
+          {inspectionTaskStatusLabel(task.status)}
         </span>
       </div>
       <p className="mt-2 text-sm text-[color:var(--text-secondary)]">{task.note || "无备注"}</p>
@@ -376,12 +376,7 @@ function TaskCard({
         <button
           type="button"
           onClick={() => void onSubmit(task.id, "completed")}
-          className="sf-button h-8 px-3 text-xs"
-          style={{
-            borderColor: "rgba(57,118,91,0.18)",
-            background: "linear-gradient(180deg,#f3faf6 0%,#ebf7f0 100%)",
-            color: "var(--success-strong)",
-          }}
+          className="sf-button h-8 border border-[color:var(--success)] bg-[var(--success-soft)] px-3 text-xs text-[color:var(--success-strong)] shadow-[var(--panel-inset)]"
         >
           标记完成
         </button>
@@ -395,4 +390,12 @@ function TaskCard({
       </div>
     </div>
   );
+}
+
+function inspectionTaskStatusLabel(status: InspectionTaskRecord["status"]) {
+  if (status === "pending") return "待巡检";
+  if (status === "in_progress") return "巡检中";
+  if (status === "completed") return "已完成";
+  if (status === "abnormal") return "异常";
+  return status;
 }

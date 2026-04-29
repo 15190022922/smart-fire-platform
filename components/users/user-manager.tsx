@@ -346,8 +346,8 @@ export function UserManager() {
                     <span
                       className={`rounded-full border px-3 py-1 text-xs font-medium ${
                         user.smsEnabled
-                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                          : "border-slate-200 bg-slate-100 text-slate-700"
+                          ? "border-[color:var(--success)] bg-[var(--success-soft)] text-[color:var(--success-strong)]"
+                          : "border-[color:var(--border-soft)] bg-[var(--neutral-soft)] text-[color:var(--text-secondary)]"
                       }`}
                     >
                       {user.smsEnabled ? "已开启" : "已关闭"}
@@ -358,7 +358,7 @@ export function UserManager() {
                       {user.messageTypes.map((type) => (
                         <span
                           key={type}
-                          className="rounded-full border border-[color:var(--border-soft)] bg-white/80 px-2.5 py-1 text-xs text-[color:var(--text-secondary)]"
+                          className="rounded-full border border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)] px-2.5 py-1 text-xs text-[color:var(--text-secondary)]"
                         >
                           {type}
                         </span>
@@ -539,7 +539,7 @@ export function UserManager() {
                 {selectedUser.messageTypes.map((type) => (
                   <span
                     key={type}
-                    className="rounded-full border border-[color:var(--border-soft)] bg-white/80 px-3 py-1 text-xs text-[color:var(--text-secondary)]"
+                    className="rounded-full border border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)] px-3 py-1 text-xs text-[color:var(--text-secondary)]"
                   >
                     {type}
                   </span>

@@ -42,22 +42,27 @@ type SendResult = {
 };
 
 const eventOptions = [
-  { key: "alarm", label: "火警报警", eventType: "alarm" },
-  { key: "fault", label: "设备故障", eventType: "fault" },
-  { key: "offline", label: "设备离线", eventType: "offline" },
-  { key: "recover", label: "设备恢复", eventType: "recovery" },
-  { key: "heartbeat", label: "发送心跳", eventType: "heartbeat" },
+  { key: "alarm", label: "\u706b\u8b66\u62a5\u8b66", eventType: "alarm" },
+  { key: "fault", label: "\u8bbe\u5907\u6545\u969c", eventType: "fault" },
+  { key: "offline", label: "\u8bbe\u5907\u79bb\u7ebf", eventType: "offline" },
+  { key: "recover", label: "\u8bbe\u5907\u6062\u590d", eventType: "recovery" },
+  { key: "heartbeat", label: "\u53d1\u9001\u5fc3\u8df3", eventType: "heartbeat" },
 ] as const;
 
 const inputClassName =
   "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
 
 async function fetchScene(tenantId: string) {
-  const response = await fetch(`/api/platform/tenant-scene?tenantId=${tenantId}`, {
-    cache: "no-store",
-  });
+  let response: Response | null = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    response = await fetch(`/api/platform/tenant-scene?tenantId=${encodeURIComponent(tenantId)}`, {
+      cache: "no-store",
+    }).catch(() => null);
+    if (response?.ok) break;
+    await new Promise((resolve) => window.setTimeout(resolve, 180));
+  }
 
-  if (!response.ok) {
+  if (!response?.ok) {
     throw new Error("LOAD_SCENE_FAILED");
   }
 
@@ -65,11 +70,13 @@ async function fetchScene(tenantId: string) {
 }
 
 function normalizeSnapshotStatus(status?: string) {
-  if (status === "alarm") return "报警";
-  if (status === "fault") return "故障";
-  if (status === "offline") return "离线";
-  if (status === "maintenance") return "维修中";
-  return "正常";
+  const normalized = String(status ?? "").trim();
+  if (normalized === "alarm" || normalized === "\u62a5\u8b66") return "\u62a5\u8b66";
+  if (normalized === "fault" || normalized === "\u6545\u969c") return "\u6545\u969c";
+  if (normalized === "offline" || normalized === "\u79bb\u7ebf") return "\u79bb\u7ebf";
+  if (normalized === "maintenance" || normalized === "\u7ef4\u4fee\u4e2d" || normalized === "\u7ef4\u4fdd\u4e2d") return "\u7ef4\u4fee\u4e2d";
+  if (!normalized || normalized === "normal" || normalized === "\u6b63\u5e38") return "\u6b63\u5e38";
+  return normalized;
 }
 
 function requiredLabel(label: string) {
@@ -208,33 +215,82 @@ export function DeviceSimulatorConsole({
 
     try {
       const result = (await response.json()) as IngestionResult;
-      const nextScene = await fetchScene(scene!.tenant.id);
-      setScene(nextScene);
-      const latestAlarm =
-        result.alarm_id
-          ? nextScene.alarms?.find((alarm) => alarm.id === result.alarm_id) ?? null
-          : nextScene.alarms?.find((alarm) => alarm.deviceId === selectedDevice!.id) ?? null;
+      const sentTenantId = scene!.tenant.id;
+      const sentDevice = selectedDevice!;
+      const nextStatusLabel = normalizeSnapshotStatus(result.device_status);
+
       setLastResult({
         eventLabel: option.label,
-        deviceName: selectedDevice!.name,
+        deviceName: sentDevice.name,
         processedAt: result.processed_at,
-        alarmId: result.alarm_id ?? latestAlarm?.id ?? null,
+        alarmId: result.alarm_id,
         deviceStatus: result.device_status,
         alarmCreated: Boolean(result.workflow.alarm_created),
         notificationCreated: Boolean(result.workflow.notification_created),
         realtimePublished: Boolean(result.workflow.realtime_published),
         duplicateSuppressed: Boolean(result.workflow.duplicate_suppressed),
       });
+
+      setScene((current) => {
+        if (!current || current.tenant.id !== sentTenantId) return current;
+        const nextStatus = result.device_status as TenantSpatialModel["statusSnapshots"][number]["status"];
+        const nextEventType = (option.eventType === "recovery" ? "recover" : option.eventType) as TenantSpatialModel["statusSnapshots"][number]["lastEventType"];
+        const hasSnapshot = current.spatialModel.statusSnapshots.some((item) => item.deviceId === sentDevice.id);
+        return {
+          ...current,
+          devices: current.devices.map((device) =>
+            device.id === sentDevice.id
+              ? { ...device, status: nextStatusLabel as TenantDeviceRecord["status"], lastReportAt: result.processed_at }
+              : device,
+          ),
+          spatialModel: {
+            ...current.spatialModel,
+            statusSnapshots: hasSnapshot
+              ? current.spatialModel.statusSnapshots.map((item) =>
+                  item.deviceId === sentDevice.id
+                    ? {
+                        ...item,
+                        status: nextStatus,
+                        lastEventType: nextEventType,
+                        lastEventCode: option.eventType,
+                        lastReportedAt: result.processed_at,
+                        updatedAt: result.processed_at,
+                      }
+                    : item,
+                )
+              : [
+                  {
+                    deviceId: sentDevice.id,
+                    tenantId: sentTenantId,
+                    gatewayId: sentDevice.gatewayId,
+                    status: nextStatus,
+                    lastEventType: nextEventType,
+                    lastEventCode: option.eventType,
+                    lastReportedAt: result.processed_at,
+                    updatedAt: result.processed_at,
+                  },
+                  ...current.spatialModel.statusSnapshots,
+                ],
+          },
+        };
+      });
+
       pushToast({
         message: result.workflow.alarm_created
-          ? `${option.label}已创建报警，报警中心已更新。`
+          ? `${option.label}\u5df2\u521b\u5efa\u62a5\u8b66\uff0c\u62a5\u8b66\u4e2d\u5fc3\u5df2\u66f4\u65b0\u3002`
           : result.workflow.duplicate_suppressed
-            ? `${option.label}已接收，原始事件已去重。`
-            : `${option.label}已接收，设备状态已更新。`,
+            ? `${option.label}\u5df2\u63a5\u6536\uff0c\u539f\u59cb\u4e8b\u4ef6\u5df2\u53bb\u91cd\u3002`
+            : `${option.label}\u5df2\u63a5\u6536\uff0c\u8bbe\u5907\u72b6\u6001\u5df2\u66f4\u65b0\u3002`,
         tone: "success",
       });
+
+      void fetchScene(sentTenantId)
+        .then((nextScene) => setScene(nextScene))
+        .catch(() => {
+          pushToast({ message: "\u4e8b\u4ef6\u5df2\u53d1\u9001\uff0c\u573a\u666f\u5217\u8868\u7a0d\u540e\u81ea\u52a8\u5237\u65b0\u3002", tone: "warning" });
+        });
     } catch {
-      pushToast({ message: "事件已发送，但当前页面刷新企业场景失败。", tone: "warning" });
+      pushToast({ message: "\u4e8b\u4ef6\u5df2\u53d1\u9001\uff0c\u4f46\u54cd\u5e94\u89e3\u6790\u5931\u8d25\uff0c\u8bf7\u5237\u65b0\u540e\u67e5\u770b\u3002", tone: "warning" });
     } finally {
       setSending(false);
     }

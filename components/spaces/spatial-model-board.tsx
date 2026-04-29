@@ -13,7 +13,7 @@ import type {
 import type { TenantDeviceRecord } from "@/types/saas";
 
 const inputClassName =
-  "sf-input h-11 px-4 text-sm";
+  "sf-input h-9 px-3 text-sm";
 
 type UploadFormState = {
   floorId: string;
@@ -70,7 +70,7 @@ function toneClass(value: string) {
   if (value === "online" || value === "normal" || value === "published" || value === "info") {
     return "bg-emerald-50 text-emerald-700 border-emerald-200";
   }
-  if (value === "offline" || value === "archived") return "bg-slate-100 text-slate-700 border-slate-200";
+  if (value === "offline" || value === "archived") return "bg-[var(--neutral-soft)] text-[color:var(--text-secondary)] border-[color:var(--border)]";
   return "bg-[var(--surface-muted)] text-[color:var(--text-secondary)] border-[color:var(--border)]";
 }
 
@@ -445,39 +445,39 @@ export function SpatialModelBoard({
   }
 
   return (
-    <div className="space-y-2.5">
-      <section className="sf-panel relative overflow-hidden rounded-[20px] p-4 sm:p-5">
+    <div className="grid min-h-0 gap-2 xl:h-full xl:grid-rows-[minmax(104px,auto)_minmax(0,1fr)] xl:overflow-hidden">
+      <section className="sf-glass-strong relative overflow-visible rounded-[22px] px-4 py-3">
         <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent_0%,rgba(72,106,141,0.34)_48%,transparent_100%)]" />
-        <div className="flex flex-col gap-3 xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(560px,auto)] xl:items-end xl:gap-4">
+        <div className="flex min-h-[80px] flex-col gap-3 xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(560px,auto)] xl:items-center xl:gap-4">
           <div className="max-w-[860px]">
-            <p className="sf-label text-[color:var(--accent-strong)]">Spatial Readiness</p>
-            <h1 className="mt-2.5 text-[26px] font-semibold tracking-[-0.03em] text-[color:var(--text-primary)] sm:text-[28px]">
+            <p className="sf-label text-[color:var(--accent-strong)]">空间建模</p>
+            <h1 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-[color:var(--text-primary)] sm:text-[24px]">
               图纸上传与布点编辑器
             </h1>
-            <p className="mt-2 text-[13px] leading-6 text-[color:var(--text-secondary)] sm:text-sm">
+            <p className="mt-1 hidden text-[12px] leading-5 text-[color:var(--text-secondary)] xl:block">
               现在开始把企业自己的楼层图和设备点位真正落到系统里。后续首页地图、实时状态和硬件接入都直接建立在这套空间模型上。
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 xl:min-w-[560px] xl:justify-self-end">
-            <div className="sf-metric-block px-3.5 py-2.5">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:min-w-[560px] xl:justify-self-end">
+            <div className="sf-metric-block px-3 py-2">
               <p className="sf-label">已映射设备</p>
               <p className="mt-1.5 text-[1.45rem] font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">
                 {model.summary.mappedDeviceCount}
               </p>
             </div>
-            <div className="sf-metric-block px-3.5 py-2.5">
+            <div className="sf-metric-block px-3 py-2">
               <p className="sf-label">待布点设备</p>
               <p className="mt-1.5 text-[1.45rem] font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">
                 {model.summary.unmappedDeviceCount}
               </p>
             </div>
-            <div className="sf-metric-block px-3.5 py-2.5">
+            <div className="sf-metric-block px-3 py-2">
               <p className="sf-label">在线网关</p>
               <p className="mt-1.5 text-[1.45rem] font-semibold leading-none tracking-[-0.03em] text-[color:var(--text-primary)]">
                 {model.summary.onlineGatewayCount}/{model.summary.gatewayCount}
               </p>
             </div>
-            <div className="sf-metric-block px-3.5 py-2.5">
+            <div className="sf-metric-block px-3 py-2">
               <p className="sf-label">最近原始事件</p>
               <p className="mt-2 text-sm font-semibold text-[color:var(--text-primary)]">{model.summary.recentEventCount} 条</p>
             </div>
@@ -486,15 +486,16 @@ export function SpatialModelBoard({
       </section>
 
       {message ? (
-        <div className="rounded-[14px] border border-[color:rgba(72,106,141,0.18)] bg-[color:var(--accent-soft)] px-4 py-3 text-sm text-[color:var(--accent-strong)]">
+        <div className="sf-glass rounded-[14px] px-4 py-3 text-sm text-[color:var(--accent-strong)]">
           {message}
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.45fr_0.8fr]">
+      <div className="grid min-h-0 gap-2 xl:grid-cols-[300px_minmax(0,1fr)_320px] xl:overflow-hidden">
         <SectionCard
           title="上传楼层图纸"
           description="先选楼层，再上传图片。当前版本先把图纸文件以 data URL 演示方式存入数据库，后续接 OSS 或对象存储时只需替换文件存储层。"
+          className="min-h-0 overflow-y-auto rounded-[18px]"
         >
           <div className="space-y-3">
             <label className="block space-y-2">
@@ -603,17 +604,18 @@ export function SpatialModelBoard({
           description="先选图纸和设备，然后直接点击画布。当前设备如果已有点位，会移动到新的位置而不是重复新增。"
           extra={
             <div className="flex items-center gap-2">
-              <span className="rounded-full border border-[color:var(--border-soft)] bg-[color:rgba(255,255,255,0.84)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
+              <span className="rounded-full border border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
                 当前图纸：{selectedDrawing?.name ?? "未选择"}
               </span>
-              <span className="rounded-full border border-[color:var(--border-soft)] bg-[color:rgba(255,255,255,0.84)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
+              <span className="rounded-full border border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
                 点位：{pointsForDrawing.length}
               </span>
             </div>
           }
+          className="min-h-0 overflow-hidden rounded-[24px] p-2 sm:p-2.5"
         >
           <div className="space-y-3">
-            <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+            <div className="sf-glass mb-2 grid gap-2 rounded-[16px] px-3 py-2 lg:grid-cols-[1fr_1fr]">
               <label className="block space-y-2">
                 <span className="text-sm text-[color:var(--text-secondary)]">当前楼层</span>
                 <select
@@ -655,7 +657,7 @@ export function SpatialModelBoard({
               <div
                 ref={mapRef}
                 onClick={handlePlacePoint}
-                className="relative min-h-[420px] overflow-hidden rounded-[20px] border border-[color:var(--border)] bg-[linear-gradient(180deg,#eef3f8_0%,#e5edf5_100%)] sm:min-h-[560px]"
+                className="sf-cad-screen relative min-h-[420px] overflow-hidden rounded-[24px] sm:min-h-[560px] xl:h-[calc(100vh-250px)] xl:min-h-0"
                 style={{
                   backgroundImage: `url(${selectedDrawing.fileUrl})`,
                   backgroundSize: "contain",
@@ -664,8 +666,8 @@ export function SpatialModelBoard({
                   cursor: selectedDeviceId ? "crosshair" : "not-allowed",
                 }}
               >
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.32),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0))]" />
-                <div className="pointer-events-none absolute left-4 top-4 rounded-full border border-[color:rgba(255,255,255,0.52)] bg-white/82 px-3 py-1 text-xs text-[color:var(--text-secondary)] shadow-sm backdrop-blur-sm">
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,var(--panel-body-bg),transparent)]" />
+                <div className="sf-glass pointer-events-none absolute left-4 top-4 rounded-full px-3 py-1 text-xs text-[color:var(--text-secondary)]">
                   点击图纸空白处完成布点
                 </div>
 
@@ -678,7 +680,7 @@ export function SpatialModelBoard({
                       : point.statusStyle === "fault"
                         ? "bg-amber-500"
                         : point.statusStyle === "offline"
-                          ? "bg-slate-500"
+                          ? "bg-[var(--text-faint)]"
                           : "bg-emerald-500";
 
                   return (
@@ -689,12 +691,12 @@ export function SpatialModelBoard({
                         event.stopPropagation();
                         setSelectedDeviceId(point.deviceId);
                       }}
-                      className={`group absolute h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_6px_16px_rgba(15,23,42,0.18)] ${colorClass}`}
+                      className={`group absolute h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[color:var(--border-strong)] shadow-[0_6px_16px_rgba(15,23,42,0.18)] ${colorClass}`}
                       style={{ left: `${point.x * 100}%`, top: `${point.y * 100}%` }}
                       title={`${device?.name ?? point.deviceId} / ${runtimeStatusLabel(snapshot?.status ?? "normal")}`}
                     >
-                      <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-44 -translate-x-1/2 rounded-[14px] border border-[color:var(--border)] bg-white/96 px-3 py-2 text-left text-xs text-slate-700 shadow-[var(--panel-shadow-strong)] group-hover:block">
-                        <span className="block font-semibold text-slate-900">{device?.name ?? point.deviceId}</span>
+                      <span className="sf-glass-strong pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-44 -translate-x-1/2 rounded-[14px] px-3 py-2 text-left text-xs text-[color:var(--text-secondary)] group-hover:block">
+                        <span className="block font-semibold text-[color:var(--text-primary)]">{device?.name ?? point.deviceId}</span>
                         <span className="mt-1 block">{device?.type ?? "未定义类型"}</span>
                         <span className="mt-1 block">{runtimeStatusLabel(snapshot?.status ?? "normal")}</span>
                       </span>
@@ -704,7 +706,7 @@ export function SpatialModelBoard({
               </div>
             ) : (
               <div className="space-y-3 rounded-[20px] border border-dashed border-[color:var(--border)] bg-[var(--surface-muted)] p-5">
-                <div className="rounded-[16px] border border-[color:var(--border-soft)] bg-white/70 px-4 py-3 text-sm text-[color:var(--text-muted)]">
+                <div className="rounded-[16px] border border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)] px-4 py-3 text-sm text-[color:var(--text-muted)]">
                   当前企业还没有图纸。系统已切换到无图纸拓扑视图，便于先完成设备接入测试和区域核对。正式运行时再补图纸和坐标布点即可。
                 </div>
                 <div className="grid gap-4 xl:grid-cols-2">
@@ -753,7 +755,7 @@ export function SpatialModelBoard({
               </div>
             )}
 
-            <div className="rounded-[16px] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(248,251,254,0.98)_0%,rgba(255,255,255,0.98)_100%)] px-4 py-3 text-sm text-[color:var(--text-secondary)]">
+            <div className="sf-glass rounded-[16px] px-4 py-3 text-sm text-[color:var(--text-secondary)]">
               {!hasDrawings
                 ? "当前为无图纸模式，可先核对设备归属和实时状态；后续上传图纸后再进入正式布点。"
                 : savingPoint
@@ -765,10 +767,11 @@ export function SpatialModelBoard({
           </div>
         </SectionCard>
 
-        <div className="space-y-4">
+        <div className="grid min-h-0 gap-2 overflow-hidden">
           <SectionCard
             title="点位清单"
             description="用于快速检查当前图纸上的点位绑定情况。删除点位不会删除设备本身。"
+            className="min-h-0 overflow-y-auto rounded-[18px]"
           >
             <div className="space-y-3">
               {pointsForDrawing.length === 0 ? (
@@ -819,6 +822,7 @@ export function SpatialModelBoard({
           <SectionCard
             title="待布点设备"
             description="这部分设备还没有进入任何图纸点位。后续真实硬件到位后，应先完成空间绑定，再让首页和报警中心引用这些点位。"
+            className="min-h-0 overflow-y-auto rounded-[18px]"
           >
             <div className="space-y-3">
               {unmappedDevices.length === 0 ? (
@@ -855,6 +859,7 @@ export function SpatialModelBoard({
           <SectionCard
             title="实时接入准备"
             description="这里保留当前网关、原始事件和状态快照，后面接 MQTT/TCP 后可以直接接上。"
+            className="min-h-0 overflow-y-auto rounded-[18px]"
           >
             <div className="space-y-3">
               {model.gateways.map((gateway) => (
@@ -872,7 +877,7 @@ export function SpatialModelBoard({
                   </div>
                 </div>
               ))}
-              <div className="rounded-[16px] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(248,251,254,0.98)_0%,rgba(255,255,255,0.98)_100%)] px-4 py-3">
+              <div className="sf-glass rounded-[16px] px-4 py-3">
                 <p className="text-sm font-semibold text-[color:var(--text-primary)]">最近原始事件</p>
                 <div className="mt-3 space-y-2">
                   {model.recentEvents.slice(0, 4).map((event) => (

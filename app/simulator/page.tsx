@@ -1,4 +1,6 @@
+import { PlatformSessionBridge } from "@/components/auth/tenant-session-bridge";
 import { getServerSession } from "@/lib/server-auth";
+import { getServerSessionToken } from "@/lib/server-auth";
 import { fetchBackendJson } from "@/lib/backend-client";
 import { DeviceSimulatorConsole } from "@/components/simulator/device-simulator-console";
 import type { TenantSpatialModel } from "@/types/hardware";
@@ -6,6 +8,7 @@ import type { TenantDeviceRecord, TenantRecord } from "@/types/saas";
 
 export default async function SimulatorPage() {
   const session = await getServerSession();
+  const token = await getServerSessionToken();
 
   if (!session || session.scope !== "platform") {
     return null;
@@ -26,5 +29,10 @@ export default async function SimulatorPage() {
     initialScene = sceneResponse.ok ? await sceneResponse.json() : null;
   }
 
-  return <DeviceSimulatorConsole tenants={tenants} initialScene={initialScene} />;
+  return (
+    <>
+      <PlatformSessionBridge token={token} />
+      <DeviceSimulatorConsole tenants={tenants} initialScene={initialScene} />
+    </>
+  );
 }

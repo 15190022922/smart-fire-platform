@@ -10,11 +10,11 @@ export default async function PlatformLayout({
   const token = await getServerSessionToken();
 
   return (
-    <div className="flex min-h-screen flex-col bg-[linear-gradient(180deg,#f8fbfe_0%,#edf3f8_100%)] xl:h-screen xl:overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_50%_0%,var(--page-radial)_0%,transparent_36%),radial-gradient(circle_at_10%_82%,var(--page-radial-soft)_0%,transparent_30%),linear-gradient(180deg,var(--page-gradient-top)_0%,var(--page-gradient-bottom)_100%)] xl:h-screen xl:overflow-hidden">
       <TenantSessionBridge token={token} />
       <TopNavigation />
       <main
-        className="mx-auto min-h-0 w-full max-w-[1880px] flex-1 overflow-y-auto px-2.5 pb-3 sm:px-3 lg:px-4"
+        className="min-h-0 w-full flex-1 overflow-y-auto px-2.5 pb-2 sm:px-3 lg:px-3"
         style={{ paddingTop: "var(--tenant-main-padding-top, 3px)" }}
       >
         {children}

@@ -318,7 +318,7 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
                   {selectedAlarm.timeline.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-[16px] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(248,251,254,0.98)_0%,rgba(255,255,255,0.98)_100%)] px-4 py-3"
+                      className="sf-list-row px-4 py-3"
                     >
                       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                         <p className="text-sm font-semibold tracking-[-0.01em] text-[color:var(--text-primary)]">
@@ -335,7 +335,7 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
                           {item.attachments.map((attachment) => (
                             <span
                               key={attachment}
-                              className="rounded-full border border-[color:var(--border-soft)] bg-[color:rgba(255,255,255,0.82)] px-2.5 py-1 text-xs text-[color:var(--text-secondary)]"
+                              className="rounded-full border border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)] px-2.5 py-1 text-xs text-[color:var(--text-secondary)]"
                             >
                               {attachment}
                             </span>

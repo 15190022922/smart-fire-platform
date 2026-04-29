@@ -219,9 +219,9 @@ function toDeviceOverview(devices: TenantDeviceRecord[]): DeviceOverview {
 
   const breakdown: DeviceOverviewItem[] = [
     { label: "在线", count: online, ratio: `${total === 0 ? 0 : Math.max((online / total) * 100, 6)}%`, barClass: "bg-emerald-500" },
-    { label: "离线", count: offline, ratio: `${total === 0 ? 0 : Math.max((offline / total) * 100, 6)}%`, barClass: "bg-slate-500" },
+    { label: "离线", count: offline, ratio: `${total === 0 ? 0 : Math.max((offline / total) * 100, 6)}%`, barClass: "bg-[var(--text-faint)]" },
     { label: "故障", count: fault, ratio: `${total === 0 ? 0 : Math.max((fault / total) * 100, 6)}%`, barClass: "bg-amber-500" },
-    { label: "维修中", count: maintenance, ratio: `${total === 0 ? 0 : Math.max((maintenance / total) * 100, 6)}%`, barClass: "bg-cyan-500" },
+    { label: "维修中", count: maintenance, ratio: `${total === 0 ? 0 : Math.max((maintenance / total) * 100, 6)}%`, barClass: "bg-[var(--text-muted)]" },
   ];
 
   return {
@@ -236,7 +236,7 @@ function toDeviceOverview(devices: TenantDeviceRecord[]): DeviceOverview {
 }
 
 function toAlarmTypes(alarms: AlarmRecord[]): AlarmTypeStat[] {
-  const colors = ["bg-rose-500", "bg-amber-500", "bg-sky-500", "bg-emerald-500", "bg-slate-500"];
+  const colors = ["bg-rose-500", "bg-amber-500", "bg-[var(--text-muted)]", "bg-emerald-500", "bg-[var(--text-faint)]"];
   const total = alarms.length || 1;
   const grouped = new Map<string, number>();
 
@@ -274,6 +274,90 @@ function toTrendData(alarms: AlarmRecord[]): AlarmTrendPoint[] {
       handled: matching.filter((alarm) => normalizeProcessStatus(alarm.processStatus) === "已处理").length,
     };
   });
+}
+
+function DashboardStatusRail({ overview, alarms }: { overview: DeviceOverview; alarms: AlarmRecord[] }) {
+  const activeCount = alarms.filter((alarm) => alarm.isActive).length;
+  const carryoverCount = alarms.filter((alarm) => alarm.isCarryover).length;
+  const totalDevices = Math.max(overview.total, 1);
+  const onlineDegrees = (overview.online / totalDevices) * 360;
+  const faultDegrees = (overview.fault / totalDevices) * 360;
+  const maintenanceDegrees = (overview.maintenance / totalDevices) * 360;
+  const offlineDegrees = (overview.offline / totalDevices) * 360;
+  const donutGradient = `conic-gradient(var(--success) 0deg ${onlineDegrees}deg, var(--warning) ${onlineDegrees}deg ${
+    onlineDegrees + faultDegrees + maintenanceDegrees
+  }deg, var(--text-faint) ${onlineDegrees + faultDegrees + maintenanceDegrees}deg ${
+    onlineDegrees + faultDegrees + maintenanceDegrees + offlineDegrees
+  }deg, var(--chart-track) ${onlineDegrees + faultDegrees + maintenanceDegrees + offlineDegrees}deg 360deg)`;
+
+  return (
+    <aside className="sf-neutral-glass grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)] overflow-hidden rounded-[18px] p-3">
+      <div className="border-b border-[color:var(--panel-divider-strong)] pb-2">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--text-faint)]">运行状态</p>
+        <h2 className="mt-1 text-sm font-semibold tracking-[-0.01em] text-[color:var(--text-primary)]">运行状态栏</h2>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 border-b border-[color:var(--panel-divider-strong)] py-2.5">
+        <div className="rounded-[12px] border border-[color:var(--panel-divider)] bg-[var(--control-bg-muted)] px-2.5 py-2 shadow-[var(--panel-inset)]">
+          <p className="text-[10px] text-[color:var(--text-muted)]">设备总数</p>
+          <p className="mt-1 text-xl font-semibold leading-none text-[color:var(--text-primary)]">{overview.total}</p>
+        </div>
+        <div className="rounded-[12px] border border-[color:var(--panel-divider)] bg-[var(--control-bg-muted)] px-2.5 py-2 shadow-[var(--panel-inset)]">
+          <p className="text-[10px] text-[color:var(--text-muted)]">在线率</p>
+          <p className="mt-1 text-xl font-semibold leading-none text-[color:var(--text-primary)]">{overview.onlineRate}</p>
+        </div>
+        <div className="rounded-[12px] border border-[color:var(--panel-divider)] bg-[var(--control-bg-muted)] px-2.5 py-2 shadow-[var(--panel-inset)]">
+          <p className="text-[10px] text-[color:var(--text-muted)]">未闭环</p>
+          <p className="mt-1 text-xl font-semibold leading-none text-[var(--danger-strong)]">{activeCount}</p>
+        </div>
+        <div className="rounded-[12px] border border-[color:var(--panel-divider)] bg-[var(--control-bg-muted)] px-2.5 py-2 shadow-[var(--panel-inset)]">
+          <p className="text-[10px] text-[color:var(--text-muted)]">跨日</p>
+          <p className="mt-1 text-xl font-semibold leading-none text-[var(--warning-strong)]">{carryoverCount}</p>
+        </div>
+      </div>
+
+      <div className="min-h-0 space-y-2 overflow-hidden pt-2.5">
+        <div className="grid grid-cols-[82px_minmax(0,1fr)] items-center gap-3 rounded-[14px] border border-[color:var(--panel-divider)] bg-[var(--control-bg-muted)] px-2.5 py-2.5">
+          <div
+            className="relative h-[74px] w-[74px] rounded-full shadow-[inset_0_0_18px_rgba(0,0,0,0.32)]"
+            style={{ background: donutGradient }}
+            aria-label="设备状态分布"
+          >
+            <div className="absolute inset-[13px] rounded-full border border-[color:var(--panel-divider)] bg-[var(--control-bg)] backdrop-blur-xl" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[10px] text-[color:var(--text-muted)]">在线率</span>
+              <span className="text-sm font-semibold leading-none text-[color:var(--text-primary)]">{overview.onlineRate}</span>
+            </div>
+          </div>
+          <div className="min-w-0 space-y-1.5 text-[11px]">
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1 text-[color:var(--text-secondary)]"><span className="h-2 w-2 rounded-full bg-[var(--success)]" />在线</span>
+              <span className="font-semibold text-[color:var(--text-primary)]">{overview.online}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1 text-[color:var(--text-secondary)]"><span className="h-2 w-2 rounded-full bg-[var(--warning)]" />异常</span>
+              <span className="font-semibold text-[color:var(--text-primary)]">{overview.fault + overview.maintenance}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1 text-[color:var(--text-secondary)]"><span className="h-2 w-2 rounded-full bg-[var(--text-faint)]" />离线</span>
+              <span className="font-semibold text-[color:var(--text-primary)]">{overview.offline}</span>
+            </div>
+          </div>
+        </div>
+        {overview.breakdown.map((item) => (
+          <div key={item.label} className="rounded-[12px] border border-[color:var(--panel-divider)] bg-[var(--control-bg-muted)] px-2.5 py-2">
+            <div className="mb-1 flex items-center justify-between gap-2 text-[11px]">
+              <span className="font-semibold text-[color:var(--text-secondary)]">{item.label}</span>
+              <span className="text-[color:var(--text-muted)]">{item.count}</span>
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-[var(--chart-track)]">
+              <div className={`h-full rounded-full ${item.barClass}`} style={{ width: item.ratio }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
 }
 
 export function LiveVisualizationPage({
@@ -364,7 +448,7 @@ export function LiveVisualizationPage({
 
   return (
     <div
-      className="grid min-h-0 grid-cols-1 gap-1.5 xl:h-full xl:grid-rows-[84px_minmax(0,1fr)_148px] xl:overflow-hidden"
+      className="grid min-h-0 grid-cols-1 gap-1.5 xl:h-full xl:grid-rows-[64px_minmax(0,1fr)] xl:overflow-hidden"
       style={{
         paddingTop: "var(--tenant-page-top-offset, 2px)",
         gap: "var(--tenant-page-gap, 6px)",
@@ -373,16 +457,16 @@ export function LiveVisualizationPage({
       <DashboardTopMetrics metrics={metrics} />
 
       <section
-        className="grid min-h-0 gap-1.5 pt-0.5 xl:grid-cols-[minmax(0,1fr)_368px]"
+        className="grid min-h-0 gap-1.5 xl:grid-cols-[minmax(220px,13vw)_minmax(0,1fr)_minmax(420px,28vw)]"
         style={{ gap: "var(--tenant-page-gap, 6px)" }}
       >
+        <DashboardStatusRail overview={deviceOverview} alarms={alarmFeed} />
         <InteractiveMapPanel zones={zones} />
-        <div className="grid min-h-0 pt-0.5" style={{ gap: "var(--tenant-page-gap, 6px)" }}>
+        <aside className="grid min-h-0 xl:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]" style={{ gap: "var(--tenant-page-gap, 6px)" }}>
           <AlarmRealtimePanel alarms={alarmFeed} realtimeStatus={realtimeStatus} onRefresh={refresh} />
-        </div>
+          <DashboardChartsPanel trendData={alarmTrendData} overview={deviceOverview} typeStats={alarmTypeStats} variant="stack" />
+        </aside>
       </section>
-
-      <DashboardChartsPanel trendData={alarmTrendData} overview={deviceOverview} typeStats={alarmTypeStats} />
     </div>
   );
 }

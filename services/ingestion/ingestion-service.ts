@@ -78,10 +78,10 @@ function toEventLevel(eventType: IngestionEventPayload["event_type"]) {
 }
 
 function mapDeviceStatusText(status: "normal" | "alarm" | "fault" | "offline") {
-  if (status === "alarm") return "报警";
-  if (status === "fault") return "故障";
-  if (status === "offline") return "离线";
-  return "正常";
+  if (status === "alarm") return "\u62a5\u8b66";
+  if (status === "fault") return "\u6545\u969c";
+  if (status === "offline") return "\u79bb\u7ebf";
+  return "\u6b63\u5e38";
 }
 
 function resolveStatusFromAlarmType(alarmType: string): "normal" | "alarm" | "fault" | "offline" {

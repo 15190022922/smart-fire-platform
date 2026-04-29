@@ -5,27 +5,20 @@ import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 import { LogoutButton } from "@/components/layout/logout-button";
 import type { PlanRecord, SubscriptionRecord } from "@/types/saas";
 
-const primaryNavigation = [
-  { href: "/", label: "可视化主页面" },
-  { href: "/alarm-center", label: "报警中心" },
-  { href: "/duty-center", label: "值班中心" },
-  { href: "/inspection", label: "巡检维保" },
-  { href: "/notification-center", label: "通知中心" },
-  { href: "/devices", label: "设备管理" },
-  { href: "/spaces", label: "空间建模" },
+const navigation = [
+  { href: "/", label: "\u53ef\u89c6\u5316", widthClass: "lg:col-[span_9/span_9]" },
+  { href: "/alarm-center", label: "\u62a5\u8b66\u4e2d\u5fc3", widthClass: "lg:col-[span_11/span_11]" },
+  { href: "/duty-center", label: "\u503c\u73ed", widthClass: "lg:col-[span_7/span_7]" },
+  { href: "/inspection", label: "\u5de1\u68c0\u7ef4\u4fdd", widthClass: "lg:col-[span_11/span_11]" },
+  { href: "/notification-center", label: "\u901a\u77e5\u4e2d\u5fc3", widthClass: "lg:col-[span_11/span_11]" },
+  { href: "/devices", label: "\u8bbe\u5907", widthClass: "lg:col-[span_7/span_7]" },
+  { href: "/spaces", label: "\u7a7a\u95f4", widthClass: "lg:col-[span_7/span_7]" },
+  { href: "/users", label: "\u7528\u6237", widthClass: "lg:col-[span_7/span_7]" },
+  { href: "/history", label: "\u5206\u6790", widthClass: "lg:col-[span_7/span_7]" },
+  { href: "/audit-log", label: "\u5ba1\u8ba1", widthClass: "lg:col-[span_7/span_7]" },
+  { href: "/system-health", label: "\u7cfb\u7edf\u5065\u5eb7", widthClass: "lg:col-[span_11/span_11]" },
+  { href: "/settings", label: "\u8bbe\u7f6e", widthClass: "lg:col-[span_7/span_7]" },
 ];
-
-const secondaryNavigation = [
-  { href: "/users", label: "用户管理" },
-  { href: "/history", label: "数据分析" },
-  { href: "/audit-log", label: "审计日志" },
-  { href: "/system-health", label: "系统健康" },
-  { href: "/settings", label: "系统设置" },
-  { href: "/subscription", label: "订阅服务" },
-  { href: "/profile", label: "我的" },
-];
-
-const mobileNavigation = [...primaryNavigation, ...secondaryNavigation];
 
 export async function TopNavigation() {
   const session = await getServerSession();
@@ -40,87 +33,56 @@ export async function TopNavigation() {
       : null;
 
   return (
-    <header className="relative z-[80] border-b border-[color:var(--border-soft)] bg-[var(--nav-surface)] shadow-[0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-[1880px] flex-col gap-2.5 px-3 py-2.5 sm:px-4 lg:px-5">
-        <div className="flex items-start justify-between gap-3">
-          <Link href="/" className="flex min-w-0 flex-1 items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[14px] border border-[rgba(176,72,79,0.16)] bg-[var(--danger-soft)] text-sm font-semibold text-[var(--danger-strong)] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-              消防
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[15px] font-semibold tracking-[-0.015em] text-[color:var(--text-primary)] sm:text-[16px]">
-                {session?.tenantName ?? "智慧消防平台"}
-              </p>
-              <p className="mt-0.5 line-clamp-2 text-[11px] text-[color:var(--text-muted)] sm:truncate sm:text-[12px]">
-                {tenantOverview?.plan?.name ?? "企业控制台"}
-                {tenantOverview?.subscription ? ` / ${tenantOverview.subscription.status}` : ""}
-              </p>
-            </div>
-          </Link>
-
-          <div className="flex shrink-0 items-center gap-2">
-            <ThemeSwitcher />
-            <LogoutButton compact />
+    <header className="relative z-[80] overflow-visible border-b border-[color:var(--border-soft)] bg-[var(--nav-surface)] shadow-[0_1px_0_rgba(255,255,255,0.08),0_16px_42px_rgba(0,0,0,0.22)]">
+      <div className="flex w-full flex-col gap-2 px-3 py-2 sm:px-3.5 lg:h-[70px] lg:flex-row lg:items-center lg:gap-3 lg:px-4">
+        <Link href="/" className="group flex min-w-0 shrink-0 items-center gap-3 rounded-[18px] border border-[color:var(--border-soft)] bg-[var(--nav-pill)] px-2.5 py-1.5 shadow-[var(--panel-inset)] backdrop-blur-xl lg:w-[292px]">
+          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[15px] border border-[rgba(213,93,104,0.34)] bg-[linear-gradient(135deg,var(--danger-soft),var(--accent-soft),var(--nav-pill))] text-[13px] font-black text-[var(--danger-strong)] shadow-[0_0_24px_rgba(213,93,104,0.13),var(--panel-inset)] backdrop-blur-xl">
+            <span className="pointer-events-none absolute inset-x-1 top-0 h-px bg-white/30" />
+            <span className="pointer-events-none absolute bottom-1 left-1 right-1 h-px bg-[var(--accent-soft)]" />
+            {"\u6d88\u9632"}
           </div>
-        </div>
-
-        {tenantOverview?.subscription ? (
-          <div className="flex items-center justify-between gap-2 rounded-[14px] border border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] px-3 py-2 text-[11px] text-[var(--success-strong)] sm:hidden">
-            <span className="truncate">
-              {tenantOverview.plan?.name ?? "未分配套餐"} / {tenantOverview.subscription.status}
-            </span>
-            <Link href="/subscription" className="sf-button sf-button-secondary shrink-0 px-2.5 py-1 text-[11px]">
-              订阅
-            </Link>
+          <div className="min-w-0">
+            <p className="truncate text-[18px] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--text-primary)]">
+              {session?.tenantName ?? "\u667a\u6167\u6d88\u9632\u5e73\u53f0"}
+            </p>
+            <p className="mt-0.5 truncate text-[11px] font-medium uppercase tracking-[0.12em] text-[color:var(--text-muted)]">
+              {tenantOverview?.plan?.name ?? "\u4f01\u4e1a\u63a7\u5236\u53f0"}
+              {tenantOverview?.subscription ? ` / ${tenantOverview.subscription.status}` : ""}
+            </p>
           </div>
-        ) : null}
-      </div>
+        </Link>
 
-      <div className="mx-auto hidden w-full max-w-[1880px] gap-5 px-3 pb-2.5 sm:px-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:px-5">
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          {primaryNavigation.map((item) => (
+        <nav className="relative grid min-w-0 flex-1 grid-cols-4 items-stretch overflow-hidden rounded-[22px] border border-[color:var(--border-soft)] bg-[var(--nav-pill)] p-0 shadow-[var(--panel-inset)] backdrop-blur-xl md:grid-cols-6 lg:h-12 lg:grid-cols-[repeat(102,minmax(0,1fr))]">
+          <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[var(--glass-highlight)]" />
+          {navigation.map((item, index) => (
             <Link
               key={item.href}
               href={item.href}
-              className="sf-button rounded-full border border-[color:var(--border-soft)] bg-[var(--nav-pill)] px-3 py-[5px] text-[14px] font-semibold tracking-[-0.01em] text-[color:var(--text-secondary)] hover:border-[color:var(--border)] hover:bg-[var(--surface-strong)] hover:text-[color:var(--text-primary)]"
+              className={`group relative flex h-12 min-w-0 items-center justify-center overflow-hidden px-1.5 text-[12px] font-semibold tracking-[-0.01em] text-[color:var(--text-secondary)] transition hover:bg-[var(--accent-soft)] hover:text-[color:var(--text-primary)] lg:text-[13px] ${item.widthClass} ${
+                index === navigation.length - 1 ? "" : "border-r border-[color:var(--border-soft)]"
+              }`}
             >
-              {item.label}
+              <span className="pointer-events-none absolute inset-x-2 top-0 h-px bg-[var(--glass-highlight)]" />
+              <span className="pointer-events-none absolute inset-y-2 left-0 hidden w-px bg-[color:var(--border-soft)] lg:block" />
+              <span className="sf-pulse-dot mr-1.5 hidden h-1.5 w-1.5 rounded-full bg-[var(--accent)] lg:inline-block" />
+              <span className="relative z-10 whitespace-nowrap">{item.label}</span>
+              <span className="pointer-events-none absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 rounded-full bg-[var(--accent)] shadow-[0_0_10px_color-mix(in_srgb,var(--accent)_60%,transparent)] transition-all duration-150 group-hover:w-8" />
             </Link>
           ))}
-        </div>
+        </nav>
 
-        <div className="flex flex-wrap items-center justify-end gap-1.5">
+        <div className="flex shrink-0 items-center justify-between gap-2 rounded-[18px] border border-[color:var(--border-soft)] bg-[var(--nav-pill)] px-2 py-1.5 shadow-[var(--panel-inset)] backdrop-blur-xl lg:w-[282px] lg:justify-end">
           {tenantOverview?.subscription ? (
             <Link
               href="/subscription"
-              className="sf-button rounded-full border border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] px-3 py-1 text-[11px] font-semibold text-[var(--success-strong)]"
+              className="hidden truncate rounded-full border border-[color:var(--border-soft)] bg-[var(--control-bg-muted)] px-2.5 py-1 text-[11px] font-semibold text-[var(--success-strong)] shadow-[var(--panel-inset)] backdrop-blur-xl 2xl:block"
             >
-              {tenantOverview.plan?.name ?? "未分配套餐"} / {tenantOverview.subscription.status}
+              {tenantOverview.plan?.name ?? "\u672a\u5206\u914d"} / {tenantOverview.subscription.status}
             </Link>
           ) : null}
-
-          {secondaryNavigation.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="sf-button rounded-full border border-[color:var(--border-soft)] bg-[var(--nav-pill)] px-3 py-[5px] text-[14px] font-semibold tracking-[-0.01em] text-[color:var(--text-secondary)] hover:border-[color:var(--border)] hover:bg-[var(--surface-strong)] hover:text-[color:var(--text-primary)]"
-            >
-              {item.label}
-            </Link>
-          ))}
+          <ThemeSwitcher />
+          <LogoutButton compact />
         </div>
-      </div>
-
-      <div className="mx-auto flex w-full max-w-[1880px] gap-1.5 overflow-x-auto px-3 pb-2.5 sm:px-4 lg:hidden lg:px-5">
-        {mobileNavigation.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="sf-button sf-button-secondary shrink-0 px-3 py-1.5 text-[14px] font-semibold tracking-[-0.01em]"
-          >
-            {item.label}
-          </Link>
-        ))}
       </div>
     </header>
   );

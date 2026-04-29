@@ -326,8 +326,8 @@ function ScheduleCard({ schedule }: { schedule: DutyScheduleRecord }) {
             {schedule.assigneeName} / {schedule.assigneePhone}
           </p>
         </div>
-        <span className="rounded-full border border-[color:var(--border-soft)] bg-white/80 px-3 py-1 text-xs text-[color:var(--text-secondary)]">
-          {schedule.status}
+        <span className="rounded-full border border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
+          {dutyScheduleStatusLabel(schedule.status)}
         </span>
       </div>
       {schedule.handoverNote ? (
@@ -335,6 +335,14 @@ function ScheduleCard({ schedule }: { schedule: DutyScheduleRecord }) {
       ) : null}
     </div>
   );
+}
+
+function dutyScheduleStatusLabel(status: DutyScheduleRecord["status"]) {
+  if (status === "scheduled") return "已排班";
+  if (status === "active") return "值班中";
+  if (status === "handover") return "交接中";
+  if (status === "closed") return "已结束";
+  return status;
 }
 
 function dutyLogTypeLabel(type: DutyLogRecord["logType"]) {
