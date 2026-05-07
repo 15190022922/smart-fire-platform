@@ -50,6 +50,10 @@ async function cleanupIntegrationArtifacts() {
   try {
     await client.query("BEGIN");
     const cleanupStatements = [
+      "DO $$ BEGIN IF to_regclass('platform_notice_user_states') IS NOT NULL THEN DELETE FROM platform_notice_user_states WHERE notice_id IN (SELECT id FROM platform_notices WHERE title LIKE 'itest-%'); END IF; END $$;",
+      "DO $$ BEGIN IF to_regclass('platform_notice_attachments') IS NOT NULL THEN DELETE FROM platform_notice_attachments WHERE id LIKE 'itest-%' OR notice_id IN (SELECT id FROM platform_notices WHERE title LIKE 'itest-%'); END IF; END $$;",
+      "DELETE FROM platform_notice_deliveries WHERE id LIKE 'itest-%' OR notice_id IN (SELECT id FROM platform_notices WHERE title LIKE 'itest-%')",
+      "DELETE FROM platform_notices WHERE id LIKE 'itest-%' OR title LIKE 'itest-%'",
       "DELETE FROM notification_records WHERE id LIKE 'itest-%' OR alarm_id LIKE 'itest-%' OR device_id LIKE 'itest-%' OR target_user LIKE 'itest-%' OR target_name LIKE 'itest-%'",
       "DELETE FROM alarm_logs WHERE id LIKE 'itest-%' OR alarm_id LIKE 'itest-%'",
       "DELETE FROM audit_logs WHERE id LIKE 'itest-%' OR target_id LIKE 'itest-%' OR actor_name LIKE 'itest-%'",
@@ -66,6 +70,7 @@ async function cleanupIntegrationArtifacts() {
       "DELETE FROM login_accounts WHERE id LIKE 'itest-%' OR username LIKE 'itest_%'",
       "DELETE FROM tenant_users WHERE id LIKE 'itest-%' OR username LIKE 'itest_%'",
       "DELETE FROM tenant_devices WHERE id LIKE 'itest-%' OR name LIKE 'itest-%' OR name LIKE '[FORCE_NOTIFY_FAIL] itest-%'",
+      "DELETE FROM tenant_device_attribute_definitions WHERE field_key LIKE 'custom_%' AND label LIKE 'itest-%'",
       "DELETE FROM tenants WHERE id LIKE 'itest-%' OR code LIKE 'ITEST-%'",
     ];
     for (const statement of cleanupStatements) {
@@ -99,20 +104,36 @@ async function ensureTestDevice({ tenantId, deviceId, name, status = "正常" })
   await pool.query(
     `
       INSERT INTO tenant_devices (
-        id, tenant_id, name, type, area, installation_location, status, last_report_at, notes
+        id, tenant_id, device_code, name, type, area, installation_location, status, installation_status, last_report_at, notes, custom_attributes
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
       ON CONFLICT (id) DO UPDATE SET
         tenant_id = EXCLUDED.tenant_id,
+        device_code = EXCLUDED.device_code,
         name = EXCLUDED.name,
         type = EXCLUDED.type,
         area = EXCLUDED.area,
         installation_location = EXCLUDED.installation_location,
         status = EXCLUDED.status,
+        installation_status = EXCLUDED.installation_status,
         last_report_at = EXCLUDED.last_report_at,
-        notes = EXCLUDED.notes
+        notes = EXCLUDED.notes,
+        custom_attributes = EXCLUDED.custom_attributes
     `,
-    [deviceId, tenantId, name || deviceId, "烟感探测器", "集成测试区", "测试点位", status, formatLocalTimestamp(), "integration"],
+    [
+      deviceId,
+      tenantId,
+      deviceId,
+      name || deviceId,
+      "烟感探测器",
+      "集成测试区",
+      "测试点位",
+      status,
+      "已安装",
+      formatLocalTimestamp(),
+      "integration",
+      {},
+    ],
   );
 }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { ActionButton } from "@/components/ui/action-button";
+
 type PaginationBarProps = {
   page: number;
   totalPages: number;
@@ -27,22 +29,22 @@ export function PaginationBar({
         {label}共 {totalItems} 条，当前第 {page} / {totalPages} 页
       </p>
       <div className="flex items-center gap-2">
-        <button
-          type="button"
+        <ActionButton
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
-          className="sf-button sf-button-secondary px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+          size="xs"
+          className="disabled:cursor-not-allowed disabled:opacity-40"
         >
           上一页
-        </button>
-        <button
-          type="button"
+        </ActionButton>
+        <ActionButton
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
-          className="sf-button sf-button-secondary px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+          size="xs"
+          className="disabled:cursor-not-allowed disabled:opacity-40"
         >
           下一页
-        </button>
+        </ActionButton>
       </div>
     </div>
   );

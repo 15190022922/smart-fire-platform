@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
+import { AlertMessage } from "@/components/ui/alert-message";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import type { InspectionCenterPayload, InspectionTaskRecord, IssueRecord } from "@/types/inspection";
 
@@ -147,7 +148,7 @@ export function InspectionBoard({ initialData }: { initialData: InspectionCenter
       />
 
       {message ? (
-        <div className="rounded-[14px] border border-[color:rgba(72,106,141,0.18)] bg-[color:var(--accent-soft)] px-4 py-3 text-sm text-[color:var(--accent-strong)]">{message}</div>
+        <AlertMessage>{message}</AlertMessage>
       ) : null}
 
       <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">

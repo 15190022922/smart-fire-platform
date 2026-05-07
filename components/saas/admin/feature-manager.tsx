@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
 import { useSaaSDemo } from "@/components/saas/saas-demo-provider";
+import { StatusBadge } from "@/components/status-badge";
 
 export function FeatureManager() {
   const { features, plans } = useSaaSDemo();
@@ -21,15 +22,11 @@ export function FeatureManager() {
                   <p className="text-sm font-semibold text-[color:var(--text-primary)]">{feature.name}</p>
                   <p className="mt-1 text-sm text-[color:var(--text-muted)]">{feature.description}</p>
                 </div>
-                <span className="rounded-full border border-[color:var(--border)] bg-[var(--surface-muted)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
-                  {feature.category}
-                </span>
+                <StatusBadge status={feature.category} />
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {plans.filter((plan) => plan.featureKeys.includes(feature.key)).map((plan) => (
-                  <span key={plan.id} className="rounded-full border border-[color:rgba(72,106,141,0.18)] bg-[color:var(--accent-soft)] px-3 py-1 text-xs text-[color:var(--accent-strong)]">
-                    {plan.name}
-                  </span>
+                  <StatusBadge key={plan.id} status={plan.name} tone="info" />
                 ))}
               </div>
             </div>

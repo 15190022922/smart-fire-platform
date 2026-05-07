@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
+import { compactFieldClassName } from "@/components/ui/form-controls";
 import type { RawDeviceEventRecord } from "@/types/hardware";
 import type { AlarmRecord, AlarmTypeStat } from "@/types/platform";
 import type { TenantDeviceRecord } from "@/types/saas";
@@ -63,7 +64,7 @@ function buildDailyTrend(alarms: AlarmRecord[]) {
 
 function buildAlarmTypeStats(alarms: AlarmRecord[]): AlarmTypeStat[] {
   const grouped = new Map<string, number>();
-  const colors = ["bg-rose-500", "bg-amber-500", "bg-sky-500", "bg-emerald-500", "bg-slate-500"];
+  const colors = ["bg-[var(--danger)]", "bg-[var(--warning)]", "bg-[var(--info)]", "bg-[var(--success)]", "bg-[var(--text-faint)]"];
   const total = alarms.length || 1;
 
   for (const alarm of alarms) {
@@ -197,7 +198,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
         title="数据分析"
         subtitle="按日查看报警历史、原始设备事件、处理进度和类型分布。支持筛选、明细核对和分别导出。"
         aside={
-          <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[color:var(--text-secondary)]">
+          <div className="sf-metric-block px-4 py-3 text-sm text-[color:var(--text-secondary)]">
             <p>当前系统时间</p>
             <p className="mt-1 text-lg font-semibold text-[color:var(--text-primary)]">
               {currentTime || "--"}
@@ -218,7 +219,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
               type="date"
               value={fromDate}
               onChange={(event) => setFromDate(event.target.value)}
-              className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm text-[color:var(--text-primary)]"
+              className={compactFieldClassName}
             />
           </label>
           <label className="space-y-1.5 text-sm text-[color:var(--text-secondary)]">
@@ -227,7 +228,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
               type="date"
               value={toDate}
               onChange={(event) => setToDate(event.target.value)}
-              className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm text-[color:var(--text-primary)]"
+              className={compactFieldClassName}
             />
           </label>
           <label className="space-y-1.5 text-sm text-[color:var(--text-secondary)]">
@@ -235,7 +236,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
             <select
               value={deviceId}
               onChange={(event) => setDeviceId(event.target.value)}
-              className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm text-[color:var(--text-primary)]"
+              className={compactFieldClassName}
             >
               <option value="all">全部设备</option>
               {initialData.devices.map((device) => (
@@ -250,7 +251,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
             <select
               value={processStatus}
               onChange={(event) => setProcessStatus(event.target.value)}
-              className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm text-[color:var(--text-primary)]"
+              className={compactFieldClassName}
             >
               <option value="all">全部状态</option>
               <option value="未处理">未处理</option>
@@ -263,7 +264,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
             <select
               value={alarmType}
               onChange={(event) => setAlarmType(event.target.value)}
-              className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm text-[color:var(--text-primary)]"
+              className={compactFieldClassName}
             >
               <option value="all">全部类型</option>
               {Array.from(new Set(initialData.alarms.map((item) => item.alarmType))).map((type) => (
@@ -276,14 +277,14 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
           <button
             type="button"
             onClick={exportAlarmDetail}
-            className="self-end rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700"
+            className="sf-button sf-button-primary h-10 self-end px-4 text-sm"
           >
             导出报警明细
           </button>
           <button
             type="button"
             onClick={exportEventDetail}
-            className="self-end rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700"
+            className="sf-button sf-button-secondary h-10 self-end px-4 text-sm"
           >
             导出事件明细
           </button>
@@ -296,12 +297,12 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
           description="按天统计，直接对应当前筛选范围。"
           className="p-4 sm:p-4"
         >
-          <div className="rounded-3xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
+          <div className="sf-metric-block p-4">
             <svg viewBox="0 0 880 260" className="h-[260px] w-full">
               <defs>
                 <linearGradient id="historyTrendFill" x1="0%" x2="0%" y1="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ef4444" stopOpacity="0.18" />
-                  <stop offset="100%" stopColor="#ef4444" stopOpacity="0.02" />
+                  <stop offset="0%" stopColor="var(--danger)" stopOpacity="0.18" />
+                  <stop offset="100%" stopColor="var(--danger)" stopOpacity="0.02" />
                 </linearGradient>
               </defs>
               {trend.map((item, index) => {
@@ -315,16 +316,16 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
                         y1={210 - (trend[index - 1].count / maxTrendCount) * 170}
                         x2={x}
                         y2={y}
-                        stroke="#ef4444"
+                        stroke="var(--danger)"
                         strokeWidth="4"
                         strokeLinecap="round"
                       />
                     ) : null}
-                    <circle cx={x} cy={y} r="6" fill="#ef4444" />
-                    <text x={x} y={235} textAnchor="middle" fontSize="12" fill="#64748b">
+                    <circle cx={x} cy={y} r="6" fill="var(--danger)" />
+                    <text x={x} y={235} textAnchor="middle" fontSize="12" fill="var(--text-muted)">
                       {item.date.slice(5)}
                     </text>
-                    <text x={x} y={y - 12} textAnchor="middle" fontSize="12" fill="#0f172a">
+                    <text x={x} y={y - 12} textAnchor="middle" fontSize="12" fill="var(--text-primary)">
                       {item.count}
                     </text>
                   </g>
@@ -352,19 +353,19 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
         <SectionCard title="分布统计" description="快速看处理状态和报警类型。" className="p-4 sm:p-4">
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+              <div className="sf-metric-block px-4 py-3">
                 <p className="text-xs text-[color:var(--text-muted)]">报警总数</p>
                 <p className="mt-2 text-2xl font-semibold text-[color:var(--text-primary)]">{filteredAlarms.length}</p>
               </div>
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+              <div className="sf-metric-block px-4 py-3">
                 <p className="text-xs text-[color:var(--text-muted)]">未处理</p>
-                <p className="mt-2 text-2xl font-semibold text-rose-600">
+                <p className="mt-2 text-2xl font-semibold text-[color:var(--danger-strong)]">
                   {filteredAlarms.filter((item) => item.processStatus === "未处理").length}
                 </p>
               </div>
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+              <div className="sf-metric-block px-4 py-3">
                 <p className="text-xs text-[color:var(--text-muted)]">处理中</p>
-                <p className="mt-2 text-2xl font-semibold text-amber-600">
+                <p className="mt-2 text-2xl font-semibold text-[color:var(--warning-strong)]">
                   {filteredAlarms.filter((item) => item.processStatus === "处理中").length}
                 </p>
               </div>
@@ -391,9 +392,9 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <SectionCard title="报警历史明细" description="精确到天，支持按状态和设备核对。" className="p-4 sm:p-4">
-          <div className="max-h-[520px] overflow-auto rounded-2xl border border-[color:var(--border)]">
+          <div className="sf-table-shell max-h-[520px] overflow-auto">
             <table className="min-w-[760px] text-sm">
-              <thead className="sticky top-0 bg-[var(--surface-strong)] text-[color:var(--text-secondary)]">
+              <thead className="sf-table-head sticky top-0">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium">时间</th>
                   <th className="px-4 py-3 text-left font-medium">设备</th>
@@ -404,7 +405,7 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
               </thead>
               <tbody>
                 {filteredAlarms.map((alarm) => (
-                  <tr key={alarm.id} className="border-t border-[color:var(--border)] bg-[var(--surface)]">
+                  <tr key={alarm.id} className="border-t border-[color:var(--border-soft)] bg-[var(--table-row)] transition-colors duration-150 hover:bg-[color:var(--surface-muted)]">
                     <td className="whitespace-nowrap px-4 py-3">{alarm.time}</td>
                     <td className="px-4 py-3">{alarm.deviceName}</td>
                     <td className="px-4 py-3">{alarm.location}</td>
@@ -420,9 +421,9 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
         </SectionCard>
 
         <SectionCard title="原始设备事件" description="保留接入层事件，便于对照硬件上报。" className="p-4 sm:p-4">
-          <div className="max-h-[520px] overflow-auto rounded-2xl border border-[color:var(--border)]">
+          <div className="sf-table-shell max-h-[520px] overflow-auto">
             <table className="min-w-[760px] text-sm">
-              <thead className="sticky top-0 bg-[var(--surface-strong)] text-[color:var(--text-secondary)]">
+              <thead className="sf-table-head sticky top-0">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium">时间</th>
                   <th className="px-4 py-3 text-left font-medium">设备ID</th>
@@ -433,15 +434,13 @@ export function HistoryAnalysisBoard({ initialData }: { initialData: HistoryPayl
               </thead>
               <tbody>
                 {filteredEvents.map((event) => (
-                  <tr key={event.id} className="border-t border-[color:var(--border)] bg-[var(--surface)]">
+                  <tr key={event.id} className="border-t border-[color:var(--border-soft)] bg-[var(--table-row)] transition-colors duration-150 hover:bg-[color:var(--surface-muted)]">
                     <td className="whitespace-nowrap px-4 py-3">{event.reportedAt}</td>
                     <td className="px-4 py-3">{event.deviceId}</td>
                     <td className="px-4 py-3">{event.eventType}</td>
                     <td className="px-4 py-3">{event.eventCode}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full border border-[color:var(--border)] bg-[var(--surface-muted)] px-3 py-1 text-xs">
-                        {event.eventLevel}
-                      </span>
+                      <StatusBadge status={event.eventLevel} />
                     </td>
                   </tr>
                 ))}

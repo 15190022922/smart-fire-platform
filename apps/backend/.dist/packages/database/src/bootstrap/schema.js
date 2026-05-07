@@ -122,6 +122,32 @@ async function applyBaseSchema(client) {
     ALTER TABLE tenant_devices ADD COLUMN IF NOT EXISTS model_code TEXT NOT NULL DEFAULT '';
     ALTER TABLE tenant_devices ADD COLUMN IF NOT EXISTS protocol_type TEXT NOT NULL DEFAULT '';
     ALTER TABLE tenant_devices ADD COLUMN IF NOT EXISTS serial_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenant_devices ADD COLUMN IF NOT EXISTS device_code TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenant_devices ADD COLUMN IF NOT EXISTS installation_status TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenant_devices ADD COLUMN IF NOT EXISTS custom_attributes JSONB NOT NULL DEFAULT '{}'::jsonb;
+    ALTER TABLE tenant_devices ADD COLUMN IF NOT EXISTS lifecycle_status TEXT NOT NULL DEFAULT 'active';
+    ALTER TABLE tenant_devices ADD COLUMN IF NOT EXISTS disabled_at TEXT;
+    ALTER TABLE tenant_devices ADD COLUMN IF NOT EXISTS disabled_reason TEXT NOT NULL DEFAULT '';
+    CREATE UNIQUE INDEX IF NOT EXISTS tenant_devices_tenant_device_code_idx
+      ON tenant_devices (tenant_id, device_code)
+      WHERE device_code <> '';
+    CREATE INDEX IF NOT EXISTS tenant_devices_tenant_lifecycle_idx
+      ON tenant_devices (tenant_id, lifecycle_status);
+
+    CREATE TABLE IF NOT EXISTS tenant_device_attribute_definitions (
+      tenant_id TEXT NOT NULL,
+      field_key TEXT NOT NULL,
+      label TEXT NOT NULL,
+      field_type TEXT NOT NULL,
+      required BOOLEAN NOT NULL DEFAULT FALSE,
+      enabled BOOLEAN NOT NULL DEFAULT TRUE,
+      show_in_list BOOLEAN NOT NULL DEFAULT FALSE,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      is_core BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (tenant_id, field_key)
+    );
 
     CREATE TABLE IF NOT EXISTS tenant_sites (
       id TEXT PRIMARY KEY,
@@ -140,8 +166,20 @@ async function applyBaseSchema(client) {
       name TEXT NOT NULL,
       code TEXT NOT NULL,
       level_count INTEGER NOT NULL,
-      usage_type TEXT NOT NULL
+      usage_type TEXT NOT NULL,
+      area_type TEXT NOT NULL DEFAULT 'building',
+      has_floors BOOLEAN NOT NULL DEFAULT TRUE,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'active',
+      description TEXT NOT NULL DEFAULT ''
     );
+    ALTER TABLE tenant_buildings ADD COLUMN IF NOT EXISTS area_type TEXT NOT NULL DEFAULT 'building';
+    ALTER TABLE tenant_buildings ADD COLUMN IF NOT EXISTS has_floors BOOLEAN NOT NULL DEFAULT TRUE;
+    ALTER TABLE tenant_buildings ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE tenant_buildings ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active';
+    ALTER TABLE tenant_buildings ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
+    UPDATE tenant_buildings
+    SET area_type = CASE WHEN area_type = '' THEN COALESCE(NULLIF(usage_type, ''), 'building') ELSE area_type END;
 
     CREATE TABLE IF NOT EXISTS tenant_floors (
       id TEXT PRIMARY KEY,
@@ -150,12 +188,18 @@ async function applyBaseSchema(client) {
       name TEXT NOT NULL,
       code TEXT NOT NULL,
       level_index INTEGER NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'active',
       description TEXT NOT NULL
     );
+    ALTER TABLE tenant_floors ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE tenant_floors ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active';
+    UPDATE tenant_floors SET sort_order = level_index WHERE sort_order = 0;
 
     CREATE TABLE IF NOT EXISTS tenant_drawings (
       id TEXT PRIMARY KEY,
       tenant_id TEXT NOT NULL,
+      building_id TEXT NOT NULL DEFAULT '',
       floor_id TEXT NOT NULL,
       name TEXT NOT NULL,
       file_url TEXT NOT NULL,
@@ -165,6 +209,22 @@ async function applyBaseSchema(client) {
       status TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+
+    ALTER TABLE tenant_drawings ADD COLUMN IF NOT EXISTS building_id TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenant_drawings ADD COLUMN IF NOT EXISTS file_type TEXT NOT NULL DEFAULT 'image';
+    ALTER TABLE tenant_drawings ADD COLUMN IF NOT EXISTS source_file_url TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenant_drawings ADD COLUMN IF NOT EXISTS preview_url TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenant_drawings ADD COLUMN IF NOT EXISTS original_file_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenant_drawings ADD COLUMN IF NOT EXISTS file_size INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE tenant_drawings ADD COLUMN IF NOT EXISTS published_at TEXT;
+    ALTER TABLE tenant_drawings ADD COLUMN IF NOT EXISTS processing_status TEXT NOT NULL DEFAULT 'ready';
+    ALTER TABLE tenant_drawings ADD COLUMN IF NOT EXISTS processing_message TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenant_drawings ADD COLUMN IF NOT EXISTS conversion_log JSONB NOT NULL DEFAULT '[]'::jsonb;
+    ALTER TABLE tenant_drawings ADD COLUMN IF NOT EXISTS scene_url TEXT NOT NULL DEFAULT '';
+    UPDATE tenant_drawings d
+    SET building_id = f.building_id
+    FROM tenant_floors f
+    WHERE d.tenant_id = f.tenant_id AND d.floor_id = f.id AND d.building_id = '';
 
     CREATE TABLE IF NOT EXISTS tenant_gateways (
       id TEXT PRIMARY KEY,
@@ -181,6 +241,7 @@ async function applyBaseSchema(client) {
       id TEXT PRIMARY KEY,
       tenant_id TEXT NOT NULL,
       device_id TEXT NOT NULL,
+      building_id TEXT NOT NULL DEFAULT '',
       floor_id TEXT NOT NULL,
       drawing_id TEXT NOT NULL,
       x DOUBLE PRECISION NOT NULL,
@@ -190,6 +251,12 @@ async function applyBaseSchema(client) {
       status_style TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+    ALTER TABLE tenant_device_points ADD COLUMN IF NOT EXISTS building_id TEXT NOT NULL DEFAULT '';
+    UPDATE tenant_device_points p
+    SET building_id = COALESCE(NULLIF(d.building_id, ''), f.building_id, '')
+    FROM tenant_drawings d
+    LEFT JOIN tenant_floors f ON f.tenant_id = d.tenant_id AND f.id = d.floor_id
+    WHERE p.tenant_id = d.tenant_id AND p.drawing_id = d.id AND p.building_id = '';
 
     CREATE TABLE IF NOT EXISTS raw_device_events (
       id TEXT PRIMARY KEY,
@@ -402,6 +469,97 @@ async function applyBaseSchema(client) {
       result TEXT NOT NULL,
       note TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS platform_notices (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      level TEXT NOT NULL,
+      target_mode TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'sent',
+      sender_name TEXT NOT NULL,
+      sender_role TEXT NOT NULL,
+      target_tenant_count INTEGER NOT NULL DEFAULT 0,
+      target_tenant_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+      attachments JSONB NOT NULL DEFAULT '[]'::jsonb,
+      revoked_at TEXT,
+      deleted_at TEXT,
+      revoke_reason TEXT,
+      request_id TEXT,
+      updated_at TEXT,
+      published_at TEXT,
+      created_at TEXT NOT NULL
+    );
+    ALTER TABLE platform_notices ADD COLUMN IF NOT EXISTS attachments JSONB NOT NULL DEFAULT '[]'::jsonb;
+    ALTER TABLE platform_notices ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'sent';
+    ALTER TABLE platform_notices ADD COLUMN IF NOT EXISTS target_tenant_ids JSONB NOT NULL DEFAULT '[]'::jsonb;
+    ALTER TABLE platform_notices ADD COLUMN IF NOT EXISTS revoked_at TEXT;
+    ALTER TABLE platform_notices ADD COLUMN IF NOT EXISTS deleted_at TEXT;
+    ALTER TABLE platform_notices ADD COLUMN IF NOT EXISTS revoke_reason TEXT;
+    ALTER TABLE platform_notices ADD COLUMN IF NOT EXISTS request_id TEXT;
+    ALTER TABLE platform_notices ADD COLUMN IF NOT EXISTS updated_at TEXT;
+    ALTER TABLE platform_notices ADD COLUMN IF NOT EXISTS published_at TEXT;
+
+    UPDATE platform_notices
+    SET updated_at = COALESCE(updated_at, created_at),
+        published_at = CASE
+          WHEN status = 'sent' THEN COALESCE(published_at, created_at)
+          ELSE published_at
+        END;
+
+    CREATE UNIQUE INDEX IF NOT EXISTS platform_notices_request_id_idx
+      ON platform_notices (request_id)
+      WHERE request_id IS NOT NULL AND request_id <> '';
+
+    CREATE TABLE IF NOT EXISTS platform_notice_deliveries (
+      id TEXT PRIMARY KEY,
+      notice_id TEXT NOT NULL,
+      tenant_id TEXT NOT NULL,
+      tenant_name TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'delivered',
+      created_at TEXT NOT NULL
+    );
+    ALTER TABLE platform_notice_deliveries ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'delivered';
+
+    CREATE TABLE IF NOT EXISTS platform_notice_attachments (
+      id TEXT PRIMARY KEY,
+      notice_id TEXT,
+      original_name TEXT NOT NULL,
+      file_url TEXT NOT NULL,
+      file_size INTEGER NOT NULL DEFAULT 0,
+      content_type TEXT NOT NULL,
+      storage_key TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'uploaded',
+      uploaded_by_name TEXT NOT NULL DEFAULT 'platform_admin',
+      uploaded_by_role TEXT NOT NULL DEFAULT 'platform_super_admin',
+      created_at TEXT NOT NULL,
+      bound_at TEXT,
+      deleted_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS platform_notice_user_states (
+      notice_id TEXT NOT NULL,
+      tenant_id TEXT NOT NULL,
+      user_name TEXT NOT NULL,
+      read_at TEXT,
+      archived_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (notice_id, tenant_id, user_name)
+    );
+
+    CREATE INDEX IF NOT EXISTS platform_notices_created_at_idx
+      ON platform_notices (created_at DESC);
+    CREATE INDEX IF NOT EXISTS platform_notice_deliveries_tenant_created_idx
+      ON platform_notice_deliveries (tenant_id, created_at DESC);
+    CREATE UNIQUE INDEX IF NOT EXISTS platform_notice_deliveries_notice_tenant_idx
+      ON platform_notice_deliveries (notice_id, tenant_id);
+    CREATE INDEX IF NOT EXISTS platform_notice_attachments_notice_idx
+      ON platform_notice_attachments (notice_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS platform_notice_attachments_status_created_idx
+      ON platform_notice_attachments (status, created_at DESC);
+    CREATE INDEX IF NOT EXISTS platform_notice_user_states_tenant_user_idx
+      ON platform_notice_user_states (tenant_id, user_name, updated_at DESC);
   `);
 }
 async function migratePasswordHashes(client) {

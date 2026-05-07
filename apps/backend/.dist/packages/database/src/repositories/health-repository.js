@@ -8,7 +8,7 @@ async function getTenantSystemHealth(tenantId) {
     (0, errors_1.assertTenantId)(tenantId);
     const now = new Date();
     const [devices, events, audits] = await Promise.all([
-        (0, client_1.queryDb)("SELECT * FROM tenant_devices WHERE tenant_id = $1", [tenantId]),
+        (0, client_1.queryDb)("SELECT * FROM tenant_devices WHERE tenant_id = $1 AND COALESCE(lifecycle_status, 'active') = 'active'", [tenantId]),
         (0, client_1.queryDb)("SELECT * FROM raw_device_events WHERE tenant_id = $1 ORDER BY reported_at DESC LIMIT 20", [tenantId]),
         (0, client_1.queryDb)("SELECT * FROM audit_logs WHERE tenant_id = $1 AND result = 'error' ORDER BY created_at DESC LIMIT 20", [tenantId]),
     ]);

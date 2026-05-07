@@ -1,5 +1,8 @@
 export type SiteStatus = "active" | "inactive";
+export type SpatialAreaStatus = "active" | "inactive";
 export type DrawingStatus = "draft" | "published" | "archived";
+export type DrawingFileType = "image" | "pdf";
+export type DrawingProcessingStatus = "processing" | "ready" | "failed";
 export type GatewayStatus = "online" | "offline" | "fault";
 export type PointStyleStatus = "normal" | "alarm" | "fault" | "offline";
 export type DeviceRuntimeStatus = "normal" | "alarm" | "fault" | "offline" | "maintenance";
@@ -24,6 +27,11 @@ export type TenantBuildingRecord = {
   code: string;
   levelCount: number;
   usageType: string;
+  areaType: string;
+  hasFloors: boolean;
+  sortOrder: number;
+  status: SpatialAreaStatus;
+  description: string;
 };
 
 export type TenantFloorRecord = {
@@ -33,20 +41,33 @@ export type TenantFloorRecord = {
   name: string;
   code: string;
   levelIndex: number;
+  sortOrder: number;
+  status: SpatialAreaStatus;
   description: string;
 };
 
 export type TenantDrawingRecord = {
   id: string;
   tenantId: string;
+  buildingId: string;
   floorId: string;
   name: string;
   fileUrl: string;
+  fileType: DrawingFileType;
+  sourceFileUrl: string;
+  previewUrl: string;
+  originalFileName: string;
+  fileSize: number;
+  processingStatus: DrawingProcessingStatus;
+  processingMessage: string;
+  conversionLog: string[];
+  sceneUrl: string;
   width: number;
   height: number;
   version: string;
   status: DrawingStatus;
   updatedAt: string;
+  publishedAt?: string;
 };
 
 export type TenantGatewayRecord = {
@@ -64,6 +85,7 @@ export type TenantDevicePointRecord = {
   id: string;
   tenantId: string;
   deviceId: string;
+  buildingId: string;
   floorId: string;
   drawingId: string;
   x: number;

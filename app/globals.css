@@ -280,6 +280,7 @@ html[data-theme="blue"] {
 }
 
 html[data-theme="white"] {
+  color-scheme: light;
   --background: #eef3f8;
   --foreground: #102131;
   --surface: #ffffff;
@@ -389,6 +390,7 @@ html[data-theme="white"] {
 }
 
 html {
+  color-scheme: dark;
   background:
     radial-gradient(circle at 50% -8%, var(--page-radial), transparent 34%),
     radial-gradient(circle at right 16%, var(--page-radial-soft), transparent 24%),
@@ -558,6 +560,128 @@ a {
   background-size: 34px 34px, 34px 34px, auto;
   box-shadow: var(--cad-screen-shadow, inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(107, 132, 160, 0.18), inset 0 18px 42px rgba(255, 255, 255, 0.05), 0 16px 36px rgba(0, 0, 0, 0.32));
   backdrop-filter: blur(18px) saturate(135%);
+}
+
+.sf-cad-lite-plane {
+  will-change: transform;
+}
+
+.sf-cad-layer {
+  pointer-events: none;
+}
+
+.sf-cad-layer-road path {
+  fill: none;
+  stroke: var(--cad-road-bg);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.72;
+}
+
+.sf-cad-layer-room path {
+  fill: var(--cad-zone-bg);
+  stroke: var(--cad-shape-border);
+}
+
+.sf-cad-layer-wall path {
+  fill: none;
+  stroke: var(--cad-line);
+  stroke-dasharray: 10 8;
+  stroke-width: 1.2;
+  opacity: 0.86;
+}
+
+.sf-device-guide-line {
+  stroke: color-mix(in srgb, var(--accent) 44%, transparent);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sf-device-ground-anchor {
+  fill: var(--control-bg);
+  stroke: color-mix(in srgb, var(--accent) 55%, transparent);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.sf-dense-point-normal {
+  fill: var(--success);
+  opacity: 0.78;
+}
+
+.sf-dense-point-offline {
+  fill: var(--text-faint);
+  opacity: 0.6;
+}
+
+.sf-floating-marker {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.62);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 3px rgba(120, 174, 231, 0.16), 0 10px 20px rgba(0, 0, 0, 0.2);
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    filter var(--motion-fast) var(--motion-ease);
+}
+
+.sf-floating-marker:hover,
+.sf-floating-marker-selected {
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 24%, transparent), 0 12px 26px rgba(0, 0, 0, 0.26);
+  filter: brightness(1.12);
+}
+
+.sf-floating-marker-normal {
+  background: var(--success);
+}
+
+.sf-floating-marker-danger {
+  background: var(--danger);
+  box-shadow: 0 0 0 4px rgba(176, 72, 79, 0.24), 0 0 26px color-mix(in srgb, var(--danger) 64%, transparent);
+  animation: sfMarkerPulse 1.8s cubic-bezier(0.2, 0.72, 0.25, 1) infinite;
+}
+
+.sf-floating-marker-warning {
+  background: var(--warning);
+  box-shadow: 0 0 0 4px rgba(169, 107, 34, 0.2), 0 0 22px color-mix(in srgb, var(--warning) 58%, transparent);
+}
+
+.sf-floating-marker-offline {
+  background: var(--text-faint);
+  box-shadow: 0 0 0 3px rgba(107, 125, 145, 0.16), 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.sf-floating-marker-static {
+  animation: none;
+  box-shadow: 0 0 0 2px rgba(120, 174, 231, 0.12), 0 8px 16px rgba(0, 0, 0, 0.16);
+}
+
+@keyframes sfMarkerPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(176, 72, 79, 0.22), 0 0 22px color-mix(in srgb, var(--danger) 56%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(176, 72, 79, 0), 0 0 30px color-mix(in srgb, var(--danger) 74%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sf-floating-marker,
+  .sf-floating-marker-danger,
+  .point-pulse,
+  .sf-pulse-dot,
+  .sf-fade-in,
+  .sf-rise-in,
+  .sf-toast-in {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 .sf-nav-grid-glow::after {
@@ -759,6 +883,104 @@ a {
 
 .sf-toast-in {
   animation: sfToastIn var(--motion-base) var(--motion-ease);
+}
+
+.sf-admin-shell {
+  color-scheme: light;
+  --background: #eef3f8;
+  --foreground: #102131;
+  --surface: #ffffff;
+  --surface-muted: rgba(255, 255, 255, 0.58);
+  --surface-strong: rgba(255, 255, 255, 0.72);
+  --surface-contrast: rgba(248, 251, 254, 0.62);
+  --surface-admin: #f7fafd;
+  --surface-overlay: rgba(255, 255, 255, 0.78);
+  --control-bg: rgba(255, 255, 255, 0.66);
+  --control-bg-muted: rgba(255, 255, 255, 0.5);
+  --metric-belt-bg: rgba(255, 255, 255, 0.66);
+  --metric-cell-bg: rgba(255, 255, 255, 0.48);
+  --glass-bg: rgba(255, 255, 255, 0.58);
+  --glass-bg-strong: rgba(255, 255, 255, 0.7);
+  --glass-bg-soft: rgba(255, 255, 255, 0.44);
+  --glass-border: rgba(255, 255, 255, 0.62);
+  --glass-cold-border: rgba(117, 138, 161, 0.18);
+  --glass-highlight: rgba(255, 255, 255, 0.8);
+  --glass-shadow: 0 18px 44px rgba(16, 33, 49, 0.08);
+  --glass-shadow-soft: 0 10px 28px rgba(16, 33, 49, 0.055);
+  --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(117, 138, 161, 0.08);
+  --metric-border-gradient: linear-gradient(118deg, rgba(255, 255, 255, 0.84) 0%, rgba(173, 190, 210, 0.5) 18%, rgba(255, 255, 255, 0.42) 34%, rgba(128, 149, 174, 0.34) 50%, rgba(255, 255, 255, 0.64) 67%, rgba(169, 188, 209, 0.44) 84%, rgba(255, 255, 255, 0.78) 100%) border-box;
+  --metric-shadow: 0 14px 32px rgba(16, 33, 49, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.74), inset 0 -1px 0 rgba(117, 138, 161, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.26);
+  --metric-edge-border: rgba(255, 255, 255, 0.38);
+  --metric-edge-shadow: inset 0 0 14px rgba(255, 255, 255, 0.18), inset 0 0 0 1px rgba(117, 138, 161, 0.12);
+  --metric-inner-border: rgba(117, 138, 161, 0.12);
+  --metric-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48), inset 0 -10px 18px rgba(117, 138, 161, 0.04);
+  --border: #d6dfe9;
+  --border-strong: #bfccd9;
+  --border-soft: rgba(117, 138, 161, 0.16);
+  --text-primary: #102131;
+  --text-secondary: #36506b;
+  --text-muted: #6b7d91;
+  --text-faint: #90a0b3;
+  --nav-surface: rgba(248, 251, 254, 0.92);
+  --nav-pill: rgba(244, 248, 252, 0.88);
+  --panel-shadow: var(--glass-shadow-soft);
+  --panel-shadow-strong: var(--glass-shadow);
+  --panel-inset: var(--glass-inset);
+  --dialog-overlay: rgba(11, 21, 34, 0.3);
+  --field-bg: #fbfdff;
+  --field-border: #cfdae5;
+  --field-border-focus: #52759c;
+  --field-ring: rgba(82, 117, 156, 0.14);
+  --table-head: #f4f8fc;
+  --table-row: #ffffff;
+  --table-row-alt: #f9fbfe;
+  --panel-header-bg: rgba(255, 255, 255, 0.44);
+  --panel-body-bg: rgba(255, 255, 255, 0.24);
+  --panel-cell-bg: rgba(255, 255, 255, 0.5);
+  --panel-menu-bg: rgba(255, 255, 255, 0.9);
+  --panel-divider: rgba(117, 138, 161, 0.14);
+  --panel-divider-strong: rgba(117, 138, 161, 0.26);
+  --chart-track: rgba(93, 116, 143, 0.12);
+  --cad-screen-bg:
+    linear-gradient(rgba(122, 146, 173, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(122, 146, 173, 0.055) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.66) 0%, rgba(248, 251, 254, 0.62) 100%);
+  --cad-overlay-grid: linear-gradient(rgba(122, 146, 173, 0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(122, 146, 173, 0.055) 1px, transparent 1px);
+  --cad-road-bg: rgba(211, 222, 233, 0.58);
+  --cad-block-bg: rgba(255, 255, 255, 0.46);
+  --cad-block-alt-bg: rgba(255, 255, 255, 0.5);
+  --cad-block-safe-bg: rgba(255, 255, 255, 0.48);
+  --cad-dash-bg: rgba(255, 255, 255, 0.36);
+  --cad-zone-bg: rgba(255, 255, 255, 0.42);
+  --cad-zone-label-bg: rgba(255, 255, 255, 0.52);
+  --cad-risk-bg: rgba(255, 255, 255, 0.52);
+  --cad-line: rgba(129, 151, 176, 0.58);
+  --cad-shape-border: rgba(117, 138, 161, 0.46);
+  --cad-screen-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76), inset 0 0 0 1px rgba(117, 138, 161, 0.14), inset 0 18px 42px rgba(255, 255, 255, 0.28), 0 14px 34px rgba(16, 33, 49, 0.07);
+  --page-radial: rgba(88, 124, 164, 0.1);
+  --page-radial-soft: rgba(88, 124, 164, 0.05);
+  --grid-line: rgba(122, 146, 173, 0.06);
+  --scroll-track: rgba(226, 234, 242, 0.92);
+  --scroll-thumb: rgba(142, 158, 177, 0.78);
+  --scroll-thumb-hover: rgba(101, 119, 141, 0.92);
+  --page-gradient-top: #f9fbfe;
+  --page-gradient-bottom: #eef3f8;
+  --selection-bg: rgba(72, 106, 141, 0.18);
+  --accent: #486a8d;
+  --accent-strong: #2e4e6e;
+  --accent-soft: #eaf2f9;
+  --danger: #b0484f;
+  --danger-strong: #8c343a;
+  --danger-soft: #fff2f2;
+  --warning: #a96b22;
+  --warning-strong: #8a5818;
+  --warning-soft: #fff7eb;
+  --success: #39765b;
+  --success-strong: #275b44;
+  --success-soft: #eef8f3;
+  --info: #3a648d;
+  --info-soft: #edf4fb;
+  --neutral-soft: #f2f5f8;
 }
 
 @keyframes sfFadeIn {

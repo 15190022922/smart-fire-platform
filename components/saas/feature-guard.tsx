@@ -2,6 +2,7 @@
 
 import { SectionCard } from "@/components/section-card";
 import { useSaaSDemo } from "@/components/saas/saas-demo-provider";
+import { AlertMessage } from "@/components/ui/alert-message";
 import type { FeatureKey, PermissionKey } from "@/types/saas";
 
 export function FeatureGuard({
@@ -20,7 +21,7 @@ export function FeatureGuard({
   if (loading) {
     return (
       <SectionCard title={`${title} 加载中`} description="正在读取本地持久化数据并校验权限。">
-        <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4 text-sm text-[color:var(--text-secondary)]">
+      <div className="sf-metric-block px-4 py-4 text-sm text-[color:var(--text-secondary)]">
           正在加载数据...
         </div>
       </SectionCard>
@@ -43,13 +44,13 @@ export function FeatureGuard({
 
   return (
     <SectionCard title={`${title} 未开通`} description={description}>
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-700">
+      <AlertMessage tone="warning" className="py-4">
         {mode === "platform"
           ? "平台端权限应默认放行。若此提示仍持续，请刷新页面以重新读取管理员状态。"
           : featureAllowed
             ? "权限校验已生效：功能存在，但当前企业角色不具备访问资格。"
             : "套餐能力校验已生效：入口保留，但页面不会直接报错。"}
-      </div>
+      </AlertMessage>
     </SectionCard>
   );
 }

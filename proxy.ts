@@ -14,10 +14,23 @@ function decodeScope(token: string) {
   }
 }
 
+function redirectAndClearSession(url: URL) {
+  const response = NextResponse.redirect(url);
+  response.cookies.delete(AUTH_COOKIE_NAME);
+  return response;
+}
+
+function nextAndClearSession() {
+  const response = NextResponse.next();
+  response.cookies.delete(AUTH_COOKIE_NAME);
+  return response;
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const scope = token ? decodeScope(token) : null;
+  const hasInvalidSession = Boolean(token && !scope);
   const isTenantPath =
     pathname === "/" ||
     pathname === "/alarm-center" ||
@@ -35,8 +48,8 @@ export function proxy(request: NextRequest) {
     pathname === "/subscription";
 
   if (pathname.startsWith("/admin")) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
+    if (!token || hasInvalidSession) {
+      return redirectAndClearSession(new URL("/login", request.url));
     }
     if (scope !== "platform") {
       return NextResponse.redirect(new URL("/", request.url));
@@ -44,8 +57,8 @@ export function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith("/simulator")) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
+    if (!token || hasInvalidSession) {
+      return redirectAndClearSession(new URL("/login", request.url));
     }
     if (scope !== "platform") {
       return NextResponse.redirect(new URL("/", request.url));
@@ -53,15 +66,15 @@ export function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith("/workspace")) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
+    if (!token || hasInvalidSession) {
+      return redirectAndClearSession(new URL("/login", request.url));
     }
     return NextResponse.redirect(new URL(scope === "platform" ? "/admin" : "/", request.url));
   }
 
   if (isTenantPath) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
+    if (!token || hasInvalidSession) {
+      return redirectAndClearSession(new URL("/login", request.url));
     }
     if (scope !== "tenant") {
       return NextResponse.redirect(new URL("/admin", request.url));
@@ -69,6 +82,9 @@ export function proxy(request: NextRequest) {
   }
 
   if (pathname === "/login" && token) {
+    if (hasInvalidSession) {
+      return nextAndClearSession();
+    }
     return NextResponse.redirect(new URL(scope === "platform" ? "/admin" : "/", request.url));
   }
 

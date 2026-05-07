@@ -96,7 +96,7 @@ export function SystemHealthBoard({ initialData }: { initialData: SystemHealthPa
         <SectionCard title="最近错误日志" description="最近失败操作，用于快速定位风险。">
           <div className="space-y-3">
             {data.recentErrors.map((item) => (
-              <div key={item.id} className="rounded-[16px] border border-[color:var(--danger)] bg-[var(--danger-soft)] px-4 py-3">
+              <div key={item.id} className="rounded-[var(--radius-card)] border border-[color:var(--danger)] bg-[var(--danger-soft)] px-4 py-3 shadow-[var(--panel-inset)]">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-[color:var(--danger-strong)]">{item.action}</p>
                   <span className="text-xs text-[color:var(--danger-strong)]">{item.createdAt}</span>
@@ -111,9 +111,9 @@ export function SystemHealthBoard({ initialData }: { initialData: SystemHealthPa
         </SectionCard>
 
         <SectionCard title="最近设备事件" description="按最近接入顺序展示原始事件流。">
-          <div className="overflow-x-auto rounded-[16px] border border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)]">
+          <div className="sf-table-shell overflow-x-auto">
             <table className="min-w-full text-left text-sm text-[color:var(--text-secondary)]">
-              <thead className="bg-[var(--table-head)] text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">
+              <thead className="sf-table-head text-xs uppercase tracking-[0.08em] text-[color:var(--text-muted)]">
                 <tr>
                   <th className="px-4 py-3 font-medium">设备</th>
                   <th className="px-4 py-3 font-medium">事件类型</th>
@@ -125,7 +125,7 @@ export function SystemHealthBoard({ initialData }: { initialData: SystemHealthPa
                 {pagedEvents.map((event, index) => (
                   <tr
                     key={event.id}
-                    className="border-t border-[color:var(--border-soft)]"
+                    className="border-t border-[color:var(--border-soft)] transition-colors duration-150 hover:bg-[color:var(--surface-muted)]"
                     style={{ backgroundColor: index % 2 === 0 ? "var(--table-row)" : "var(--table-row-alt)" }}
                   >
                     <td className="px-4 py-3 font-semibold text-[color:var(--text-primary)]">{event.deviceId}</td>

@@ -24,12 +24,13 @@ export type IngestionProcessResult = {
   success: true;
   raw_event_id: string;
   alarm_id: string | null;
-  device_status: "normal" | "alarm" | "fault" | "offline";
+  device_status: "normal" | "alarm" | "fault" | "offline" | "ignored";
   workflow: {
     alarm_created: boolean;
     notification_created: boolean;
     realtime_published: boolean;
     duplicate_suppressed?: boolean;
+    ignored_due_to_disabled?: boolean;
   };
   processed_at: string;
 };

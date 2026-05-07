@@ -1,0 +1,940 @@
+
+> smart-fire-platform@0.1.0 dev
+> concurrently "npm run dev:web" "npm run dev:backend"
+
+[0] 
+[0] > smart-fire-platform@0.1.0 dev:web
+[0] > next dev --webpack
+[0] 
+[1] 
+[1] > smart-fire-platform@0.1.0 dev:backend
+[1] > tsx watch apps/backend/src/server.ts
+[1] 
+[1] [backend] listening on http://localhost:4001
+[0] ▲ Next.js 16.2.4 (webpack)
+[0] - Local:         http://localhost:3000
+[0] - Network:       http://192.168.2.207:3000
+[0] - Environments: .env
+[0] ✓ Ready in 2.6s
+[0] 
+[0]  GET /login 200 in 3.5s (next.js: 2.5s, proxy.ts: 908ms, application-code: 129ms)
+[0]  GET / 200 in 1086ms (next.js: 835ms, proxy.ts: 9ms, application-code: 242ms)
+[0]  GET /alarm-center 200 in 447ms (next.js: 366ms, proxy.ts: 6ms, application-code: 75ms)
+[0]  GET /devices 200 in 436ms (next.js: 370ms, proxy.ts: 3ms, application-code: 63ms)
+[0]  GET /duty-center 200 in 410ms (next.js: 328ms, proxy.ts: 3ms, application-code: 78ms)
+[0]  GET /inspection 200 in 448ms (next.js: 373ms, proxy.ts: 3ms, application-code: 72ms)
+[0]  GET /notification-center 200 in 418ms (next.js: 345ms, proxy.ts: 3ms, application-code: 70ms)
+[0]  GET /audit-log 200 in 445ms (next.js: 359ms, proxy.ts: 3ms, application-code: 83ms)
+[0]  GET /system-health 200 in 399ms (next.js: 327ms, proxy.ts: 3ms, application-code: 69ms)
+[0]  GET / 200 in 188ms (next.js: 11ms, proxy.ts: 6ms, application-code: 172ms)
+[0]  GET /alarm-center 200 in 72ms (next.js: 8ms, proxy.ts: 4ms, application-code: 61ms)
+[0]  GET /devices 200 in 60ms (next.js: 8ms, proxy.ts: 3ms, application-code: 50ms)
+[0]  GET /duty-center 200 in 89ms (next.js: 8ms, proxy.ts: 3ms, application-code: 78ms)
+[0]  GET /inspection 200 in 87ms (next.js: 8ms, proxy.ts: 3ms, application-code: 75ms)
+[0]  GET /notification-center 200 in 67ms (next.js: 8ms, proxy.ts: 3ms, application-code: 57ms)
+[0]  GET /audit-log 200 in 89ms (next.js: 7ms, proxy.ts: 3ms, application-code: 79ms)
+[0]  GET /system-health 200 in 130ms (next.js: 2ms, proxy.ts: 4ms, application-code: 124ms)
+[0]  GET /login 200 in 276ms (next.js: 207ms, proxy.ts: 4ms, application-code: 65ms)
+[0]  GET /api/admin/state 403 in 605ms (next.js: 582ms, application-code: 23ms)
+[0]  GET /api/admin/state 403 in 31ms (next.js: 1468µs, application-code: 29ms)
+[0]  GET /api/admin/state 403 in 31ms (next.js: 3ms, application-code: 28ms)
+[0]  POST /api/auth/login 200 in 1056ms (next.js: 956ms, application-code: 100ms)
+[0]  GET / 200 in 683ms (next.js: 501ms, proxy.ts: 4ms, application-code: 178ms)
+[0]  GET /api/admin/state 403 in 16ms (next.js: 3ms, application-code: 13ms)
+[0]  GET /api/admin/state 403 in 34ms (next.js: 2ms, application-code: 32ms)
+[0]  GET /api/admin/state 403 in 27ms (next.js: 2ms, application-code: 25ms)
+[0]  GET / 200 in 627ms (next.js: 77ms, proxy.ts: 14ms, application-code: 536ms)
+[0]  GET /api/admin/state 403 in 112ms (next.js: 5ms, application-code: 107ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 7.2s (next.js: 218ms, application-code: 6.9s)
+[0]  GET / 200 in 463ms (next.js: 7ms, proxy.ts: 14ms, application-code: 442ms)
+[0]  GET /api/admin/state 403 in 28ms (next.js: 8ms, application-code: 20ms)
+[0]  GET /api/admin/state 403 in 30ms (next.js: 4ms, application-code: 26ms)
+[0]  GET /api/admin/state 403 in 55ms (next.js: 7ms, application-code: 48ms)
+[0]  GET /api/admin/state 403 in 40ms (next.js: 4ms, application-code: 35ms)
+[0]  GET /api/admin/state 403 in 50ms (next.js: 4ms, application-code: 46ms)
+[0]  GET / 200 in 372ms (next.js: 9ms, proxy.ts: 18ms, application-code: 345ms)
+[0] ○ Compiling /alarm-center ...
+[0]  GET /alarm-center 200 in 4.3s (next.js: 3.4s, proxy.ts: 12ms, application-code: 882ms)
+[0]  GET /spaces 200 in 4.3s (next.js: 3.3s, proxy.ts: 601ms, application-code: 462ms)
+[0]  GET / 200 in 3.8s (next.js: 204ms, proxy.ts: 3.3s, application-code: 334ms)
+[0]  GET /spaces 200 in 941ms (next.js: 7ms, proxy.ts: 13ms, application-code: 921ms)
+[0]  GET /spaces 200 in 3.9s (next.js: 235ms, proxy.ts: 2.6s, application-code: 1121ms)
+[0]  GET /devices 200 in 4.5s (next.js: 2.4s, proxy.ts: 507ms, application-code: 1547ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 15.3s (next.js: 5ms, application-code: 15.3s)
+[0] ○ Compiling /api/tenant/drawing-files/[...path] ...
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 6.5s (next.js: 6.0s, application-code: 431ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 6.5s (next.js: 6.0s, application-code: 439ms)
+[0]  GET /duty-center 200 in 6.9s (next.js: 6.1s, proxy.ts: 62ms, application-code: 747ms)
+[0]  GET /inspection 200 in 2.0s (next.js: 1546ms, proxy.ts: 18ms, application-code: 464ms)
+[0]  GET /notification-center 200 in 2.3s (next.js: 1812ms, proxy.ts: 14ms, application-code: 469ms)
+[0]  GET /audit-log 200 in 2.2s (next.js: 1699ms, proxy.ts: 19ms, application-code: 506ms)
+[0]  GET /system-health 200 in 2.2s (next.js: 1717ms, proxy.ts: 16ms, application-code: 504ms)
+[0] ○ Compiling /api/tenant/alarm-center ...
+[0]  GET /api/tenant/overview 200 in 3.8s (next.js: 3.8s, application-code: 94ms)
+[0]  GET /api/tenant/spatial-model 200 in 3.9s (next.js: 3.7s, application-code: 153ms)
+[0]  GET /api/tenant/alarm-center 200 in 3.9s (next.js: 3.7s, application-code: 158ms)
+[0]  GET /login 200 in 414ms (next.js: 107ms, proxy.ts: 21ms, application-code: 285ms)
+[0]  GET /api/tenant/spatial-model 200 in 36ms (next.js: 3ms, application-code: 33ms)
+[0]  GET /api/tenant/devices 200 in 416ms (next.js: 405ms, application-code: 11ms)
+[0]  GET /api/tenant/spatial-model 200 in 196ms (next.js: 5ms, application-code: 191ms)
+[0]  GET /api/tenant/devices 200 in 191ms (next.js: 3ms, application-code: 187ms)
+[0]  GET /api/tenant/spatial-model 200 in 27ms (next.js: 3ms, application-code: 24ms)
+[0]  GET /api/tenant/devices 200 in 27ms (next.js: 2ms, application-code: 24ms)
+[0]  GET /api/tenant/overview 200 in 96ms (next.js: 12ms, application-code: 84ms)
+[0]  GET /api/tenant/spatial-model 200 in 55ms (next.js: 6ms, application-code: 49ms)
+[0]  GET /api/tenant/alarm-center 200 in 49ms (next.js: 8ms, application-code: 41ms)
+[0]  GET /api/tenant/devices 200 in 100ms (next.js: 1962µs, application-code: 98ms)
+[0]  GET /api/tenant/spatial-model 200 in 201ms (next.js: 2ms, application-code: 199ms)
+[0]  GET /api/tenant/alarm-center 200 in 115ms (next.js: 2ms, application-code: 113ms)
+[0]  GET /api/tenant/spatial-model 200 in 124ms (next.js: 1853µs, application-code: 122ms)
+[0]  GET /api/tenant/overview 200 in 131ms (next.js: 2ms, application-code: 128ms)
+[0]  GET /api/tenant/devices 200 in 116ms (next.js: 2ms, application-code: 114ms)
+[0]  GET /api/tenant/spatial-model 200 in 180ms (next.js: 2ms, application-code: 178ms)
+[0]  GET /api/tenant/alarm-center 200 in 90ms (next.js: 1841µs, application-code: 89ms)
+[0]  GET /api/tenant/spatial-model 200 in 108ms (next.js: 2ms, application-code: 106ms)
+[0]  GET /api/tenant/overview 200 in 116ms (next.js: 2ms, application-code: 113ms)
+[0]  GET /api/tenant/spatial-model 200 in 124ms (next.js: 2ms, application-code: 122ms)
+[0]  GET /api/tenant/devices 200 in 122ms (next.js: 699µs, application-code: 121ms)
+[0]  GET /api/tenant/alarm-center 200 in 99ms (next.js: 1561µs, application-code: 98ms)
+[0]  GET /api/tenant/spatial-model 200 in 97ms (next.js: 1174µs, application-code: 95ms)
+[0]  GET /api/tenant/overview 200 in 109ms (next.js: 1751µs, application-code: 107ms)
+[0]  GET /api/tenant/spatial-model 200 in 13ms (next.js: 1242µs, application-code: 11ms)
+[0]  GET /api/tenant/overview 200 in 18ms (next.js: 1343µs, application-code: 17ms)
+[0]  GET /api/tenant/alarm-center 200 in 12ms (next.js: 1010µs, application-code: 11ms)
+[0]  GET /api/tenant/spatial-model 200 in 20ms (next.js: 1046µs, application-code: 19ms)
+[0]  GET /api/tenant/devices 200 in 17ms (next.js: 1941µs, application-code: 16ms)
+[0]  GET /api/tenant/alarm-center 200 in 100ms (next.js: 1785µs, application-code: 99ms)
+[0]  GET /api/tenant/overview 200 in 114ms (next.js: 2ms, application-code: 112ms)
+[0]  GET /api/tenant/spatial-model 200 in 212ms (next.js: 1926µs, application-code: 210ms)
+[0]  GET /api/tenant/devices 200 in 19ms (next.js: 2ms, application-code: 17ms)
+[0]  GET /api/tenant/spatial-model 200 in 31ms (next.js: 3ms, application-code: 28ms)
+[0]  GET /api/tenant/devices 200 in 22ms (next.js: 4ms, application-code: 18ms)
+[0]  GET /api/tenant/spatial-model 200 in 39ms (next.js: 3ms, application-code: 37ms)
+[0]  GET / 200 in 240ms (next.js: 73ms, proxy.ts: 15ms, application-code: 152ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 2.9min (next.js: 6.1s, application-code: 2.8min)
+[0]  GET /spaces 200 in 198ms (next.js: 40ms, proxy.ts: 13ms, application-code: 145ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 6.4s (next.js: 6ms, application-code: 6.4s)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 71ms (next.js: 40ms, application-code: 31ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 26ms (next.js: 4ms, application-code: 22ms)
+[0]  GET /api/tenant/overview 200 in 140ms (next.js: 4ms, application-code: 136ms)
+[0]  GET /api/tenant/alarm-center 200 in 137ms (next.js: 3ms, application-code: 134ms)
+[0]  GET /api/tenant/spatial-model 200 in 135ms (next.js: 3ms, application-code: 133ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 49ms (next.js: 21ms, application-code: 29ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 26ms (next.js: 4ms, application-code: 22ms)
+[0]  GET /api/tenant/devices 200 in 1986ms (next.js: 1778ms, application-code: 208ms)
+[0]  GET /api/tenant/spatial-model 200 in 2.0s (next.js: 1802ms, application-code: 200ms)
+[0]  POST /api/tenant/drawings/drawing-1778051775827-dwclcs/publish 200 in 2.7s (next.js: 2.7s, application-code: 47ms)
+[0]  GET / 200 in 333ms (next.js: 142ms, proxy.ts: 14ms, application-code: 177ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 34.2s (next.js: 6ms, application-code: 34.2s)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 65ms (next.js: 31ms, application-code: 34ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 29ms (next.js: 4ms, application-code: 24ms)
+[0]  GET /api/tenant/alarm-center 200 in 96ms (next.js: 3ms, application-code: 93ms)
+[0]  GET /api/tenant/overview 200 in 119ms (next.js: 2ms, application-code: 117ms)
+[0]  GET /api/tenant/spatial-model 200 in 112ms (next.js: 1408µs, application-code: 111ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 12ms (next.js: 5ms, application-code: 6ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 6ms (next.js: 925µs, application-code: 5ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 4.0min (next.js: 6ms, application-code: 4.0min)
+[0] [browser] Uncaught TypeError: this[#methodPromises].getOrInsertComputed is not a function
+[0]     at PdfCanvasSurface.useEffect (components\drawings\drawing-surface.tsx:226:29)
+[0]     at DrawingSurface (components\drawings\drawing-surface.tsx:421:13)
+[0]     at PublishedDrawingMapPanel (components\dashboard\interactive-map-panel.tsx:247:9)
+[0]     at InteractiveMapPanel (components\dashboard\interactive-map-panel.tsx:805:7)
+[0]     at LiveVisualizationPage (components\dashboard\live-visualization-page.tsx:547:9)
+[0]     at VisualizationPage (app\(platform)\page.tsx:54:5)
+[0]   224 |     context.fillRect(0, 0, canvas.width, canvas.height);
+[0]   225 |
+[0] > 226 |     const renderTask = page.render({ canvasContext: context, canvas, viewport });
+[0]       |                             ^
+[0]   227 |     renderTaskRef.current = renderTask;
+[0]   228 |     setRenderState({ status: "loading", message: renderScale > 1.05 ? "正在绘制高清 PDF ...
+[0]   229 |
+[0]  GET /api/tenant/overview 200 in 29ms (next.js: 3ms, application-code: 27ms)
+[0]  GET /api/tenant/spatial-model 200 in 27ms (next.js: 4ms, application-code: 24ms)
+[0]  GET /api/tenant/alarm-center 200 in 23ms (next.js: 3ms, application-code: 20ms)
+[0]  GET /api/tenant/spatial-model 200 in 36ms (next.js: 3ms, application-code: 32ms)
+[0]  GET /api/tenant/alarm-center 200 in 33ms (next.js: 4ms, application-code: 30ms)
+[0]  GET /api/tenant/overview 200 in 59ms (next.js: 4ms, application-code: 55ms)
+[0]  GET /? 200 in 119ms (next.js: 1908µs, proxy.ts: 9ms, application-code: 108ms)
+[0]  GET / 200 in 61ms (next.js: 1939µs, proxy.ts: 4ms, application-code: 55ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 19.0s (next.js: 7ms, application-code: 19.0s)
+[0]  GET /api/admin/state 403 in 316ms (next.js: 305ms, application-code: 11ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 253ms (next.js: 241ms, application-code: 13ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 376ms (next.js: 298ms, application-code: 78ms)
+[0] [browser] Uncaught TypeError: this[#methodPromises].getOrInsertComputed is not a function
+[0]     at PdfCanvasSurface.useEffect (components\drawings\drawing-surface.tsx:226:29)
+[0]     at DrawingSurface (components\drawings\drawing-surface.tsx:421:13)
+[0]     at PublishedDrawingMapPanel (components\dashboard\interactive-map-panel.tsx:247:9)
+[0]     at InteractiveMapPanel (components\dashboard\interactive-map-panel.tsx:805:7)
+[0]     at LiveVisualizationPage (components\dashboard\live-visualization-page.tsx:547:9)
+[0]     at VisualizationPage (app\(platform)\page.tsx:54:5)
+[0]   224 |     context.fillRect(0, 0, canvas.width, canvas.height);
+[0]   225 |
+[0] > 226 |     const renderTask = page.render({ canvasContext: context, canvas, viewport });
+[0]       |                             ^
+[0]   227 |     renderTaskRef.current = renderTask;
+[0]   228 |     setRenderState({ status: "loading", message: renderScale > 1.05 ? "正在绘制高清 PDF ...
+[0]   229 |
+[0]  GET /api/admin/state 403 in 7ms (next.js: 1207µs, application-code: 6ms)
+[0]  GET /api/admin/state 403 in 33ms (next.js: 963µs, application-code: 32ms)
+[0]  GET /api/admin/state 403 in 10ms (next.js: 1770µs, application-code: 8ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 24ms (next.js: 10ms, application-code: 14ms)
+[0]  GET /api/admin/state 403 in 30ms (next.js: 987µs, application-code: 29ms)
+[0]  GET /api/admin/state 403 in 33ms (next.js: 994µs, application-code: 32ms)
+[0]  GET /api/tenant/overview 200 in 57ms (next.js: 8ms, application-code: 48ms)
+[0]  GET /api/tenant/alarm-center 200 in 42ms (next.js: 7ms, application-code: 34ms)
+[0]  GET /api/tenant/spatial-model 200 in 64ms (next.js: 7ms, application-code: 57ms)
+[0]  GET /api/tenant/spatial-model 200 in 34ms (next.js: 5ms, application-code: 29ms)
+[0]  GET /api/tenant/overview 200 in 54ms (next.js: 5ms, application-code: 48ms)
+[0]  GET /api/tenant/alarm-center 200 in 41ms (next.js: 5ms, application-code: 36ms)
+[0]  GET /api/tenant/alarm-center 200 in 80ms (next.js: 600µs, application-code: 80ms)
+[0]  GET /api/tenant/overview 200 in 95ms (next.js: 3ms, application-code: 92ms)
+[0]  GET /api/tenant/spatial-model 200 in 91ms (next.js: 731µs, application-code: 91ms)
+[0]  GET /api/tenant/spatial-model 200 in 47ms (next.js: 4ms, application-code: 43ms)
+[0]  GET /api/tenant/alarm-center 200 in 43ms (next.js: 3ms, application-code: 41ms)
+[0]  GET /api/tenant/overview 200 in 76ms (next.js: 4ms, application-code: 72ms)
+[0]  GET /api/tenant/spatial-model 200 in 37ms (next.js: 8ms, application-code: 28ms)
+[0]  GET /api/tenant/overview 200 in 59ms (next.js: 5ms, application-code: 54ms)
+[0]  GET /api/tenant/alarm-center 200 in 32ms (next.js: 4ms, application-code: 28ms)
+[0]  GET /spaces 200 in 368ms (next.js: 103ms, proxy.ts: 17ms, application-code: 248ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 53s (next.js: 2ms, application-code: 53s)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 50ms (next.js: 21ms, application-code: 29ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 25ms (next.js: 4ms, application-code: 20ms)
+[0]  GET /api/tenant/devices 200 in 171ms (next.js: 12ms, application-code: 159ms)
+[0]  GET /api/tenant/spatial-model 200 in 270ms (next.js: 5ms, application-code: 265ms)
+[0]  GET /api/tenant/spatial-model 200 in 179ms (next.js: 4ms, application-code: 174ms)
+[0]  GET /api/tenant/devices 200 in 173ms (next.js: 4ms, application-code: 169ms)
+[0]  GET /api/tenant/devices 200 in 137ms (next.js: 3ms, application-code: 134ms)
+[0]  GET /api/tenant/spatial-model 200 in 178ms (next.js: 3ms, application-code: 175ms)
+[0]  GET /api/tenant/devices 200 in 99ms (next.js: 2ms, application-code: 96ms)
+[0]  GET /api/tenant/spatial-model 200 in 182ms (next.js: 1898µs, application-code: 180ms)
+[0]  GET /api/tenant/spatial-model 200 in 36ms (next.js: 2ms, application-code: 34ms)
+[0]  GET /api/tenant/devices 200 in 32ms (next.js: 5ms, application-code: 27ms)
+[0]  GET /api/tenant/devices 200 in 125ms (next.js: 2ms, application-code: 123ms)
+[0]  GET /api/tenant/spatial-model 200 in 139ms (next.js: 3ms, application-code: 136ms)
+[0]  GET /api/tenant/devices 200 in 160ms (next.js: 7ms, application-code: 153ms)
+[0]  GET /api/tenant/spatial-model 200 in 178ms (next.js: 5ms, application-code: 174ms)
+[0]  GET /api/tenant/devices 200 in 133ms (next.js: 5ms, application-code: 128ms)
+[0]  GET /api/tenant/spatial-model 200 in 155ms (next.js: 4ms, application-code: 152ms)
+[0]  GET /api/tenant/devices 200 in 18ms (next.js: 4ms, application-code: 14ms)
+[0]  GET /api/tenant/spatial-model 200 in 33ms (next.js: 5ms, application-code: 28ms)
+[0]  GET /api/tenant/spatial-model 200 in 30ms (next.js: 4ms, application-code: 26ms)
+[0]  GET /api/tenant/devices 200 in 26ms (next.js: 5ms, application-code: 20ms)
+[0]  GET /api/tenant/spatial-model 200 in 27ms (next.js: 4ms, application-code: 23ms)
+[0]  GET /api/tenant/devices 200 in 26ms (next.js: 3ms, application-code: 24ms)
+[0]  GET /api/tenant/spatial-model 200 in 33ms (next.js: 4ms, application-code: 29ms)
+[0]  GET /api/tenant/devices 200 in 28ms (next.js: 4ms, application-code: 24ms)
+[0]  GET /api/tenant/devices 200 in 31ms (next.js: 4ms, application-code: 27ms)
+[0]  GET /api/tenant/spatial-model 200 in 50ms (next.js: 4ms, application-code: 46ms)
+[0]  GET /api/tenant/spatial-model 200 in 27ms (next.js: 4ms, application-code: 23ms)
+[0]  GET /api/tenant/devices 200 in 25ms (next.js: 4ms, application-code: 22ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 56ms (next.js: 21ms, application-code: 35ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 30ms (next.js: 4ms, application-code: 26ms)
+[0]  GET /api/tenant/spatial-model 200 in 138ms (next.js: 3ms, application-code: 135ms)
+[0]  GET /api/tenant/devices 200 in 135ms (next.js: 4ms, application-code: 131ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 51ms (next.js: 22ms, application-code: 29ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 26ms (next.js: 4ms, application-code: 22ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 50ms (next.js: 20ms, application-code: 30ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 28ms (next.js: 4ms, application-code: 24ms)
+[0]  GET /api/tenant/devices 200 in 108ms (next.js: 3ms, application-code: 104ms)
+[0]  GET /api/tenant/spatial-model 200 in 190ms (next.js: 4ms, application-code: 186ms)
+[0]  PATCH /api/tenant/spatial-areas/building-hx-a 200 in 2.4s (next.js: 2.4s, application-code: 57ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 63ms (next.js: 30ms, application-code: 33ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 28ms (next.js: 4ms, application-code: 24ms)
+[0]  GET /api/tenant/spatial-model 200 in 143ms (next.js: 9ms, application-code: 134ms)
+[0]  GET /api/tenant/devices 200 in 127ms (next.js: 10ms, application-code: 116ms)
+[0]  GET /api/tenant/spatial-model 200 in 24ms (next.js: 4ms, application-code: 20ms)
+[0]  GET /api/tenant/devices 200 in 18ms (next.js: 1943µs, application-code: 16ms)
+[0]  GET /api/tenant/spatial-model 200 in 42ms (next.js: 5ms, application-code: 38ms)
+[0]  GET /api/tenant/devices 200 in 36ms (next.js: 5ms, application-code: 31ms)
+[0]  GET /api/tenant/spatial-model 200 in 31ms (next.js: 2ms, application-code: 29ms)
+[0]  GET /api/tenant/devices 200 in 30ms (next.js: 4ms, application-code: 26ms)
+[0]  GET /api/tenant/spatial-model 200 in 125ms (next.js: 3ms, application-code: 122ms)
+[0]  GET /api/tenant/devices 200 in 120ms (next.js: 4ms, application-code: 117ms)
+[0]  GET /api/tenant/spatial-model 200 in 31ms (next.js: 4ms, application-code: 27ms)
+[0]  GET /api/tenant/devices 200 in 26ms (next.js: 3ms, application-code: 23ms)
+[0]  GET /api/tenant/devices 200 in 124ms (next.js: 5ms, application-code: 119ms)
+[0]  GET /api/tenant/spatial-model 200 in 139ms (next.js: 2ms, application-code: 137ms)
+[0]  PATCH /api/tenant/spatial-areas/building-hx-pump 200 in 52ms (next.js: 20ms, application-code: 31ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 51ms (next.js: 20ms, application-code: 31ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 27ms (next.js: 4ms, application-code: 23ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 50ms (next.js: 20ms, application-code: 30ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 29ms (next.js: 4ms, application-code: 25ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 45ms (next.js: 17ms, application-code: 28ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 26ms (next.js: 3ms, application-code: 23ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 51ms (next.js: 19ms, application-code: 32ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 29ms (next.js: 6ms, application-code: 23ms)
+[0]  GET /api/tenant/devices 200 in 118ms (next.js: 3ms, application-code: 115ms)
+[0]  GET /api/tenant/spatial-model 200 in 189ms (next.js: 4ms, application-code: 184ms)
+[0]  PATCH /api/tenant/spatial-areas/building-hx-a 200 in 46ms (next.js: 18ms, application-code: 28ms)
+[0]  GET /api/tenant/devices 200 in 122ms (next.js: 1897µs, application-code: 120ms)
+[0]  GET /api/tenant/spatial-model 200 in 155ms (next.js: 1910µs, application-code: 154ms)
+[0]  GET /api/tenant/devices 200 in 104ms (next.js: 1822µs, application-code: 102ms)
+[0]  GET /api/tenant/spatial-model 200 in 199ms (next.js: 2ms, application-code: 197ms)
+[0]  GET /api/tenant/spatial-model 200 in 113ms (next.js: 3ms, application-code: 110ms)
+[0]  GET /api/tenant/devices 200 in 104ms (next.js: 2ms, application-code: 102ms)
+[0]  GET /api/tenant/spatial-model 200 in 114ms (next.js: 1651µs, application-code: 112ms)
+[0]  GET /api/tenant/devices 200 in 199ms (next.js: 4ms, application-code: 194ms)
+[0]  GET /api/tenant/devices 200 in 24ms (next.js: 4ms, application-code: 20ms)
+[0]  GET /api/tenant/spatial-model 200 in 40ms (next.js: 4ms, application-code: 36ms)
+[0]  GET /api/tenant/spatial-model 200 in 30ms (next.js: 3ms, application-code: 27ms)
+[0]  GET /api/tenant/devices 200 in 29ms (next.js: 3ms, application-code: 26ms)
+[0]  GET /api/tenant/devices 200 in 143ms (next.js: 6ms, application-code: 137ms)
+[0]  GET /api/tenant/spatial-model 200 in 224ms (next.js: 6ms, application-code: 218ms)
+[0]  GET /api/tenant/devices 200 in 124ms (next.js: 4ms, application-code: 119ms)
+[0]  GET /api/tenant/spatial-model 200 in 237ms (next.js: 6ms, application-code: 231ms)
+[0]  GET /api/tenant/spatial-model 200 in 132ms (next.js: 2ms, application-code: 130ms)
+[0]  GET /api/tenant/devices 200 in 127ms (next.js: 2ms, application-code: 125ms)
+[0]  GET /api/tenant/devices 200 in 97ms (next.js: 3ms, application-code: 94ms)
+[0]  GET /api/tenant/spatial-model 200 in 106ms (next.js: 2ms, application-code: 104ms)
+[0]  GET /api/tenant/devices 200 in 107ms (next.js: 1902µs, application-code: 105ms)
+[0]  GET /api/tenant/spatial-model 200 in 178ms (next.js: 921µs, application-code: 177ms)
+[0]  GET /api/tenant/devices 200 in 121ms (next.js: 4ms, application-code: 117ms)
+[0]  GET /api/tenant/spatial-model 200 in 144ms (next.js: 4ms, application-code: 140ms)
+[0]  GET /api/tenant/devices 200 in 174ms (next.js: 5ms, application-code: 169ms)
+[0]  GET /api/tenant/spatial-model 200 in 177ms (next.js: 5ms, application-code: 172ms)
+[0]  GET /api/tenant/devices 200 in 105ms (next.js: 1003µs, application-code: 104ms)
+[0]  GET /api/tenant/spatial-model 200 in 110ms (next.js: 1052µs, application-code: 109ms)
+[0]  GET /api/tenant/devices 200 in 107ms (next.js: 1975µs, application-code: 105ms)
+[0]  GET /api/tenant/spatial-model 200 in 186ms (next.js: 3ms, application-code: 182ms)
+[0]  GET /api/tenant/spatial-model 200 in 44ms (next.js: 6ms, application-code: 39ms)
+[0]  GET /api/tenant/devices 200 in 40ms (next.js: 6ms, application-code: 35ms)
+[0]  GET /api/tenant/devices 200 in 135ms (next.js: 5ms, application-code: 130ms)
+[0]  GET /api/tenant/spatial-model 200 in 146ms (next.js: 5ms, application-code: 142ms)
+[0] ⨯ ./components/spaces/spatial-model-board.tsx
+[0] Error: 
+[0] 
+[0] Caused by:
+[0]     0: Failed to read source code from E:\0001workshop\smart-fire-platform\components\spaces\spatial-model-board.tsx
+[0]     1: 系统找不到指定的文件。 (os error 2)
+[0] 
+[0] Import trace for requested module:
+[0] ./components/spaces/spatial-model-board.tsx
+[0] ⨯ ./components/spaces/spatial-model-board.tsx
+[0] Error: 
+[0] 
+[0] Caused by:
+[0]     0: Failed to read source code from E:\0001workshop\smart-fire-platform\components\spaces\spatial-model-board.tsx
+[0]     1: 系统找不到指定的文件。 (os error 2)
+[0] 
+[0] Import trace for requested module:
+[0] ./components/spaces/spatial-model-board.tsx
+[0] ./app/(platform)/spaces/page.tsx
+[0] ○ Compiling /_error ...
+[0] ⨯ ./components/spaces/spatial-model-board.tsx
+[0] Error: 
+[0] 
+[0] Caused by:
+[0]     0: Failed to read source code from E:\0001workshop\smart-fire-platform\components\spaces\spatial-model-board.tsx
+[0]     1: 系统找不到指定的文件。 (os error 2)
+[0] 
+[0] Import trace for requested module:
+[0] ./components/spaces/spatial-model-board.tsx
+[0] ./app/(platform)/spaces/page.tsx
+[0]  GET /spaces 500 in 30.4s (next.js: 29.5s, proxy.ts: 18ms, application-code: 894ms)
+[0]  GET /api/tenant/spatial-model 500 in 22.1s (next.js: 21.2s, application-code: 877ms)
+[0]  GET /api/tenant/devices 500 in 22.0s (next.js: 21.1s, application-code: 876ms)
+[0]  GET /spaces 500 in 84ms (next.js: 21ms, proxy.ts: 27ms, application-code: 36ms)
+[0]  GET /spaces 500 in 154ms (next.js: 52ms, proxy.ts: 63ms, application-code: 39ms)
+[0] ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 12.9min (next.js: 5ms, application-code: 12.9min)
+[0] [browser] Uncaught ModuleBuildError: Module build failed (from ./node_modules/next/dist/build/webpack/loaders/next-swc-loader.js):
+[0] Error: 
+[0] 
+[0] Caused by:
+[0]     0: Failed to read source code from E:\0001workshop\smart-fire-platform\components\spaces\spatial-model-board.tsx
+[0]     1: 系统找不到指定的文件。 (os error 2)
+[0] <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'E:\0001workshop\smart-fire-platform\.next\dev\cache\webpack\client-development-fallback\0.pack.gz_' -> 'E:\0001workshop\smart-fire-platform\.next\dev\cache\webpack\client-development-fallback\0.pack.gz'
+[0] <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'E:\0001workshop\smart-fire-platform\.next\dev\cache\webpack\client-development-fallback\0.pack.gz_' -> 'E:\0001workshop\smart-fire-platform\.next\dev\cache\webpack\client-development-fallback\0.pack.gz'
+[0] [browser] ./components/spaces/spatial-model-board.tsx
+[0] Error: 
+[0] 
+[0] Caused by:
+[0]     0: Failed to read source code from E:\0001workshop\smart-fire-platform\components\spaces\spatial-model-board.tsx
+[0]     1: 系统找不到指定的文件。 (os error 2) 
+[0]  GET / 200 in 1803ms (next.js: 399ms, proxy.ts: 18ms, application-code: 1386ms)
+[0]  GET /alarm-center 200 in 2.3s (next.js: 1805ms, proxy.ts: 34ms, application-code: 478ms)
+[0]  GET /devices 200 in 2.0s (next.js: 1576ms, proxy.ts: 16ms, application-code: 419ms)
+[0]  GET /duty-center 200 in 1797ms (next.js: 1321ms, proxy.ts: 17ms, application-code: 459ms)
+[0]  GET /inspection 200 in 2.1s (next.js: 1622ms, proxy.ts: 19ms, application-code: 494ms)
+[0]  GET /notification-center 200 in 2.4s (next.js: 1941ms, proxy.ts: 15ms, application-code: 471ms)
+[0]  GET /audit-log 200 in 2.2s (next.js: 1750ms, proxy.ts: 17ms, application-code: 480ms)
+[0]  GET /system-health 200 in 2.0s (next.js: 1536ms, proxy.ts: 14ms, application-code: 451ms)
+[0] ○ Compiling /login ...
+[0]  GET /login 200 in 4.0s (next.js: 3.6s, proxy.ts: 17ms, application-code: 392ms)
+[0]  GET / 200 in 601ms (next.js: 145ms, proxy.ts: 15ms, application-code: 440ms)
+[0]  GET /alarm-center 200 in 182ms (next.js: 17ms, proxy.ts: 7ms, application-code: 158ms)
+[0]  GET /devices 200 in 185ms (next.js: 18ms, proxy.ts: 22ms, application-code: 145ms)
+[0]  GET /duty-center 200 in 336ms (next.js: 32ms, proxy.ts: 14ms, application-code: 290ms)
+[0]  GET /inspection 200 in 305ms (next.js: 30ms, proxy.ts: 13ms, application-code: 262ms)
+[0]  GET /notification-center 200 in 275ms (next.js: 21ms, proxy.ts: 13ms, application-code: 240ms)
+[0]  GET /audit-log 200 in 309ms (next.js: 29ms, proxy.ts: 14ms, application-code: 266ms)
+[0]  GET /system-health 200 in 223ms (next.js: 23ms, proxy.ts: 13ms, application-code: 187ms)
+[0]  GET /login 200 in 210ms (next.js: 39ms, proxy.ts: 27ms, application-code: 144ms)
+[0]  GET / 200 in 207ms (next.js: 1666µs, proxy.ts: 3ms, application-code: 202ms)
+[0]  GET /api/admin/state 403 in 919ms (next.js: 899ms, application-code: 20ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 837ms (next.js: 814ms, application-code: 23ms)
+[0]  GET /api/admin/state 403 in 27ms (next.js: 1355µs, application-code: 26ms)
+[0]  GET /api/admin/state 403 in 22ms (next.js: 1152µs, application-code: 21ms)
+[0]  GET /spaces 200 in 115ms (next.js: 68ms, proxy.ts: 13ms, application-code: 35ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 4.7s (next.js: 879ms, application-code: 3.8s)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 21ms (next.js: 8ms, application-code: 13ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 11ms (next.js: 1671µs, application-code: 10ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 22ms (next.js: 9ms, application-code: 13ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 13ms (next.js: 3ms, application-code: 10ms)
+[0]  GET /api/tenant/devices 200 in 636ms (next.js: 516ms, application-code: 119ms)
+[0]  GET /api/tenant/spatial-model 200 in 657ms (next.js: 521ms, application-code: 136ms)
+[0]  GET /api/tenant/devices 200 in 26ms (next.js: 4ms, application-code: 22ms)
+[0]  GET /api/tenant/spatial-model 200 in 44ms (next.js: 4ms, application-code: 40ms)
+[0]  GET /api/tenant/spatial-model 200 in 104ms (next.js: 1554µs, application-code: 102ms)
+[0]  GET /api/tenant/devices 200 in 99ms (next.js: 1610µs, application-code: 98ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 25ms (next.js: 12ms, application-code: 13ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 11ms (next.js: 1951µs, application-code: 9ms)
+[0]  GET /api/tenant/devices 200 in 7ms (next.js: 896µs, application-code: 6ms)
+[0]  GET /api/tenant/spatial-model 200 in 11ms (next.js: 1042µs, application-code: 10ms)
+[0]  GET /api/tenant/devices 200 in 85ms (next.js: 1001µs, application-code: 84ms)
+[0]  GET /api/tenant/spatial-model 200 in 91ms (next.js: 1572µs, application-code: 90ms)
+[0]  GET /api/tenant/devices 200 in 101ms (next.js: 1499µs, application-code: 99ms)
+[0]  GET /api/tenant/spatial-model 200 in 108ms (next.js: 2ms, application-code: 106ms)
+[0]  GET /api/tenant/devices 200 in 92ms (next.js: 1136µs, application-code: 91ms)
+[0]  GET /api/tenant/spatial-model 200 in 101ms (next.js: 2ms, application-code: 98ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 16ms (next.js: 6ms, application-code: 10ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 8ms (next.js: 1257µs, application-code: 7ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 23ms (next.js: 8ms, application-code: 15ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 11ms (next.js: 1809µs, application-code: 9ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 19ms (next.js: 6ms, application-code: 12ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 13ms (next.js: 3ms, application-code: 10ms)
+[0]  GET /api/tenant/devices 200 in 89ms (next.js: 1734µs, application-code: 87ms)
+[0]  GET /api/tenant/spatial-model 200 in 159ms (next.js: 3ms, application-code: 157ms)
+[0]  GET /api/tenant/devices 200 in 77ms (next.js: 2ms, application-code: 75ms)
+[0]  GET /api/tenant/spatial-model 200 in 91ms (next.js: 1198µs, application-code: 90ms)
+[0]  GET /api/tenant/devices 200 in 133ms (next.js: 5ms, application-code: 129ms)
+[0]  GET /api/tenant/spatial-model 200 in 209ms (next.js: 2ms, application-code: 207ms)
+[0]  GET /api/tenant/devices 200 in 15ms (next.js: 2ms, application-code: 12ms)
+[0]  GET /api/tenant/spatial-model 200 in 23ms (next.js: 2ms, application-code: 21ms)
+[0]  GET /api/tenant/spatial-model 200 in 103ms (next.js: 2ms, application-code: 101ms)
+[0]  GET /api/tenant/devices 200 in 97ms (next.js: 1527µs, application-code: 95ms)
+[0]  GET /api/tenant/devices 200 in 110ms (next.js: 5ms, application-code: 105ms)
+[0]  GET /api/tenant/spatial-model 200 in 186ms (next.js: 2ms, application-code: 184ms)
+[0]  GET /api/tenant/devices 200 in 159ms (next.js: 3ms, application-code: 157ms)
+[0]  GET /api/tenant/spatial-model 200 in 172ms (next.js: 3ms, application-code: 169ms)
+[0]  GET /api/tenant/spatial-model 200 in 137ms (next.js: 4ms, application-code: 133ms)
+[0]  GET /api/tenant/devices 200 in 125ms (next.js: 4ms, application-code: 121ms)
+[0]  GET /api/tenant/spatial-model 200 in 34ms (next.js: 4ms, application-code: 30ms)
+[0]  GET /api/tenant/devices 200 in 28ms (next.js: 3ms, application-code: 25ms)
+[0]  GET /api/tenant/spatial-model 200 in 40ms (next.js: 5ms, application-code: 35ms)
+[0]  GET /api/tenant/devices 200 in 33ms (next.js: 5ms, application-code: 28ms)
+[0]  GET /api/tenant/devices 200 in 18ms (next.js: 3ms, application-code: 15ms)
+[0]  GET /api/tenant/spatial-model 200 in 30ms (next.js: 3ms, application-code: 27ms)
+[0]  GET /api/tenant/devices 200 in 113ms (next.js: 5ms, application-code: 107ms)
+[0]  GET /api/tenant/spatial-model 200 in 203ms (next.js: 5ms, application-code: 197ms)
+[0]  GET /api/tenant/devices 200 in 155ms (next.js: 8ms, application-code: 147ms)
+[0]  GET /api/tenant/spatial-model 200 in 191ms (next.js: 4ms, application-code: 186ms)
+[0]  GET /api/tenant/devices 200 in 141ms (next.js: 4ms, application-code: 137ms)
+[0]  GET /api/tenant/spatial-model 200 in 146ms (next.js: 7ms, application-code: 139ms)
+[0]  GET /api/tenant/devices 200 in 139ms (next.js: 6ms, application-code: 133ms)
+[0]  GET /api/tenant/spatial-model 200 in 203ms (next.js: 4ms, application-code: 199ms)
+[0]  GET /api/tenant/devices 200 in 168ms (next.js: 9ms, application-code: 159ms)
+[0]  GET /api/tenant/spatial-model 200 in 197ms (next.js: 4ms, application-code: 192ms)
+[0]  GET /api/tenant/spatial-model 200 in 183ms (next.js: 4ms, application-code: 179ms)
+[0]  GET /api/tenant/devices 200 in 173ms (next.js: 8ms, application-code: 165ms)
+[0]  GET /api/tenant/devices 200 in 87ms (next.js: 996µs, application-code: 86ms)
+[0]  GET /api/tenant/spatial-model 200 in 180ms (next.js: 2ms, application-code: 177ms)
+[0]  GET /api/tenant/devices 200 in 91ms (next.js: 1108µs, application-code: 90ms)
+[0]  GET /api/tenant/spatial-model 200 in 160ms (next.js: 1967µs, application-code: 158ms)
+[0]  GET /api/tenant/spatial-model 200 in 94ms (next.js: 1011µs, application-code: 93ms)
+[0]  GET /api/tenant/devices 200 in 93ms (next.js: 765µs, application-code: 92ms)
+[0]  GET /api/tenant/devices 200 in 104ms (next.js: 3ms, application-code: 101ms)
+[0]  GET /api/tenant/spatial-model 200 in 115ms (next.js: 3ms, application-code: 112ms)
+[0]  GET /api/tenant/devices 200 in 127ms (next.js: 3ms, application-code: 124ms)
+[0]  GET /api/tenant/spatial-model 200 in 136ms (next.js: 1697µs, application-code: 134ms)
+[0]  GET /api/tenant/spatial-model 200 in 112ms (next.js: 1010µs, application-code: 111ms)
+[0]  GET /api/tenant/devices 200 in 111ms (next.js: 1948µs, application-code: 109ms)
+[0]  GET /api/tenant/spatial-model 200 in 118ms (next.js: 1152µs, application-code: 116ms)
+[0]  GET /api/tenant/devices 200 in 117ms (next.js: 854µs, application-code: 116ms)
+[0]  GET /api/tenant/devices 200 in 142ms (next.js: 2ms, application-code: 140ms)
+[0]  GET /api/tenant/spatial-model 200 in 151ms (next.js: 2ms, application-code: 148ms)
+[0]  GET /api/tenant/devices 200 in 95ms (next.js: 2ms, application-code: 93ms)
+[0]  GET /api/tenant/spatial-model 200 in 167ms (next.js: 3ms, application-code: 164ms)
+[0]  GET /api/tenant/spatial-model 200 in 9ms (next.js: 1276µs, application-code: 8ms)
+[0]  GET /api/tenant/devices 200 in 9ms (next.js: 814µs, application-code: 9ms)
+[0]  GET /api/tenant/devices 200 in 21ms (next.js: 3ms, application-code: 18ms)
+[0]  GET /api/tenant/spatial-model 200 in 35ms (next.js: 2ms, application-code: 32ms)
+[0]  GET /api/tenant/spatial-model 200 in 12ms (next.js: 2ms, application-code: 10ms)
+[0]  GET /api/tenant/devices 200 in 9ms (next.js: 1856µs, application-code: 8ms)
+[0]  GET /api/tenant/spatial-model 200 in 15ms (next.js: 1525µs, application-code: 14ms)
+[0]  GET /api/tenant/devices 200 in 12ms (next.js: 1767µs, application-code: 10ms)
+[0]  GET /api/tenant/spatial-model 200 in 14ms (next.js: 1653µs, application-code: 12ms)
+[0]  GET /api/tenant/devices 200 in 10ms (next.js: 1825µs, application-code: 8ms)
+[0]  GET /api/tenant/spatial-model 200 in 12ms (next.js: 1911µs, application-code: 10ms)
+[0]  GET /api/tenant/devices 200 in 11ms (next.js: 722µs, application-code: 10ms)
+[0]  GET /api/tenant/devices 200 in 89ms (next.js: 858µs, application-code: 88ms)
+[0]  GET /api/tenant/spatial-model 200 in 93ms (next.js: 1100µs, application-code: 92ms)
+[0]  GET /api/tenant/devices 200 in 93ms (next.js: 979µs, application-code: 92ms)
+[0]  GET /api/tenant/spatial-model 200 in 100ms (next.js: 2ms, application-code: 98ms)
+[0]  GET /api/tenant/spatial-model 200 in 16ms (next.js: 1314µs, application-code: 15ms)
+[0]  GET /api/tenant/devices 200 in 15ms (next.js: 1449µs, application-code: 13ms)
+[0]  GET /api/tenant/spatial-model 200 in 14ms (next.js: 2ms, application-code: 12ms)
+[0]  GET /api/tenant/devices 200 in 13ms (next.js: 3ms, application-code: 10ms)
+[0]  GET /api/tenant/spatial-model 200 in 14ms (next.js: 1445µs, application-code: 12ms)
+[0]  GET /api/tenant/devices 200 in 13ms (next.js: 1562µs, application-code: 11ms)
+[0]  GET /api/tenant/devices 200 in 119ms (next.js: 787µs, application-code: 119ms)
+[0]  GET /api/tenant/spatial-model 200 in 124ms (next.js: 1794µs, application-code: 123ms)
+[0]  GET /api/tenant/devices 200 in 9ms (next.js: 1431µs, application-code: 7ms)
+[0]  GET /api/tenant/spatial-model 200 in 14ms (next.js: 1399µs, application-code: 13ms)
+[0]  GET /api/tenant/spatial-model 200 in 9ms (next.js: 919µs, application-code: 8ms)
+[0]  GET /api/tenant/devices 200 in 7ms (next.js: 775µs, application-code: 6ms)
+[0]  GET /api/tenant/devices 200 in 113ms (next.js: 1937µs, application-code: 111ms)
+[0]  GET /api/tenant/spatial-model 200 in 121ms (next.js: 2ms, application-code: 118ms)
+[0]  GET /spaces 200 in 133ms (next.js: 78ms, proxy.ts: 8ms, application-code: 47ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 19.8min (next.js: 1201µs, application-code: 19.8min)
+[0]  GET /spaces 200 in 96ms (next.js: 25ms, proxy.ts: 8ms, application-code: 63ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 13.2s (next.js: 427ms, application-code: 12.8s)
+[0]  GET /spaces 200 in 68ms (next.js: 23ms, proxy.ts: 5ms, application-code: 40ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 10.4s (next.js: 279ms, application-code: 10.1s)
+[0] ⨯ ReferenceError: deviceList is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:288:7)
+[0]   286 |       return device.buildingId === selectedArea.id || !device.floorId;
+[0]   287 |     });
+[0] > 288 |   }, [deviceList, selectedArea, selectedDeviceId, selectedFloorId]);
+[0]       |       ^
+[0]   289 |   const pendingDevices = useMemo(() => {
+[0]   290 |     const keyword = deviceSearch.trim().toLowerCase();
+[0]   291 |     return currentTargetDevices {
+[0]   digest: '1004318431'
+[0] }
+[0]  GET /spaces 500 in 406ms (next.js: 42ms, proxy.ts: 7ms, application-code: 357ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1071:148)
+[0]   1069 | ...mibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   1070 | ...mibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 1071 | ...mibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]        |                                              ^
+[0]   1072 | ...
+[0]   1073 | ...
+[0]   1074 | ... {
+[0]   digest: '3315964833'
+[0] }
+[0]  GET /spaces 500 in 143ms (next.js: 31ms, proxy.ts: 4ms, application-code: 107ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1064:148)
+[0]   1062 | ...mibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   1063 | ...mibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 1064 | ...mibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]        |                                              ^
+[0]   1065 | ...
+[0]   1066 | ...
+[0]   1067 | ... {
+[0]   digest: '3315964833'
+[0] }
+[0]  GET /spaces 500 in 132ms (next.js: 25ms, proxy.ts: 9ms, application-code: 99ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1064:148)
+[0]   1062 | ...mibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   1063 | ...mibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 1064 | ...mibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]        |                                              ^
+[0]   1065 | ...
+[0]   1066 | ...
+[0]   1067 | ... {
+[0]   digest: '3315964833'
+[0] }
+[0]  GET /spaces 500 in 117ms (next.js: 23ms, proxy.ts: 5ms, application-code: 89ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1063:148)
+[0]   1061 | ...mibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   1062 | ...mibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 1063 | ...mibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]        |                                              ^
+[0]   1064 | ...
+[0]   1065 | ...
+[0]   1066 | ... {
+[0]   digest: '3315964833'
+[0] }
+[0]  GET /spaces 500 in 214ms (next.js: 48ms, proxy.ts: 9ms, application-code: 158ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:990:148)
+[0]   988 | ...emibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   989 | ...emibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 990 | ...emibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]       |                                               ^
+[0]   991 | ...
+[0]   992 | ...
+[0]   993 | ... {
+[0]   digest: '3315964833'
+[0] }
+[0]  GET /spaces 500 in 261ms (next.js: 49ms, proxy.ts: 10ms, application-code: 202ms)
+[0] [browser] Uncaught ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:990:148)
+[0]     at SpacesPage (app\(platform)\spaces\page.tsx:39:10)
+[0]   988 | ...emibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   989 | ...emibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 990 | ...emibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]       |                                               ^
+[0]   991 | ...
+[0]   992 | ...
+[0]   993 | ...
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1002:148)
+[0]   1000 | ...mibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   1001 | ...mibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 1002 | ...mibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]        |                                              ^
+[0]   1003 | ...
+[0]   1004 | ...
+[0]   1005 | ... {
+[0]   digest: '3315964833'
+[0] }
+[0]  GET /spaces 500 in 303ms (next.js: 105ms, proxy.ts: 10ms, application-code: 189ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:936:148)
+[0]   934 | ...emibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   935 | ...emibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 936 | ...emibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]       |                                               ^
+[0]   937 | ...
+[0]   938 | ...
+[0]   939 | ... {
+[0]   digest: '1485352995'
+[0] }
+[0]  GET /spaces 500 in 209ms (next.js: 32ms, proxy.ts: 6ms, application-code: 171ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:931:148)
+[0]   929 | ...emibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   930 | ...emibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 931 | ...emibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]       |                                               ^
+[0]   932 | ...
+[0]   933 | ...
+[0]   934 | ... {
+[0]   digest: '1485352995'
+[0] }
+[0]  GET /spaces 500 in 271ms (next.js: 72ms, proxy.ts: 15ms, application-code: 185ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:931:148)
+[0]   929 | ...emibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   930 | ...emibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 931 | ...emibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]       |                                               ^
+[0]   932 | ...
+[0]   933 | ...
+[0]   934 | ... {
+[0]   digest: '1485352995'
+[0] }
+[0]  GET /spaces 500 in 134ms (next.js: 30ms, proxy.ts: 6ms, application-code: 97ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:936:148)
+[0]   934 | ...emibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   935 | ...emibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 936 | ...emibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]       |                                               ^
+[0]   937 | ...
+[0]   938 | ...
+[0]   939 | ... {
+[0]   digest: '3315964833'
+[0] }
+[0]  GET /spaces 500 in 246ms (next.js: 30ms, proxy.ts: 10ms, application-code: 207ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:937:148)
+[0]   935 | ...emibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   936 | ...emibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 937 | ...emibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]       |                                               ^
+[0]   938 | ...
+[0]   939 | ...
+[0]   940 | ... {
+[0]   digest: '3315964833'
+[0] }
+[0]  GET /spaces 500 in 129ms (next.js: 29ms, proxy.ts: 4ms, application-code: 96ms)
+[0] [browser] Uncaught ReferenceError: pointsForDrawing is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:937:148)
+[0]     at SpacesPage (app\(platform)\spaces\page.tsx:39:10)
+[0]   935 | ...emibold text-[color:var(--text-primary)]">{targetDrawings.length}</p><p className="mt-...
+[0]   936 | ...emibold text-[color:var(--text-primary)]">{publishedCount}</p><p className="mt-1 text-...
+[0] > 937 | ...emibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p><p className="m...
+[0]       |                                               ^
+[0]   938 | ...
+[0]   939 | ...
+[0]   940 | ...
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0]  GET /spaces 200 in 303ms (next.js: 54ms, proxy.ts: 15ms, application-code: 235ms)
+[0]  GET /api/admin/state 403 in 618ms (next.js: 598ms, application-code: 19ms)
+[0]  GET /api/admin/state 403 in 30ms (next.js: 2ms, application-code: 27ms)
+[0]  GET /api/admin/state 403 in 12ms (next.js: 1811µs, application-code: 10ms)
+[0]  GET /spaces 200 in 163ms (next.js: 95ms, proxy.ts: 6ms, application-code: 62ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 16.4s (next.js: 585ms, application-code: 15.9s)
+[0]  GET /api/tenant/spatial-model 200 in 352ms (next.js: 193ms, application-code: 159ms)
+[0]  GET /api/tenant/spatial-model 200 in 170ms (next.js: 1090µs, application-code: 169ms)
+[0]  GET / 200 in 128ms (next.js: 21ms, proxy.ts: 4ms, application-code: 103ms)
+[0]  GET /spaces 200 in 87ms (next.js: 6ms, proxy.ts: 52ms, application-code: 29ms)
+[0]  GET /alarm-center 200 in 573ms (next.js: 429ms, proxy.ts: 3ms, application-code: 141ms)
+[0]  GET /spaces 200 in 100ms (next.js: 9ms, proxy.ts: 53ms, application-code: 38ms)
+[0]  GET /devices 200 in 681ms (next.js: 538ms, proxy.ts: 3ms, application-code: 140ms)
+[0]  GET /duty-center 200 in 470ms (next.js: 374ms, proxy.ts: 4ms, application-code: 92ms)
+[0]  GET /inspection 200 in 415ms (next.js: 332ms, proxy.ts: 3ms, application-code: 80ms)
+[0]  GET /notification-center 200 in 435ms (next.js: 290ms, proxy.ts: 3ms, application-code: 142ms)
+[0]  GET /audit-log 200 in 419ms (next.js: 286ms, proxy.ts: 2ms, application-code: 131ms)
+[0]  GET /system-health 200 in 381ms (next.js: 282ms, proxy.ts: 2ms, application-code: 97ms)
+[0]  GET /spaces 200 in 237ms (next.js: 10ms, proxy.ts: 4ms, application-code: 224ms)
+[0]  GET /api/tenant/spatial-model 200 in 16ms (next.js: 3ms, application-code: 13ms)
+[0]  GET /api/tenant/spatial-model 200 in 15ms (next.js: 1075µs, application-code: 14ms)
+[0]  GET /api/tenant/spatial-model 200 in 9ms (next.js: 1265µs, application-code: 8ms)
+[0]  GET /api/tenant/spatial-model 200 in 90ms (next.js: 1104µs, application-code: 89ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 364ms (next.js: 353ms, application-code: 11ms)
+[0]  GET /api/tenant/drawing-files/tenant-huaxing/upload-1778051770891-37ofou/%E5%AE%BF%E8%88%8D%E6%8A%A5%E8%AD%A6%E5%9B%BE.pdf 200 in 376ms (next.js: 363ms, application-code: 13ms)
+[0]  GET /api/tenant/spatial-model 200 in 110ms (next.js: 6ms, application-code: 104ms)
+[0]  GET /api/tenant/spatial-model 200 in 103ms (next.js: 3ms, application-code: 100ms)
+[0]  GET /api/tenant/spatial-model 200 in 115ms (next.js: 3ms, application-code: 112ms)
+[0]  GET /api/tenant/spatial-model 200 in 118ms (next.js: 3ms, application-code: 115ms)
+[0]  GET /api/tenant/spatial-model 200 in 109ms (next.js: 2ms, application-code: 107ms)
+[0]  GET /api/tenant/spatial-model 200 in 112ms (next.js: 3ms, application-code: 110ms)
+[0]  GET /api/tenant/spatial-model 200 in 126ms (next.js: 2ms, application-code: 124ms)
+[0]  GET /api/tenant/spatial-model 200 in 103ms (next.js: 3ms, application-code: 100ms)
+[0]  GET /api/tenant/spatial-model 200 in 112ms (next.js: 996µs, application-code: 111ms)
+[0]  GET /api/tenant/spatial-model 200 in 160ms (next.js: 1133µs, application-code: 159ms)
+[0]  GET /api/tenant/spatial-model 200 in 127ms (next.js: 1545µs, application-code: 125ms)
+[0]  GET /api/tenant/spatial-model 200 in 93ms (next.js: 1878µs, application-code: 91ms)
+[0]  GET /api/tenant/spatial-model 200 in 17ms (next.js: 1847µs, application-code: 15ms)
+[0]  GET /api/tenant/spatial-model 200 in 12ms (next.js: 963µs, application-code: 11ms)
+[0]  GET /api/tenant/spatial-model 200 in 193ms (next.js: 2ms, application-code: 190ms)
+[0]  GET /api/tenant/spatial-model 200 in 158ms (next.js: 1500µs, application-code: 156ms)
+[0]  GET /api/tenant/spatial-model 200 in 143ms (next.js: 2ms, application-code: 141ms)
+[0]  GET /api/tenant/spatial-model 200 in 161ms (next.js: 1073µs, application-code: 160ms)
+[0]  GET /api/tenant/spatial-model 200 in 116ms (next.js: 1892µs, application-code: 114ms)
+[0]  GET /api/tenant/spatial-model 200 in 100ms (next.js: 1430µs, application-code: 99ms)
+[0]  GET /api/tenant/spatial-model 200 in 14ms (next.js: 2ms, application-code: 12ms)
+[0]  GET /api/tenant/spatial-model 200 in 194ms (next.js: 2ms, application-code: 191ms)
+[0]  GET /api/tenant/spatial-model 200 in 24ms (next.js: 1073µs, application-code: 23ms)
+[0]  GET /api/tenant/spatial-model 200 in 14ms (next.js: 1711µs, application-code: 13ms)
+[0]  GET /api/tenant/spatial-model 200 in 9ms (next.js: 948µs, application-code: 8ms)
+[0]  GET /api/tenant/spatial-model 200 in 12ms (next.js: 1302µs, application-code: 11ms)
+[0]  GET /api/tenant/spatial-model 200 in 14ms (next.js: 902µs, application-code: 13ms)
+[0]  GET /api/tenant/spatial-model 200 in 102ms (next.js: 3ms, application-code: 100ms)
+[0]  GET /api/tenant/spatial-model 200 in 108ms (next.js: 1179µs, application-code: 107ms)
+[0]  GET /api/tenant/spatial-model 200 in 14ms (next.js: 1737µs, application-code: 13ms)
+[0]  GET /api/tenant/spatial-model 200 in 12ms (next.js: 1874µs, application-code: 10ms)
+[0]  GET /api/tenant/spatial-model 200 in 155ms (next.js: 2ms, application-code: 153ms)
+[0]  GET /api/tenant/spatial-model 200 in 119ms (next.js: 3ms, application-code: 117ms)
+[0]  GET /settings 200 in 639ms (next.js: 593ms, proxy.ts: 11ms, application-code: 35ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 12.8min (next.js: 3ms, application-code: 12.8min)
+[0]  GET /subscription 200 in 814ms (next.js: 646ms, proxy.ts: 6ms, application-code: 162ms)
+[0]  GET /subscription 200 in 125ms (next.js: 4ms, proxy.ts: 10ms, application-code: 112ms)
+[0]  GET /subscription 200 in 91ms (next.js: 16ms, proxy.ts: 6ms, application-code: 69ms)
+[0]  GET /subscription 200 in 45ms (next.js: 1607µs, proxy.ts: 8ms, application-code: 35ms)
+[0]  GET /notification-center 200 in 390ms (next.js: 320ms, proxy.ts: 11ms, application-code: 59ms)
+[0]  GET /inspection 200 in 532ms (next.js: 479ms, proxy.ts: 14ms, application-code: 40ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 3.6s (next.js: 362ms, application-code: 3.2s)
+[0]  GET /devices 200 in 1010ms (next.js: 937ms, proxy.ts: 17ms, application-code: 56ms)
+[0]  GET /spaces 200 in 251ms (next.js: 9ms, proxy.ts: 134ms, application-code: 108ms)
+[0]  GET /api/tenant/spatial-model 200 in 329ms (next.js: 179ms, application-code: 150ms)
+[0]  GET /api/tenant/spatial-model 200 in 141ms (next.js: 3ms, application-code: 139ms)
+[0]  GET /api/tenant/spatial-model 200 in 113ms (next.js: 1914µs, application-code: 111ms)
+[0]  GET /api/tenant/spatial-model 200 in 118ms (next.js: 1634µs, application-code: 116ms)
+[0]  GET /api/tenant/spatial-model 200 in 185ms (next.js: 4ms, application-code: 180ms)
+[0]  GET /api/tenant/spatial-model 200 in 23ms (next.js: 2ms, application-code: 21ms)
+[0]  GET /api/tenant/spatial-model 200 in 185ms (next.js: 3ms, application-code: 183ms)
+[0]  GET /api/tenant/spatial-model 200 in 116ms (next.js: 1082µs, application-code: 114ms)
+[0]  GET /api/tenant/spatial-model 200 in 113ms (next.js: 2ms, application-code: 111ms)
+[0]  GET /api/tenant/spatial-model 200 in 103ms (next.js: 3ms, application-code: 100ms)
+[0]  GET /api/tenant/spatial-model 200 in 107ms (next.js: 3ms, application-code: 104ms)
+[0]  GET /api/tenant/spatial-model 200 in 23ms (next.js: 1812µs, application-code: 21ms)
+[0]  GET /api/tenant/spatial-model 200 in 145ms (next.js: 3ms, application-code: 142ms)
+[0]  GET /api/tenant/spatial-model 200 in 194ms (next.js: 3ms, application-code: 191ms)
+[0]  GET /api/tenant/spatial-model 200 in 109ms (next.js: 3ms, application-code: 105ms)
+[0]  GET /api/tenant/spatial-model 200 in 123ms (next.js: 1227µs, application-code: 122ms)
+[0]  GET /api/tenant/spatial-model 200 in 25ms (next.js: 3ms, application-code: 22ms)
+[0]  GET /api/tenant/spatial-model 200 in 31ms (next.js: 5ms, application-code: 26ms)
+[0]  GET /api/tenant/spatial-model 200 in 23ms (next.js: 4ms, application-code: 19ms)
+[0]  GET /api/tenant/spatial-model 200 in 116ms (next.js: 5ms, application-code: 111ms)
+[0]  GET /api/tenant/spatial-model 200 in 19ms (next.js: 1685µs, application-code: 18ms)
+[0]  GET /api/tenant/spatial-model 200 in 38ms (next.js: 2ms, application-code: 36ms)
+[0]  GET /api/tenant/spatial-model 200 in 40ms (next.js: 5ms, application-code: 35ms)
+[0]  GET /api/tenant/spatial-model 200 in 143ms (next.js: 6ms, application-code: 137ms)
+[0]  GET /api/tenant/spatial-model 200 in 128ms (next.js: 5ms, application-code: 123ms)
+[0]  GET /api/tenant/spatial-model 200 in 23ms (next.js: 3ms, application-code: 21ms)
+[0]  GET /api/tenant/spatial-model 200 in 109ms (next.js: 6ms, application-code: 103ms)
+[0]  GET /api/tenant/spatial-model 200 in 44ms (next.js: 5ms, application-code: 39ms)
+[0]  GET /api/tenant/spatial-model 200 in 124ms (next.js: 5ms, application-code: 119ms)
+[0]  GET /api/tenant/spatial-model 200 in 177ms (next.js: 5ms, application-code: 172ms)
+[0]  GET /spaces 200 in 121ms (next.js: 35ms, proxy.ts: 6ms, application-code: 80ms)
+[0]  GET /api/tenant/spatial-model 200 in 128ms (next.js: 2ms, application-code: 126ms)
+[0]  GET /spaces 200 in 38ms (next.js: 2ms, proxy.ts: 4ms, application-code: 32ms)
+[0]  GET /api/tenant/spatial-model 200 in 92ms (next.js: 2ms, application-code: 90ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 10.8min (next.js: 273ms, application-code: 10.8min)
+[0]  GET /spaces 200 in 53ms (next.js: 17ms, proxy.ts: 5ms, application-code: 31ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 5.0s (next.js: 521ms, application-code: 4.4s)
+[0]  GET /spaces 200 in 46ms (next.js: 15ms, proxy.ts: 4ms, application-code: 27ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 6.2s (next.js: 222ms, application-code: 6.0s)
+[0]  GET /spaces 200 in 55ms (next.js: 17ms, proxy.ts: 5ms, application-code: 33ms)
+[0]  GET /spaces 200 in 56ms (next.js: 23ms, proxy.ts: 3ms, application-code: 30ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: floorDialogMode is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1030:15)
+[0]   1028 |
+[0]   1029 |       <Dialog
+[0] > 1030 |         open={floorDialogMode !== null}
+[0]        |               ^
+[0]   1031 |         onClose={() => setFloorDialogMode(null)}
+[0]   1032 |         eyebrow="空间建模"
+[0]   1033 |         title={floorDialogMode === "edit" ? "编辑楼层" : "新增楼层"} {
+[0]   digest: '1664764186'
+[0] }
+[0]  GET /spaces 500 in 156ms (next.js: 1918µs, proxy.ts: 3ms, application-code: 151ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 7.8s (next.js: 235ms, application-code: 7.6s)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: floorDialogMode is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1015:15)
+[0]   1013 |
+[0]   1014 |       <Dialog
+[0] > 1015 |         open={floorDialogMode !== null}
+[0]        |               ^
+[0]   1016 |         onClose={() => setFloorDialogMode(null)}
+[0]   1017 |         eyebrow="空间建模"
+[0]   1018 |         title={floorDialogMode === "edit" ? "编辑楼层" : "新增楼层"} {
+[0]   digest: '1664764186'
+[0] }
+[0]  GET /spaces 500 in 239ms (next.js: 25ms, proxy.ts: 5ms, application-code: 209ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: floorDialogMode is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1056:15)
+[0]   1054 |
+[0]   1055 |       <Dialog
+[0] > 1056 |         open={floorDialogMode !== null}
+[0]        |               ^
+[0]   1057 |         onClose={() => setFloorDialogMode(null)}
+[0]   1058 |         eyebrow="空间建模"
+[0]   1059 |         title={floorDialogMode === "edit" ? "编辑楼层" : "新增楼层"} {
+[0]   digest: '1664764186'
+[0] }
+[0]  GET /spaces 500 in 261ms (next.js: 22ms, proxy.ts: 5ms, application-code: 234ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: floorDialogMode is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1054:15)
+[0]   1052 |
+[0]   1053 |       <Dialog
+[0] > 1054 |         open={floorDialogMode !== null}
+[0]        |               ^
+[0]   1055 |         onClose={() => setFloorDialogMode(null)}
+[0]   1056 |         eyebrow="空间建模"
+[0]   1057 |         title={floorDialogMode === "edit" ? "编辑楼层" : "新增楼层"} {
+[0]   digest: '1664764186'
+[0] }
+[0]  GET /spaces 500 in 189ms (next.js: 22ms, proxy.ts: 4ms, application-code: 163ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: floorDialogMode is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1094:15)
+[0]   1092 |
+[0]   1093 |       <Dialog
+[0] > 1094 |         open={floorDialogMode !== null}
+[0]        |               ^
+[0]   1095 |         onClose={() => setFloorDialogMode(null)}
+[0]   1096 |         eyebrow="空间建模"
+[0]   1097 |         title={floorDialogMode === "edit" ? "编辑楼层" : "新增楼层"} {
+[0]   digest: '1664764186'
+[0] }
+[0]  GET /spaces 500 in 200ms (next.js: 23ms, proxy.ts: 5ms, application-code: 172ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: floorDialogMode is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1037:15)
+[0]   1035 |
+[0]   1036 |       <Dialog
+[0] > 1037 |         open={floorDialogMode !== null}
+[0]        |               ^
+[0]   1038 |         onClose={() => setFloorDialogMode(null)}
+[0]   1039 |         eyebrow="空间建模"
+[0]   1040 |         title={floorDialogMode === "edit" ? "编辑楼层" : "新增楼层"} {
+[0]   digest: '1664764186'
+[0] }
+[0]  GET /spaces 500 in 833ms (next.js: 87ms, proxy.ts: 6ms, application-code: 740ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: floorDialogMode is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1036:15)
+[0]   1034 |
+[0]   1035 |       <Dialog
+[0] > 1036 |         open={floorDialogMode !== null}
+[0]        |               ^
+[0]   1037 |         onClose={() => setFloorDialogMode(null)}
+[0]   1038 |         eyebrow="空间建模"
+[0]   1039 |         title={floorDialogMode === "edit" ? "编辑楼层" : "新增楼层"} {
+[0]   digest: '1664764186'
+[0] }
+[0]  GET /spaces 500 in 230ms (next.js: 24ms, proxy.ts: 3ms, application-code: 203ms)
+[0] ⨯ ReferenceError: floorDialogMode is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1090:15)
+[0]   1088 |
+[0]   1089 |       <Dialog
+[0] > 1090 |         open={floorDialogMode !== null}
+[0]        |               ^
+[0]   1091 |         onClose={() => setFloorDialogMode(null)}
+[0]   1092 |         eyebrow="空间建模"
+[0]   1093 |         title={floorDialogMode === "edit" ? "编辑楼层" : "新增楼层"} {
+[0]   digest: '1664764186'
+[0] }
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0]  GET /spaces 500 in 236ms (next.js: 27ms, proxy.ts: 4ms, application-code: 205ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: floorDialogMode is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1101:15)
+[0]   1099 |
+[0]   1100 |       <Dialog
+[0] > 1101 |         open={floorDialogMode !== null}
+[0]        |               ^
+[0]   1102 |         onClose={() => setFloorDialogMode(null)}
+[0]   1103 |         eyebrow="空间建模"
+[0]   1104 |         title={floorDialogMode === "edit" ? "编辑楼层" : "新增楼层"} {
+[0]   digest: '1664764186'
+[0] }
+[0]  GET /spaces 500 in 242ms (next.js: 28ms, proxy.ts: 4ms, application-code: 210ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0] ⨯ ReferenceError: floorDialogMode is not defined
+[0]     at SpatialModelBoard (components\spaces\spatial-model-board.tsx:1101:15)
+[0]   1099 |
+[0]   1100 |       <Dialog
+[0] > 1101 |         open={floorDialogMode !== null}
+[0]        |               ^
+[0]   1102 |         onClose={() => setFloorDialogMode(null)}
+[0]   1103 |         eyebrow="空间建模"
+[0]   1104 |         title={floorDialogMode === "edit" ? "编辑楼层" : "新增楼层"} {
+[0]   digest: '1664764186'
+[0] }
+[0]  GET /spaces 500 in 223ms (next.js: 22ms, proxy.ts: 4ms, application-code: 197ms)
+[0] ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[0]  GET /spaces 200 in 231ms (next.js: 23ms, proxy.ts: 4ms, application-code: 204ms)
+[0]  GET /api/admin/state 403 in 827ms (next.js: 813ms, application-code: 14ms)
+[0]  GET /spaces 200 in 65ms (next.js: 22ms, proxy.ts: 5ms, application-code: 38ms)
+[0]  GET /api/admin/state 403 in 30ms (next.js: 1095µs, application-code: 29ms)
+[0]  GET /api/admin/state 403 in 26ms (next.js: 4ms, application-code: 23ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 23.8s (next.js: 795ms, application-code: 23.0s)
+[0]  GET /spaces 200 in 47ms (next.js: 16ms, proxy.ts: 4ms, application-code: 27ms)
+[0]  GET /spaces 200 in 58ms (next.js: 24ms, proxy.ts: 3ms, application-code: 31ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 7.9s (next.js: 211ms, application-code: 7.7s)
+[0]  GET /spaces 200 in 43ms (next.js: 3ms, proxy.ts: 5ms, application-code: 35ms)
+[0]  GET /spaces 200 in 68ms (next.js: 23ms, proxy.ts: 4ms, application-code: 41ms)
+[0]  GET /api/tenant/spatial-model 200 in 398ms (next.js: 274ms, application-code: 123ms)
+[0]  GET /spaces 200 in 37ms (next.js: 3ms, proxy.ts: 7ms, application-code: 28ms)
+[0]  GET /api/tenant/spatial-model 200 in 114ms (next.js: 1018µs, application-code: 113ms)
+[0]  GET /api/tenant/spatial-model 200 in 101ms (next.js: 3ms, application-code: 99ms)
+[0]  GET /api/tenant/realtime-events?session=eyJ1c2VySWQiOiJhY2NvdW50LXRlbmFudC1oeC0xIiwidXNlcm5hbWUiOiJoeF9hZG1pbiIsImRpc3BsYXlOYW1lIjoi5Y2O5pif5Yi26YCg566h55CG5ZGYIiwic2NvcGUiOiJ0ZW5hbnQiLCJyb2xlS2V5IjoidGVuYW50X2xldmVsXzEiLCJ0ZW5hbnRJZCI6InRlbmFudC1odWF4aW5nIiwidGVuYW50TmFtZSI6IuWNjuaYn-WItumAoCIsImRlZmF1bHRWaWV3IjoidGVuYW50IiwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0 200 in 92s (next.js: 3ms, application-code: 92s)
+[0]  GET / 200 in 994ms (next.js: 777ms, proxy.ts: 3ms, application-code: 214ms)
+[0]  GET /alarm-center 200 in 597ms (next.js: 511ms, proxy.ts: 3ms, application-code: 83ms)
+[0]  GET /devices 200 in 845ms (next.js: 573ms, proxy.ts: 3ms, application-code: 268ms)
+[0]  GET /duty-center 200 in 566ms (next.js: 473ms, proxy.ts: 11ms, application-code: 82ms)
+[0]  GET /inspection 200 in 111ms (next.js: 49ms, proxy.ts: 3ms, application-code: 58ms)
+[0]  GET /notification-center 200 in 260ms (next.js: 210ms, proxy.ts: 3ms, application-code: 47ms)
+[0]  GET /audit-log 200 in 556ms (next.js: 434ms, proxy.ts: 2ms, application-code: 120ms)
+[0]  GET /system-health 200 in 328ms (next.js: 255ms, proxy.ts: 3ms, application-code: 71ms)
+[0]  GET /spaces 200 in 209ms (next.js: 10ms, proxy.ts: 5ms, application-code: 194ms)
+[0]  GET / 200 in 80ms (next.js: 8ms, proxy.ts: 3ms, application-code: 70ms)
+[1] npm run dev:backend exited with code 1073807364
+[0] npm run dev:web exited with code 1073807364

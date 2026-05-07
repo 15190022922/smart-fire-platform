@@ -11,7 +11,7 @@ async function getTenantOverviewData(tenantId) {
         (0, client_1.queryDb)("SELECT * FROM subscriptions WHERE tenant_id = $1 LIMIT 1", [tenantId]),
         (0, client_1.queryDb)("SELECT * FROM notification_settings WHERE tenant_id = $1 LIMIT 1", [tenantId]),
         (0, client_1.queryDb)("SELECT * FROM quota_usage WHERE tenant_id = $1 LIMIT 1", [tenantId]),
-        (0, client_1.queryDb)("SELECT * FROM tenant_devices WHERE tenant_id = $1 ORDER BY name ASC", [tenantId]),
+        (0, client_1.queryDb)("SELECT * FROM tenant_devices WHERE tenant_id = $1 AND COALESCE(lifecycle_status, 'active') = 'active' ORDER BY name ASC", [tenantId]),
         (0, client_1.queryDb)("SELECT * FROM tenant_alarms WHERE tenant_id = $1 ORDER BY time DESC", [tenantId]),
         (0, client_1.queryDb)("SELECT * FROM tenant_users WHERE tenant_id = $1 ORDER BY username ASC", [tenantId]),
     ]);

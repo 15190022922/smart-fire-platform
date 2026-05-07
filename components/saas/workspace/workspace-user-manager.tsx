@@ -7,10 +7,12 @@ import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
 import { useSaaSDemo } from "@/components/saas/saas-demo-provider";
 import { StatusBadge } from "@/components/status-badge";
+import { ActionButton } from "@/components/ui/action-button";
+import { DataTable, DataTableCell, DataTableHead, DataTableHeaderCell, DataTableRow, DataTableShell } from "@/components/ui/data-table";
+import { checkRowClassName, fieldClassName } from "@/components/ui/form-controls";
 import { NotificationType, TenantRoleKey, TenantUserRecord, UserStatus } from "@/types/saas";
 
-const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+const inputClassName = fieldClassName;
 
 const roleOptions: TenantRoleKey[] = ["tenant_level_1", "tenant_level_2", "tenant_level_3"];
 const messageTypes: NotificationType[] = ["报警信息", "故障信息"];
@@ -103,55 +105,53 @@ export function WorkspaceUserManager() {
           subtitle="企业角色分为一级、二级、三级用户，且只能管理本企业内部用户。"
           aside={
             canManage ? (
-              <button type="button" onClick={openCreate} className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700">
+              <ActionButton onClick={openCreate}>
                 新增用户
-              </button>
+              </ActionButton>
             ) : null
           }
         />
         <SectionCard title="用户列表" description="短信通知开关与接收信息类型在企业维度内独立配置。">
-          <div className="overflow-x-auto rounded-[24px] border border-[color:var(--border)]">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-[var(--table-head)] text-[color:var(--text-muted)]">
+          <DataTableShell>
+            <DataTable>
+              <DataTableHead>
                 <tr>
-                  <th className="px-4 py-3 font-medium">用户名</th>
-                  <th className="px-4 py-3 font-medium">手机号</th>
-                  <th className="px-4 py-3 font-medium">级别</th>
-                  <th className="px-4 py-3 font-medium">状态</th>
-                  <th className="px-4 py-3 font-medium">短信通知</th>
-                  <th className="px-4 py-3 font-medium">接收信息类型</th>
-                  {canManage ? <th className="px-4 py-3 font-medium">操作</th> : null}
+                  <DataTableHeaderCell>用户名</DataTableHeaderCell>
+                  <DataTableHeaderCell>手机号</DataTableHeaderCell>
+                  <DataTableHeaderCell>级别</DataTableHeaderCell>
+                  <DataTableHeaderCell>状态</DataTableHeaderCell>
+                  <DataTableHeaderCell>短信通知</DataTableHeaderCell>
+                  <DataTableHeaderCell>接收信息类型</DataTableHeaderCell>
+                  {canManage ? <DataTableHeaderCell>操作</DataTableHeaderCell> : null}
                 </tr>
-              </thead>
+              </DataTableHead>
               <tbody>
                 {scopedUsers.map((user, index) => (
-                  <tr key={user.id} className="border-t border-[color:var(--border)]" style={{ backgroundColor: index % 2 === 0 ? "var(--table-row)" : "var(--table-row-alt)" }}>
-                    <td className="px-4 py-4 font-medium text-[color:var(--text-primary)]">{user.username}</td>
-                    <td className="px-4 py-4 text-[color:var(--text-secondary)]">{user.phone}</td>
-                    <td className="px-4 py-4 text-[color:var(--text-secondary)]">{roleLabel(user.roleKey)}</td>
-                    <td className="px-4 py-4"><StatusBadge status={user.status} /></td>
-                    <td className="px-4 py-4 text-[color:var(--text-secondary)]">{user.smsEnabled ? "已开启" : "已关闭"}</td>
-                    <td className="px-4 py-4">
+                  <DataTableRow key={user.id} stripedIndex={index}>
+                    <DataTableCell className="font-medium text-[color:var(--text-primary)]">{user.username}</DataTableCell>
+                    <DataTableCell>{user.phone}</DataTableCell>
+                    <DataTableCell>{roleLabel(user.roleKey)}</DataTableCell>
+                    <DataTableCell><StatusBadge status={user.status} /></DataTableCell>
+                    <DataTableCell><StatusBadge status={user.smsEnabled ? "已开启" : "已关闭"} /></DataTableCell>
+                    <DataTableCell>
                       <div className="flex flex-wrap gap-2">
                         {user.messageTypes.map((type) => (
-                          <span key={type} className="rounded-full border border-[color:var(--border)] bg-[var(--surface-muted)] px-3 py-1 text-xs text-[color:var(--text-secondary)]">
-                            {type}
-                          </span>
+                          <StatusBadge key={type} status={type} />
                         ))}
                       </div>
-                    </td>
+                    </DataTableCell>
                     {canManage ? (
-                      <td className="px-4 py-4">
-                        <button type="button" onClick={() => openEdit(user)} className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs text-sky-700">
+                      <DataTableCell>
+                        <ActionButton onClick={() => openEdit(user)} size="xs" variant="primary">
                           编辑
-                        </button>
-                      </td>
+                        </ActionButton>
+                      </DataTableCell>
                     ) : null}
-                  </tr>
+                  </DataTableRow>
                 ))}
               </tbody>
-            </table>
-          </div>
+            </DataTable>
+          </DataTableShell>
         </SectionCard>
       </div>
 
@@ -161,8 +161,8 @@ export function WorkspaceUserManager() {
         title={dialogMode === "create" ? "新增企业用户" : "编辑企业用户"}
         footer={
           <>
-            <button type="button" onClick={closeDialog} className="rounded-full border border-[color:var(--border)] px-4 py-2 text-sm text-[color:var(--text-secondary)]">取消</button>
-            <button type="button" onClick={saveUser} className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700">保存</button>
+            <ActionButton onClick={closeDialog}>取消</ActionButton>
+            <ActionButton onClick={saveUser} variant="primary">保存</ActionButton>
           </>
         }
       >
@@ -188,7 +188,7 @@ export function WorkspaceUserManager() {
               <option>停用</option>
             </select>
           </label>
-          <label className="flex items-center gap-3 rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3 md:col-span-2">
+          <label className={`${checkRowClassName} md:col-span-2`}>
             <input type="checkbox" checked={formState.smsEnabled} onChange={(event) => setFormState((current) => ({ ...current, smsEnabled: event.target.checked }))} />
             <span className="text-sm text-[color:var(--text-primary)]">开启短信通知</span>
           </label>
@@ -198,9 +198,9 @@ export function WorkspaceUserManager() {
               {messageTypes.map((type) => {
                 const active = formState.messageTypes.includes(type);
                 return (
-                  <button key={type} type="button" onClick={() => toggleMessage(type)} className={`rounded-full border px-4 py-2 text-sm ${active ? "border-sky-200 bg-sky-50 text-sky-700" : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)]"}`}>
+                  <ActionButton key={type} onClick={() => toggleMessage(type)} active={active}>
                     {type}
-                  </button>
+                  </ActionButton>
                 );
               })}
             </div>

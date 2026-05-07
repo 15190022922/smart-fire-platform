@@ -1,11 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { alarmWorkflowStatuses } from "../../../shared/src/contracts";
+import {
+  normalizeLegacyAlarmTypeText,
+  normalizeLegacyText,
+  normalizeLegacyStatusText,
+  normalizeWorkflowStatusText,
+  resolveRuntimeStatusFromAlarmTypeText,
+} from "../../../shared/src/legacy-text";
 import type {
   AlarmCenterItem,
   AlarmTimelineEntry,
   AuditLogRecord,
   NotificationRecord,
   NotificationTemplateRecord,
+  PlatformNoticeAttachment,
+  PlatformNoticeDeliveryRecord,
+  PlatformNoticeRecord,
   SystemHealthMetric,
   SystemHealthPayload,
 } from "../../../../types/ops";
@@ -33,14 +43,14 @@ export const ALARM_WORKFLOW_CONFIRMED = alarmWorkflowStatuses[1];
 export const ALARM_WORKFLOW_PROCESSING = alarmWorkflowStatuses[2];
 export const ALARM_WORKFLOW_COMPLETED = alarmWorkflowStatuses[3];
 export const ALARM_WORKFLOW_CLOSED = alarmWorkflowStatuses[4];
-export const ALARM_PROCESS_RESOLVED = "宸插鐞?";
+export const ALARM_PROCESS_RESOLVED = "已处理";
 export const DUTY_STATUS_ACTIVE = "active";
 export const DUTY_STATUS_SCHEDULED = "scheduled";
 export const DUTY_STATUS_HANDOVER = "handover";
-export const ISSUE_STATUS_PENDING = "鏈暣鏀?";
-export const ISSUE_STATUS_IN_PROGRESS = "鏁存敼涓?";
-export const ISSUE_STATUS_RESOLVED = "宸叉暣鏀?";
-export const ISSUE_STATUS_REVIEWED = "宸插鏌?";
+export const ISSUE_STATUS_PENDING = "未整改";
+export const ISSUE_STATUS_IN_PROGRESS = "整改中";
+export const ISSUE_STATUS_RESOLVED = "已整改";
+export const ISSUE_STATUS_REVIEWED = "已复查";
 
 export function formatDateParts(date: Date, timeZone = "Asia/Shanghai") {
   const formatter = new Intl.DateTimeFormat("sv-SE", {
@@ -97,57 +107,40 @@ export function jsonStringArray(raw: unknown) {
 }
 
 export function normalizeStatusText(value: string) {
-  const text = String(value ?? "");
-  const map: Record<string, string> = {
-    "濮濓絽鐖?": "正常",
-    "閹躲儴顒?": "报警",
-    "閺佸懘娈?": "故障",
-    "缁傝崵鍤?": "离线",
-    "缂佺繝鎱ㄦ稉?": "维修中",
-    "閸氼垳鏁?": "启用",
-    "閸嬫粎鏁?": "停用",
-    "閺堫亜顦╅悶?": "未处理",
-    "婢跺嫮鎮婃稉?": "处理中",
-    "瀹告彃顦╅悶?": "已处理",
-    "鐠囨洜鏁ゆ稉?": "试用中",
-    "瀹歌尙鏁撻弫?": "已生效",
-    "瀹歌尪绻冮張?": "已过期",
-    "瀹告彃浠犻悽?": "已停用",
-    "閹躲儴顒熸穱鈩冧紖": "报警信息",
-    "閺佸懘娈版穱鈩冧紖": "故障信息",
-  };
-
-  return map[text] ?? text;
+  return normalizeLegacyStatusText(value);
 }
 
 export function normalizeWorkflowStatus(value: string) {
-  const normalized = normalizeStatusText(String(value ?? ""));
-  if (normalized === "已处理") return "已完成";
-  return normalized;
+  return normalizeWorkflowStatusText(value);
 }
 
 export function normalizeAlarmTypeText(value: string) {
-  const text = String(value ?? "");
-  if (text.includes("鐏") || text.includes("火警")) return "火警报警";
-  if (text.includes("鏁呴殰") || text.includes("故障")) return "设备故障";
-  if (text.includes("绂荤嚎") || text.includes("离线")) return "设备离线";
-  if (text.includes("鎭㈠") || text.includes("恢复")) return "设备恢复";
-  if (text.includes("蹇冭烦") || text.includes("心跳")) return "设备心跳";
-  return text;
+  return normalizeLegacyAlarmTypeText(value);
 }
 
 export function mapTenantDevice(row: any): TenantDeviceRecord {
+  const customAttributes =
+    row.custom_attributes && typeof row.custom_attributes === "object"
+      ? (row.custom_attributes as Record<string, string | number | boolean | null>)
+      : {};
+
   return {
     id: row.id,
     tenantId: row.tenant_id,
+    deviceCode: row.device_code ?? "",
     name: row.name,
     type: row.type,
     area: row.area,
     location: row.installation_location,
     installationLocation: row.installation_location,
     status: normalizeStatusText(row.status) as TenantDeviceRecord["status"],
+    installationStatus: row.installation_status ?? "",
     lastReportAt: row.last_report_at,
     notes: row.notes,
+    customAttributes,
+    lifecycleStatus: (row.lifecycle_status || "active") as TenantDeviceRecord["lifecycleStatus"],
+    disabledAt: row.disabled_at ?? undefined,
+    disabledReason: row.disabled_reason ?? "",
     siteId: row.site_id ?? undefined,
     buildingId: row.building_id ?? undefined,
     floorId: row.floor_id ?? undefined,
@@ -220,7 +213,7 @@ export function mapAlarmCenterItem(row: any, timelines: any[]): AlarmCenterItem 
     alarmType: normalizeAlarmTypeText(row.alarm_type),
     time: row.time,
     processStatus: normalizeStatusText(row.process_status),
-    workflowStatus: normalizeWorkflowStatus(row.workflow_status) as AlarmCenterItem["workflowStatus"],
+    workflowStatus: normalizeWorkflowStatus(row.workflow_status ?? row.process_status) as AlarmCenterItem["workflowStatus"],
     falseAlarm: Boolean(row.false_alarm),
     detailNote: row.detail_note,
     attachments: jsonStringArray(row.attachments),
@@ -268,6 +261,89 @@ export function mapNotificationRecord(row: any): NotificationRecord {
   };
 }
 
+export function mapPlatformNotice(row: any): PlatformNoticeRecord {
+  return {
+    id: row.id,
+    title: row.title,
+    content: row.content,
+    level: row.level as PlatformNoticeRecord["level"],
+    targetMode: row.target_mode as PlatformNoticeRecord["targetMode"],
+    status: (row.status ?? "sent") as PlatformNoticeRecord["status"],
+    senderName: row.sender_name,
+    senderRole: row.sender_role,
+    targetTenantCount: Number(row.target_tenant_count ?? 0),
+    targetTenantIds: normalizeStringArray(row.target_tenant_ids),
+    attachments: platformNoticeAttachments(row.attachments),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at ?? undefined,
+    publishedAt: row.published_at ?? undefined,
+    revokedAt: row.revoked_at ?? undefined,
+    deletedAt: row.deleted_at ?? undefined,
+    revokeReason: row.revoke_reason ?? undefined,
+    requestId: row.request_id ?? undefined,
+  };
+}
+
+function normalizeStringArray(raw: unknown): string[] {
+  let parsed = raw;
+  if (typeof raw === "string") {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = [];
+    }
+  }
+  if (!Array.isArray(parsed)) return [];
+  return parsed.map((item) => String(item ?? "").trim()).filter(Boolean);
+}
+
+export function platformNoticeAttachments(raw: unknown): PlatformNoticeAttachment[] {
+  let parsed = raw;
+  if (typeof raw === "string") {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = [];
+    }
+  }
+
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const value = item as Partial<PlatformNoticeAttachment>;
+      const id = String(value.id ?? "").trim();
+      const name = String(value.name ?? "").trim();
+      const url = String(value.url ?? "").trim();
+      if (!id || !name || !url) return null;
+      const attachment: PlatformNoticeAttachment = {
+        id,
+        name,
+        url,
+        size: Number(value.size ?? 0),
+        contentType: String(value.contentType ?? "application/octet-stream"),
+      };
+      if (value.noticeId) attachment.noticeId = String(value.noticeId);
+      if (value.status) attachment.status = value.status;
+      if (value.createdAt) attachment.createdAt = String(value.createdAt);
+      if (value.boundAt) attachment.boundAt = String(value.boundAt);
+      return attachment;
+    })
+    .filter((item): item is PlatformNoticeAttachment => Boolean(item));
+}
+
+export function mapPlatformNoticeDelivery(row: any): PlatformNoticeDeliveryRecord {
+  return {
+    ...mapPlatformNotice(row),
+    deliveryId: row.delivery_id ?? row.id,
+    tenantId: row.tenant_id,
+    tenantName: row.tenant_name,
+    deliveredAt: row.delivered_at ?? row.delivery_created_at ?? row.created_at,
+    readAt: row.read_at ?? undefined,
+    archivedAt: row.archived_at ?? undefined,
+  };
+}
+
 export function mapTenant(row: any) {
   return {
     id: row.id,
@@ -276,7 +352,7 @@ export function mapTenant(row: any) {
     industry: row.industry,
     contactName: row.contact_name,
     contactPhone: row.contact_phone,
-    status: row.status,
+    status: normalizeStatusText(row.status),
     createdAt: row.created_at,
     note: row.note,
   };
@@ -287,7 +363,7 @@ export function mapPlan(row: any) {
     id: row.id,
     name: row.name,
     code: row.code,
-    status: row.status,
+    status: normalizeStatusText(row.status),
     priceMonthly: Number(row.price_monthly),
     maxDevices: Number(row.max_devices),
     maxUsers: Number(row.max_users),
@@ -342,7 +418,7 @@ export function mapAuditLog(row: any): AuditLogRecord {
     targetType: row.target_type,
     targetId: row.target_id,
     result: row.result,
-    detail: row.detail,
+    detail: normalizeLegacyText(row.detail),
     createdAt: row.created_at,
   };
 }
@@ -384,7 +460,7 @@ export function mapDutyLog(row: any): DutyLogRecord {
     tenantId: row.tenant_id,
     scheduleId: row.schedule_id ?? undefined,
     logType: row.log_type,
-    content: row.content,
+    content: normalizeLegacyText(row.content),
     operatorName: row.operator_name,
     createdAt: row.created_at,
   };
@@ -427,7 +503,7 @@ export function mapIssue(row: any): IssueRecord {
     sourceId: row.source_id,
     title: row.title,
     level: row.level,
-    status: row.status,
+    status: normalizeStatusText(row.status) as IssueRecord["status"],
     note: row.note,
     rectificationDeadline: row.rectification_deadline ?? undefined,
     rectifiedAt: row.rectified_at ?? undefined,
@@ -471,6 +547,11 @@ export function mapBuilding(row: any): TenantBuildingRecord {
     code: row.code,
     levelCount: Number(row.level_count),
     usageType: row.usage_type,
+    areaType: row.area_type || row.usage_type || "building",
+    hasFloors: row.has_floors !== false,
+    sortOrder: Number(row.sort_order ?? 0),
+    status: row.status || "active",
+    description: row.description ?? "",
   };
 }
 
@@ -482,22 +563,39 @@ export function mapFloor(row: any): TenantFloorRecord {
     name: row.name,
     code: row.code,
     levelIndex: Number(row.level_index),
+    sortOrder: Number(row.sort_order ?? row.level_index ?? 0),
+    status: row.status || "active",
     description: row.description,
   };
 }
 
 export function mapDrawing(row: any): TenantDrawingRecord {
+  const fileUrl = row.file_url ?? "";
+  const sourceFileUrl = row.source_file_url || fileUrl;
+  const previewUrl = row.preview_url || fileUrl;
+  const sceneUrl = row.scene_url || previewUrl || fileUrl;
   return {
     id: row.id,
     tenantId: row.tenant_id,
+    buildingId: row.building_id ?? "",
     floorId: row.floor_id,
     name: row.name,
-    fileUrl: row.file_url,
+    fileUrl,
+    fileType: (row.file_type || "image") as TenantDrawingRecord["fileType"],
+    sourceFileUrl,
+    previewUrl,
+    originalFileName: row.original_file_name ?? "",
+    fileSize: Number(row.file_size ?? 0),
+    processingStatus: (row.processing_status || "ready") as TenantDrawingRecord["processingStatus"],
+    processingMessage: row.processing_message ?? "",
+    conversionLog: jsonStringArray(row.conversion_log),
+    sceneUrl,
     width: Number(row.width),
     height: Number(row.height),
     version: row.version,
     status: row.status,
     updatedAt: row.updated_at,
+    publishedAt: row.published_at ?? undefined,
   };
 }
 
@@ -519,6 +617,7 @@ export function mapDevicePoint(row: any): TenantDevicePointRecord {
     id: row.id,
     tenantId: row.tenant_id,
     deviceId: row.device_id,
+    buildingId: row.building_id ?? "",
     floorId: row.floor_id,
     drawingId: row.drawing_id,
     x: Number(row.x),
@@ -588,10 +687,7 @@ export function mapRuntimeStatus(runtimeStatus: DeviceRuntimeStatus) {
 }
 
 export function resolveRuntimeStatusFromAlarmType(alarmType: string): DeviceRuntimeStatus {
-  if (alarmType.includes("鐏") || alarmType.includes("火警") || alarmType.includes("报警")) return "alarm";
-  if (alarmType.includes("鏁呴殰") || alarmType.includes("故障")) return "fault";
-  if (alarmType.includes("绂荤嚎") || alarmType.includes("离线")) return "offline";
-  return "normal";
+  return resolveRuntimeStatusFromAlarmTypeText(alarmType);
 }
 
 export function buildSystemHealthMetric(input: SystemHealthMetric): SystemHealthMetric {

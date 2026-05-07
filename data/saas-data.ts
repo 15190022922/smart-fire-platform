@@ -37,6 +37,7 @@ export const roleDefinitions: RoleDefinition[] = [
       "platform.subscriptions.manage",
       "platform.features.manage",
       "platform.users.manage",
+      "platform.notices.manage",
       "platform.finance.view",
     ],
   },
@@ -52,6 +53,7 @@ export const roleDefinitions: RoleDefinition[] = [
       "platform.subscriptions.manage",
       "platform.features.manage",
       "platform.users.manage",
+      "platform.notices.manage",
     ],
   },
   {
@@ -464,6 +466,7 @@ export const adminNavigationLinks: NavigationLink[] = [
   { href: "/admin/subscriptions", label: "订阅管理", permissionKey: "platform.subscriptions.manage" },
   { href: "/admin/features", label: "功能开关管理", permissionKey: "platform.features.manage" },
   { href: "/admin/users", label: "平台用户管理", permissionKey: "platform.users.manage" },
+  { href: "/admin/platform-notices", label: "平台通知", permissionKey: "platform.notices.manage" },
 ];
 
 export const workspaceNavigationLinks: NavigationLink[] = [

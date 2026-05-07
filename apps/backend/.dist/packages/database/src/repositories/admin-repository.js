@@ -105,6 +105,7 @@ async function deleteTenantCascadeRecord(tenantId) {
     }
     await (0, transaction_1.withTransaction)(async (client) => {
         await client.query("DELETE FROM login_accounts WHERE tenant_id = $1", [tenantId]);
+        await client.query("DELETE FROM platform_notice_deliveries WHERE tenant_id = $1", [tenantId]);
         await client.query("DELETE FROM alarm_logs WHERE tenant_id = $1", [tenantId]);
         await client.query("DELETE FROM subscriptions WHERE tenant_id = $1", [tenantId]);
         await client.query("DELETE FROM notification_records WHERE tenant_id = $1", [tenantId]);

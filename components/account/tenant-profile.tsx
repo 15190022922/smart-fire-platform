@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
+import { AlertMessage } from "@/components/ui/alert-message";
+import { fieldClassName as baseFieldClassName } from "@/components/ui/form-controls";
 import { useToast } from "@/components/ui/toast-center";
-
-const baseInputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
 
 type TenantProfileProps = {
   username: string;
@@ -21,13 +20,13 @@ function requiredLabel(label: string) {
   return (
     <span className="flex items-center gap-1 text-sm text-[color:var(--text-secondary)]">
       {label}
-      <span className="text-rose-500">*</span>
+      <span className="text-[color:var(--danger-strong)]">*</span>
     </span>
   );
 }
 
 function inputClassName(hasError: boolean) {
-  return `${baseInputClassName} ${hasError ? "border-rose-300 text-rose-700 focus:border-rose-300 focus:ring-rose-100" : ""}`;
+  return `${baseFieldClassName} ${hasError ? "border-[color:var(--danger)] text-[color:var(--danger-strong)] focus:border-[color:var(--danger)]" : ""}`;
 }
 
 export function TenantProfile({
@@ -84,9 +83,7 @@ export function TenantProfile({
       />
 
       {forcePasswordChange ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          当前账号仍在使用平台发放的初始密码，请先完成密码修改。
-        </div>
+        <AlertMessage tone="warning">当前账号仍在使用平台发放的初始密码，请先完成密码修改。</AlertMessage>
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
@@ -98,7 +95,7 @@ export function TenantProfile({
               ["显示名称", displayName],
               ["账号类型", "企业账号"],
             ].map(([label, value]) => (
-              <div key={label} className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4">
+              <div key={label} className="sf-metric-block px-4 py-4">
                 <p className="text-sm text-[color:var(--text-muted)]">{label}</p>
                 <p className="mt-2 text-base font-semibold text-[color:var(--text-primary)]">{value}</p>
               </div>
@@ -119,7 +116,7 @@ export function TenantProfile({
                 }}
                 className={inputClassName(Boolean(fieldErrors.currentPassword))}
               />
-              {fieldErrors.currentPassword ? <div className="text-xs font-medium text-rose-600">{fieldErrors.currentPassword}</div> : null}
+              {fieldErrors.currentPassword ? <div className="text-xs font-medium text-[color:var(--danger-strong)]">{fieldErrors.currentPassword}</div> : null}
             </label>
             <label className="space-y-2">
               {requiredLabel("新密码")}
@@ -132,7 +129,7 @@ export function TenantProfile({
                 }}
                 className={inputClassName(Boolean(fieldErrors.nextPassword))}
               />
-              {fieldErrors.nextPassword ? <div className="text-xs font-medium text-rose-600">{fieldErrors.nextPassword}</div> : null}
+              {fieldErrors.nextPassword ? <div className="text-xs font-medium text-[color:var(--danger-strong)]">{fieldErrors.nextPassword}</div> : null}
             </label>
             <label className="space-y-2">
               {requiredLabel("确认新密码")}
@@ -145,16 +142,16 @@ export function TenantProfile({
                 }}
                 className={inputClassName(Boolean(fieldErrors.confirmPassword))}
               />
-              {fieldErrors.confirmPassword ? <div className="text-xs font-medium text-rose-600">{fieldErrors.confirmPassword}</div> : null}
+              {fieldErrors.confirmPassword ? <div className="text-xs font-medium text-[color:var(--danger-strong)]">{fieldErrors.confirmPassword}</div> : null}
             </label>
 
-            {requestError ? <div className="text-sm font-medium text-rose-600">{requestError}</div> : null}
+            {requestError ? <div className="text-sm font-medium text-[color:var(--danger-strong)]">{requestError}</div> : null}
 
             <div>
               <button
                 type="button"
                 onClick={handleChangePassword}
-                className="rounded-full border border-sky-200 bg-sky-50 px-5 py-2.5 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
+                className="sf-button sf-button-primary h-10 px-5 text-sm"
               >
                 保存新密码
               </button>

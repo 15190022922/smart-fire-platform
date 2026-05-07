@@ -5,6 +5,8 @@ import { Dialog } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import { PaginationBar } from "@/components/ui/pagination-bar";
 
 type UserStatus = "启用" | "停用";
 type UserLevel = "一级用户" | "二级用户" | "三级用户";
@@ -103,6 +105,7 @@ const emptyUserForm: UserFormState = {
 };
 
 export function UserManager() {
+  const { confirmDialog } = useConfirmDialog();
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchValue, setSearchValue] = useState("");
@@ -218,7 +221,13 @@ export function UserManager() {
   }
 
   async function handleDelete(user: UserRecord) {
-    if (!window.confirm(`确认删除用户“${user.username}”吗？`)) {
+    const result = await confirmDialog({
+      title: "删除用户",
+      description: `确认删除用户“${user.username}”吗？`,
+      confirmLabel: "删除",
+      tone: "danger",
+    });
+    if (result !== "confirm") {
       return;
     }
 
@@ -343,25 +352,12 @@ export function UserManager() {
                     <StatusBadge status={user.status} />
                   </td>
                   <td className="px-4 py-4">
-                    <span
-                      className={`rounded-full border px-3 py-1 text-xs font-medium ${
-                        user.smsEnabled
-                          ? "border-[color:var(--success)] bg-[var(--success-soft)] text-[color:var(--success-strong)]"
-                          : "border-[color:var(--border-soft)] bg-[var(--neutral-soft)] text-[color:var(--text-secondary)]"
-                      }`}
-                    >
-                      {user.smsEnabled ? "已开启" : "已关闭"}
-                    </span>
+                    <StatusBadge status={user.smsEnabled ? "已开启" : "已关闭"} />
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex max-w-56 flex-wrap gap-2">
                       {user.messageTypes.map((type) => (
-                        <span
-                          key={type}
-                          className="rounded-full border border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)] px-2.5 py-1 text-xs text-[color:var(--text-secondary)]"
-                        >
-                          {type}
-                        </span>
+                        <StatusBadge key={type} status={type} />
                       ))}
                     </div>
                   </td>
@@ -396,29 +392,17 @@ export function UserManager() {
           </table>
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <p className="text-sm text-[color:var(--text-muted)]">
-            {loading ? "正在加载用户数据..." : `第 ${currentPage} / ${totalPages} 页`}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={currentPage === 1}
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              className="sf-button sf-button-secondary h-10 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              上一页
-            </button>
-            <button
-              type="button"
-              disabled={currentPage === totalPages}
-              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-              className="sf-button sf-button-secondary h-10 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              下一页
-            </button>
-          </div>
-        </div>
+        {loading ? (
+          <p className="mt-4 text-sm text-[color:var(--text-muted)]">正在加载用户数据...</p>
+        ) : null}
+        <PaginationBar
+          page={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredUsers.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          label="用户列表"
+        />
       </SectionCard>
 
       <Dialog
@@ -537,12 +521,7 @@ export function UserManager() {
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {selectedUser.messageTypes.map((type) => (
-                  <span
-                    key={type}
-                    className="rounded-full border border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)] px-3 py-1 text-xs text-[color:var(--text-secondary)]"
-                  >
-                    {type}
-                  </span>
+                  <StatusBadge key={type} status={type} />
                 ))}
               </div>
             </div>

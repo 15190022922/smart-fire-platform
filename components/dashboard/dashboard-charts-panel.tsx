@@ -113,9 +113,9 @@ export function DashboardChartsPanel({
         </div>
         <div className="px-3 py-2">
           <svg viewBox={`0 0 ${width} ${height + 18}`} className={`${chartHeightClass} w-full`}>
-            <polyline fill="none" stroke="#b0484f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={totalPolyline} />
-            <polyline fill="none" stroke="#a96b22" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={pendingPolyline} />
-            <polyline fill="none" stroke="#39765b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={handledPolyline} />
+            <polyline fill="none" stroke="var(--danger)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={totalPolyline} />
+            <polyline fill="none" stroke="var(--warning)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={pendingPolyline} />
+            <polyline fill="none" stroke="var(--success)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={handledPolyline} />
           </svg>
 
           <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px]">

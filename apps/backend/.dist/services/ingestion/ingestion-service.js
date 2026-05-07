@@ -7,6 +7,7 @@ const alarms_repository_1 = require("../../packages/database/src/repositories/al
 const devices_repository_1 = require("../../packages/database/src/repositories/devices-repository");
 const raw_events_repository_1 = require("../../packages/database/src/repositories/raw-events-repository");
 const server_1 = require("../../packages/realtime/src/server");
+const legacy_text_1 = require("../../packages/shared/src/legacy-text");
 const alarm_engine_1 = require("../alarm-engine/alarm-engine");
 const notification_dispatcher_1 = require("../notification/notification-dispatcher");
 const runtime_metrics_1 = require("../../apps/backend/src/lib/runtime-metrics");
@@ -68,13 +69,8 @@ function mapDeviceStatusText(status) {
     return "\u6b63\u5e38";
 }
 function resolveStatusFromAlarmType(alarmType) {
-    if (alarmType.includes("鐏") || alarmType.includes("鎶ヨ") || alarmType.includes("閻忣偉顒?"))
-        return "alarm";
-    if (alarmType.includes("鏁呴殰") || alarmType.includes("閺佸懘娈?"))
-        return "fault";
-    if (alarmType.includes("绂荤嚎") || alarmType.includes("缁傝崵鍤?"))
-        return "offline";
-    return "normal";
+    const runtimeStatus = (0, legacy_text_1.resolveRuntimeStatusFromAlarmTypeText)(alarmType);
+    return runtimeStatus === "maintenance" ? "normal" : runtimeStatus;
 }
 async function processIngestionEvent(input) {
     const startedAt = Date.now();
@@ -89,6 +85,55 @@ async function processIngestionEvent(input) {
             const device = (await (0, devices_repository_1.getTenantDeviceById)(client, input.tenant_id, input.device_id));
             if (!device) {
                 throw new Error("DEVICE_NOT_FOUND");
+            }
+            if (device.lifecycle_status === "disabled") {
+                const inserted = await (0, raw_events_repository_1.insertRawDeviceEventIfNew)(client, {
+                    id: rawEventId,
+                    tenantId: input.tenant_id,
+                    deviceId: input.device_id,
+                    gatewayId: input.gateway_id ?? device.gateway_id,
+                    eventId: input.event_id ?? null,
+                    dedupeKey,
+                    protocol,
+                    eventType: input.event_type,
+                    eventCode: "DEVICE_DISABLED_IGNORED",
+                    eventLevel: "info",
+                    payload: { ...eventValue, source: input.source ?? "device_ingestion", ignoredReason: "device_disabled" },
+                    rawPayload: input.raw_payload ?? eventValue,
+                    processingStatus: "ignored",
+                    processedAt,
+                    reportedAt: processedAt,
+                });
+                if (inserted) {
+                    await (0, audit_repository_1.insertAuditLog)(client, {
+                        id: createId("audit"),
+                        tenantId: input.tenant_id,
+                        actorScope: "platform",
+                        actorName: "device_ingestion",
+                        actorRole: "device_ingestion",
+                        action: "device.event.ignored",
+                        targetType: "device",
+                        targetId: input.device_id,
+                        result: "success",
+                        detail: "设备已停用，事件已保留但未更新实时状态",
+                        createdAt: processedAt,
+                    });
+                }
+                realtimeEventCode = "DEVICE_DISABLED_IGNORED";
+                return {
+                    success: true,
+                    raw_event_id: rawEventId,
+                    alarm_id: null,
+                    device_status: "ignored",
+                    workflow: {
+                        alarm_created: false,
+                        notification_created: false,
+                        realtime_published: false,
+                        duplicate_suppressed: !inserted,
+                        ignored_due_to_disabled: true,
+                    },
+                    processed_at: processedAt,
+                };
             }
             const engineStartedAt = Date.now();
             const engine = await (0, alarm_engine_1.runAlarmEngine)({
@@ -176,8 +221,8 @@ async function processIngestionEvent(input) {
                     tenantId: input.tenant_id,
                     alarmId,
                     action: engine.decision.alarmLogAction,
-                    fromStatus: "鏈鐞?",
-                    toStatus: "鏈鐞?",
+                    fromStatus: "未处理",
+                    toStatus: "未处理",
                     operatorName: "device_ingestion",
                     operatorRole: "device_ingestion",
                     note: `${engine.decision.alarmTypeLabel} 已进入闭环流程`,
@@ -293,6 +338,9 @@ async function processIngestionEvent(input) {
             };
         });
         try {
+            if (result.workflow.ignored_due_to_disabled) {
+                return result;
+            }
             const realtimeType = result.workflow.alarm_created
                 ? "alarm_created"
                 : result.alarm_id && (input.event_type === "alarm" || input.event_type === "fault" || input.event_type === "recovery")

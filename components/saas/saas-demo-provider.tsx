@@ -2,6 +2,12 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { featureDefinitions, roleDefinitions } from "@/data/saas-data";
+import {
+  normalizeDeviceStatusText,
+  normalizeLegacyAlarmTypeText,
+  normalizeLegacyStatusText,
+  normalizeProcessStatusText,
+} from "@/packages/shared/src/legacy-text";
 import type {
   FeatureDefinition,
   FeatureKey,
@@ -102,11 +108,51 @@ function readStoredDemoState(): StoredDemoState | null {
 }
 
 function isEnabledStatus(status?: string | null) {
-  return status === "启用" || status === "鍚敤";
+  return normalizeLegacyStatusText(status) === "启用";
 }
 
 function isActiveSubscription(status?: string | null) {
-  return status === "已生效" || status === "试用中" || status === "宸茬敓鏁?" || status === "璇曠敤涓?";
+  const normalized = normalizeLegacyStatusText(status);
+  return normalized === "已生效" || normalized === "试用中";
+}
+
+function normalizeTenantRecord(record: TenantRecord): TenantRecord {
+  return { ...record, status: normalizeLegacyStatusText(record.status) as TenantRecord["status"] };
+}
+
+function normalizePlanRecord(record: PlanRecord): PlanRecord {
+  return { ...record, status: normalizeLegacyStatusText(record.status) as PlanRecord["status"] };
+}
+
+function normalizeSubscriptionRecord(record: SubscriptionRecord): SubscriptionRecord {
+  return { ...record, status: normalizeLegacyStatusText(record.status) as SubscriptionRecord["status"] };
+}
+
+function normalizePlatformUserRecord(record: PlatformUserRecord): PlatformUserRecord {
+  return { ...record, status: normalizeLegacyStatusText(record.status) as PlatformUserRecord["status"] };
+}
+
+function normalizeTenantUserRecord(record: TenantUserRecord): TenantUserRecord {
+  return {
+    ...record,
+    status: normalizeLegacyStatusText(record.status) as TenantUserRecord["status"],
+    messageTypes: record.messageTypes.map((type) => normalizeLegacyStatusText(type) as TenantUserRecord["messageTypes"][number]),
+  };
+}
+
+function normalizeTenantDeviceRecord(record: TenantDeviceRecord): TenantDeviceRecord {
+  return {
+    ...record,
+    status: normalizeDeviceStatusText(record.status) as TenantDeviceRecord["status"],
+  };
+}
+
+function normalizeTenantAlarmRecord(record: TenantAlarmRecord): TenantAlarmRecord {
+  return {
+    ...record,
+    alarmType: normalizeLegacyAlarmTypeText(record.alarmType),
+    processStatus: normalizeProcessStatusText(record.processStatus) as TenantAlarmRecord["processStatus"],
+  };
 }
 
 export function SaaSDemoProvider({ children, initialAdminState = null }: SaaSDemoProviderProps) {
@@ -121,13 +167,23 @@ export function SaaSDemoProvider({ children, initialAdminState = null }: SaaSDem
   };
   const [loading, setLoading] = useState(!initialAdminState);
   const [mode, setMode] = useState<SaaSViewMode>(storedState?.mode ?? "platform");
-  const [tenants, setTenants] = useState<TenantRecord[]>(initialAdminState?.tenants ?? []);
-  const [plans, setPlans] = useState<PlanRecord[]>(initialAdminState?.plans ?? []);
-  const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>(initialAdminState?.subscriptions ?? []);
-  const [platformUsers, setPlatformUsers] = useState<PlatformUserRecord[]>(initialAdminState?.platformUsers ?? []);
-  const [tenantUsers, setTenantUsers] = useState<TenantUserRecord[]>(initialAdminState?.tenantUsers ?? []);
-  const [tenantDevices, setTenantDevices] = useState<TenantDeviceRecord[]>(initialAdminState?.tenantDevices ?? []);
-  const [tenantAlarms, setTenantAlarms] = useState<TenantAlarmRecord[]>(initialAdminState?.tenantAlarms ?? []);
+  const [tenants, setTenants] = useState<TenantRecord[]>((initialAdminState?.tenants ?? []).map(normalizeTenantRecord));
+  const [plans, setPlans] = useState<PlanRecord[]>((initialAdminState?.plans ?? []).map(normalizePlanRecord));
+  const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>(
+    (initialAdminState?.subscriptions ?? []).map(normalizeSubscriptionRecord),
+  );
+  const [platformUsers, setPlatformUsers] = useState<PlatformUserRecord[]>(
+    (initialAdminState?.platformUsers ?? []).map(normalizePlatformUserRecord),
+  );
+  const [tenantUsers, setTenantUsers] = useState<TenantUserRecord[]>(
+    (initialAdminState?.tenantUsers ?? []).map(normalizeTenantUserRecord),
+  );
+  const [tenantDevices, setTenantDevices] = useState<TenantDeviceRecord[]>(
+    (initialAdminState?.tenantDevices ?? []).map(normalizeTenantDeviceRecord),
+  );
+  const [tenantAlarms, setTenantAlarms] = useState<TenantAlarmRecord[]>(
+    (initialAdminState?.tenantAlarms ?? []).map(normalizeTenantAlarmRecord),
+  );
   const [notificationSettings, setNotificationSettings] = useState<TenantNotificationSetting[]>(
     initialAdminState?.notificationSettings ?? [],
   );
@@ -161,13 +217,13 @@ export function SaaSDemoProvider({ children, initialAdminState = null }: SaaSDem
             return;
           }
 
-          setTenants(result.tenants ?? []);
-          setPlans(result.plans ?? []);
-          setSubscriptions(result.subscriptions ?? []);
-          setPlatformUsers(result.platformUsers ?? []);
-          setTenantUsers(result.tenantUsers ?? []);
-          setTenantDevices(result.tenantDevices ?? []);
-          setTenantAlarms(result.tenantAlarms ?? []);
+          setTenants((result.tenants ?? []).map(normalizeTenantRecord));
+          setPlans((result.plans ?? []).map(normalizePlanRecord));
+          setSubscriptions((result.subscriptions ?? []).map(normalizeSubscriptionRecord));
+          setPlatformUsers((result.platformUsers ?? []).map(normalizePlatformUserRecord));
+          setTenantUsers((result.tenantUsers ?? []).map(normalizeTenantUserRecord));
+          setTenantDevices((result.tenantDevices ?? []).map(normalizeTenantDeviceRecord));
+          setTenantAlarms((result.tenantAlarms ?? []).map(normalizeTenantAlarmRecord));
           setNotificationSettings(result.notificationSettings ?? []);
           setQuotaUsage(result.quotaUsage ?? []);
 

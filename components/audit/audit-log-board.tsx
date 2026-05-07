@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
+import { StatusBadge } from "@/components/status-badge";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { getTenantEventBus } from "@/lib/realtime/event-bus";
+import { normalizeLegacyText } from "@/packages/shared/src/legacy-text";
 import type { AuditLogRecord } from "@/types/ops";
 
 const PAGE_SIZE = 12;
@@ -110,15 +112,7 @@ export function AuditLogBoard({ logs }: { logs: AuditLogRecord[] }) {
                     {auditTargetLabel(log.targetType)} / {log.targetId}
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full border px-2.5 py-1 text-xs ${
-                        log.result === "success"
-                          ? "border-[color:var(--success)] bg-[var(--success-soft)] text-[color:var(--success-strong)]"
-                          : "border-[color:var(--danger)] bg-[var(--danger-soft)] text-[color:var(--danger-strong)]"
-                      }`}
-                    >
-                      {log.result === "success" ? "成功" : "失败"}
-                    </span>
+                    <StatusBadge status={log.result === "success" ? "成功" : "失败"} />
                   </td>
                   <td className="px-4 py-3 text-[color:var(--text-secondary)]">{auditDetailLabel(log.detail)}</td>
                 </tr>
@@ -168,7 +162,7 @@ function auditTargetLabel(targetType: string) {
 }
 
 function auditDetailLabel(detail: string) {
-  return detail
+  return normalizeLegacyText(detail)
     .replaceAll("result=completed", "结果=已完成")
     .replaceAll("result=abnormal", "结果=异常")
     .replaceAll("status=pending", "状态=待处理")

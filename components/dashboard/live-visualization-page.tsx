@@ -1,11 +1,16 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlarmRealtimePanel } from "@/components/dashboard/alarm-realtime-panel";
 import { DashboardChartsPanel } from "@/components/dashboard/dashboard-charts-panel";
 import { DashboardTopMetrics } from "@/components/dashboard/dashboard-top-metrics";
-import { InteractiveMapPanel } from "@/components/dashboard/interactive-map-panel";
+import { InteractiveMapPanel, type PublishedDrawingScene } from "@/components/dashboard/interactive-map-panel";
 import { getTenantEventBus } from "@/lib/realtime/event-bus";
+import {
+  normalizeDeviceStatusText,
+  normalizeLegacyAlarmTypeText,
+  normalizeProcessStatusText,
+} from "@/packages/shared/src/legacy-text";
 import type {
   AlarmPointStatus,
   AlarmRecord,
@@ -50,47 +55,22 @@ function isSameLocalDay(left: Date, right: Date) {
   );
 }
 
-function normalizeProcessStatus(status: ProcessStatus): "未处理" | "处理中" | "已处理" {
-  if (status === "未处理" || status === "閺堫亜顦╅悶?" || status === "闁哄牜浜滈ˇ鈺呮偠?") {
-    return "未处理";
-  }
-  if (status === "处理中" || status === "婢跺嫮鎮婃稉?" || status === "濠㈣泛瀚幃濠冪▔?") {
-    return "处理中";
-  }
-  return "已处理";
-}
-
-function normalizeDeviceStatus(status: TenantDeviceRecord["status"]) {
-  const text = String(status);
-  if (text === "报警" || text === "閹躱儴顒?") return "报警";
-  if (text === "故障" || text === "閺佸懘娈?") return "故障";
-  if (text === "离线" || text === "缁傝崵鍤?") return "离线";
-  if (text === "维修中" || text === "缂佺繝鎱ㄦ稉?") return "维修中";
-  return "正常";
-}
-
 function isOpenAlarm(status: ProcessStatus) {
-  const normalized = normalizeProcessStatus(status);
+  const normalized = normalizeProcessStatusText(status);
   return normalized === "未处理" || normalized === "处理中";
 }
 
 function normalizeAlarmType(alarmType: string) {
-  const text = String(alarmType ?? "");
-  if (text.includes("鐏") || text.includes("火警")) return "火警报警";
-  if (text.includes("鏁呴殰") || text.includes("故障")) return "设备故障";
-  if (text.includes("绂荤嚎") || text.includes("离线")) return "设备离线";
-  if (text.includes("鎭㈠") || text.includes("恢复")) return "设备恢复";
-  if (text.includes("蹇冭烦") || text.includes("心跳")) return "设备心跳";
-  return text;
+  return normalizeLegacyAlarmTypeText(alarmType);
 }
 
 function toMetricData(devices: TenantDeviceRecord[], alarms: AlarmRecord[]): DashboardMetric[] {
   const now = new Date();
   const todayAlarms = alarms.filter((alarm) => isSameLocalDay(parseLocalDateTime(alarm.time), now));
   const unresolvedAlarms = alarms.filter((alarm) => isOpenAlarm(alarm.processStatus));
-  const handledToday = todayAlarms.filter((alarm) => normalizeProcessStatus(alarm.processStatus) === "已处理").length;
-  const faultCount = devices.filter((device) => normalizeDeviceStatus(device.status) === "故障").length;
-  const onlineCount = devices.filter((device) => normalizeDeviceStatus(device.status) !== "离线").length;
+  const handledToday = todayAlarms.filter((alarm) => normalizeProcessStatusText(alarm.processStatus) === "已处理").length;
+  const faultCount = devices.filter((device) => normalizeDeviceStatusText(device.status) === "故障").length;
+  const onlineCount = devices.filter((device) => normalizeDeviceStatusText(device.status) !== "离线").length;
   const onlineRate = devices.length === 0 ? "0" : ((onlineCount / devices.length) * 100).toFixed(1);
 
   return [
@@ -140,7 +120,7 @@ function toAlarmFeed(alarms: AlarmCenterItem[] | undefined | null): AlarmRecord[
   return source
     .map<AlarmRecord>((alarm) => {
       const alarmDate = parseLocalDateTime(alarm.time);
-      const processStatus = normalizeProcessStatus(alarm.workflowStatus as ProcessStatus);
+      const processStatus = normalizeProcessStatusText(alarm.workflowStatus as ProcessStatus);
       const isToday = isSameLocalDay(alarmDate, now);
       const isActive = isOpenAlarm(processStatus);
 
@@ -161,14 +141,108 @@ function toAlarmFeed(alarms: AlarmCenterItem[] | undefined | null): AlarmRecord[
     });
 }
 
-function toZones(spatialModel: TenantSpatialModel, devices: TenantDeviceRecord[]): FloorZone[] {
-  const floorsWithDrawings = spatialModel.floors
-    .filter((floor) => spatialModel.drawings.some((drawing) => drawing.floorId === floor.id))
-    .slice(0, 4);
+function alarmPointStatusFromRuntime(status?: string): AlarmPointStatus {
+  if (status === "alarm") return "报警";
+  if (status === "fault") return "故障";
+  if (status === "offline") return "离线";
+  return "正常";
+}
 
-  return floorsWithDrawings.map((floor, index) => {
+function toZones(spatialModel: TenantSpatialModel, devices: TenantDeviceRecord[]): FloorZone[] {
+  const activeAreas = new Map(spatialModel.buildings.filter((area) => area.status === "active").map((area) => [area.id, area]));
+  const floorTargets = spatialModel.floors.filter((floor) => floor.status === "active" && activeAreas.has(floor.buildingId)).map((floor) => {
+    const area = activeAreas.get(floor.buildingId);
+    return {
+      areaId: floor.buildingId,
+      floorId: floor.id,
+      level: `${area?.name ?? "区域"} / ${floor.name}`,
+      name: floor.description || floor.name,
+    };
+  });
+  const areaTargets = Array.from(activeAreas.values())
+    .filter((area) => !area.hasFloors)
+    .map((area) => ({
+      areaId: area.id,
+      floorId: "",
+      level: `${area.name} / 区域平面`,
+      name: area.description || area.name,
+    }));
+
+  return [...floorTargets, ...areaTargets].slice(0, 4).map((target, index) => {
     const points = spatialModel.devicePoints
-      .filter((point) => point.floorId === floor.id)
+      .filter((point) => point.buildingId === target.areaId && (target.floorId ? point.floorId === target.floorId : !point.floorId))
+      .map((point) => {
+        const device = devices.find((item) => item.id === point.deviceId);
+        const snapshot = spatialModel.statusSnapshots.find((item) => item.deviceId === point.deviceId);
+        return {
+          id: point.id,
+          deviceId: point.deviceId,
+          deviceName: device?.name ?? point.deviceId,
+          positionLabel: device?.location ?? target.level,
+          deviceType: device?.type ?? "未知设备",
+          status: alarmPointStatusFromRuntime(snapshot?.status),
+          x: Math.round(point.x * 100),
+          y: Math.round(point.y * 100),
+          lastReportAt: snapshot?.lastReportedAt ?? device?.lastReportAt ?? "暂无上报",
+        };
+      });
+
+    const riskLevel = points.some((point) => String(point.status) === "报警")
+      ? "高风险"
+      : points.some((point) => String(point.status) === "故障" || String(point.status) === "离线")
+        ? "需关注"
+        : "正常";
+
+    return {
+      id: `zone-${index + 1}`,
+      level: target.level,
+      name: target.name,
+      riskLevel,
+      points,
+    };
+  });
+}
+
+function drawingSortTime(value?: string) {
+  if (!value) return 0;
+  return parseLocalDateTime(value).getTime();
+}
+
+function isRenderableDrawingUrl(drawingUrl: string) {
+  const url = String(drawingUrl ?? "");
+  if (!url) return false;
+  if (url.startsWith("/drawings/")) return false;
+  return true;
+}
+
+function isReadyDrawing(item: TenantSpatialModel["drawings"][number]) {
+  return (item.processingStatus ?? "ready") === "ready";
+}
+
+function toPublishedDrawingScenes(spatialModel: TenantSpatialModel, devices: TenantDeviceRecord[]): PublishedDrawingScene[] {
+  const drawings = spatialModel.drawings
+    .filter(
+      (item) => {
+        if (item.status !== "published" || !isReadyDrawing(item) || !isRenderableDrawingUrl(item.sceneUrl || item.previewUrl || item.fileUrl)) {
+          return false;
+        }
+        const floor = spatialModel.floors.find((floorItem) => floorItem.id === item.floorId);
+        const area = spatialModel.buildings.find((areaItem) => areaItem.id === (item.buildingId || floor?.buildingId));
+        if (!area || area.status !== "active") return false;
+        if (area.hasFloors) return Boolean(floor && floor.status === "active");
+        return !item.floorId;
+      },
+    )
+    .sort(
+      (left, right) =>
+        drawingSortTime(right.publishedAt ?? right.updatedAt) - drawingSortTime(left.publishedAt ?? left.updatedAt),
+    );
+
+  return drawings.map((drawing) => {
+    const floor = spatialModel.floors.find((item) => item.id === drawing.floorId);
+    const area = spatialModel.buildings.find((item) => item.id === (drawing.buildingId || floor?.buildingId));
+    const points = spatialModel.devicePoints
+      .filter((point) => point.drawingId === drawing.id)
       .map((point) => {
         const device = devices.find((item) => item.id === point.deviceId);
         const snapshot = spatialModel.statusSnapshots.find((item) => item.deviceId === point.deviceId);
@@ -185,26 +259,21 @@ function toZones(spatialModel: TenantSpatialModel, devices: TenantDeviceRecord[]
           id: point.id,
           deviceId: point.deviceId,
           deviceName: device?.name ?? point.deviceId,
-          positionLabel: device?.location ?? floor.name,
+          positionLabel: device?.location ?? floor?.name ?? drawing.name,
           deviceType: device?.type ?? "未定义设备",
           status,
-          x: Math.round(point.x * 100),
-          y: Math.round(point.y * 100),
+          x: point.x * 100,
+          y: point.y * 100,
           lastReportAt: snapshot?.lastReportedAt ?? device?.lastReportAt ?? "暂无上报",
         };
       });
 
-    const riskLevel = points.some((point) => point.status === "报警")
-      ? "高风险"
-      : points.some((point) => point.status === "故障" || point.status === "离线")
-        ? "需关注"
-        : "正常";
-
     return {
-      id: `zone-${index + 1}`,
-      level: floor.name,
-      name: floor.description || floor.name,
-      riskLevel,
+      drawing,
+      areaId: area?.id ?? drawing.buildingId ?? "",
+      areaLabel: area?.name ?? "未命名区域",
+      floorId: drawing.floorId || "",
+      floorLabel: floor ? `${area?.name ?? "区域"} / ${floor.name}` : `${area?.name ?? "区域"} / 区域平面`,
       points,
     };
   });
@@ -212,15 +281,15 @@ function toZones(spatialModel: TenantSpatialModel, devices: TenantDeviceRecord[]
 
 function toDeviceOverview(devices: TenantDeviceRecord[]): DeviceOverview {
   const total = devices.length;
-  const online = devices.filter((device) => normalizeDeviceStatus(device.status) !== "离线").length;
-  const offline = devices.filter((device) => normalizeDeviceStatus(device.status) === "离线").length;
-  const fault = devices.filter((device) => normalizeDeviceStatus(device.status) === "故障").length;
-  const maintenance = devices.filter((device) => normalizeDeviceStatus(device.status) === "维修中").length;
+  const online = devices.filter((device) => normalizeDeviceStatusText(device.status) !== "离线").length;
+  const offline = devices.filter((device) => normalizeDeviceStatusText(device.status) === "离线").length;
+  const fault = devices.filter((device) => normalizeDeviceStatusText(device.status) === "故障").length;
+  const maintenance = devices.filter((device) => normalizeDeviceStatusText(device.status) === "维修中").length;
 
   const breakdown: DeviceOverviewItem[] = [
-    { label: "在线", count: online, ratio: `${total === 0 ? 0 : Math.max((online / total) * 100, 6)}%`, barClass: "bg-emerald-500" },
+    { label: "在线", count: online, ratio: `${total === 0 ? 0 : Math.max((online / total) * 100, 6)}%`, barClass: "bg-[var(--success)]" },
     { label: "离线", count: offline, ratio: `${total === 0 ? 0 : Math.max((offline / total) * 100, 6)}%`, barClass: "bg-[var(--text-faint)]" },
-    { label: "故障", count: fault, ratio: `${total === 0 ? 0 : Math.max((fault / total) * 100, 6)}%`, barClass: "bg-amber-500" },
+    { label: "故障", count: fault, ratio: `${total === 0 ? 0 : Math.max((fault / total) * 100, 6)}%`, barClass: "bg-[var(--warning)]" },
     { label: "维修中", count: maintenance, ratio: `${total === 0 ? 0 : Math.max((maintenance / total) * 100, 6)}%`, barClass: "bg-[var(--text-muted)]" },
   ];
 
@@ -236,7 +305,7 @@ function toDeviceOverview(devices: TenantDeviceRecord[]): DeviceOverview {
 }
 
 function toAlarmTypes(alarms: AlarmRecord[]): AlarmTypeStat[] {
-  const colors = ["bg-rose-500", "bg-amber-500", "bg-[var(--text-muted)]", "bg-emerald-500", "bg-[var(--text-faint)]"];
+  const colors = ["bg-[var(--danger)]", "bg-[var(--warning)]", "bg-[var(--text-muted)]", "bg-[var(--success)]", "bg-[var(--text-faint)]"];
   const total = alarms.length || 1;
   const grouped = new Map<string, number>();
 
@@ -270,8 +339,8 @@ function toTrendData(alarms: AlarmRecord[]): AlarmTrendPoint[] {
     return {
       label: `${String(bucket.getHours()).padStart(2, "0")}:00`,
       total: matching.length,
-      pending: matching.filter((alarm) => normalizeProcessStatus(alarm.processStatus) !== "已处理").length,
-      handled: matching.filter((alarm) => normalizeProcessStatus(alarm.processStatus) === "已处理").length,
+      pending: matching.filter((alarm) => normalizeProcessStatusText(alarm.processStatus) !== "已处理").length,
+      handled: matching.filter((alarm) => normalizeProcessStatusText(alarm.processStatus) === "已处理").length,
     };
   });
 }
@@ -319,7 +388,7 @@ function DashboardStatusRail({ overview, alarms }: { overview: DeviceOverview; a
       <div className="min-h-0 space-y-2 overflow-hidden pt-2.5">
         <div className="grid grid-cols-[82px_minmax(0,1fr)] items-center gap-3 rounded-[14px] border border-[color:var(--panel-divider)] bg-[var(--control-bg-muted)] px-2.5 py-2.5">
           <div
-            className="relative h-[74px] w-[74px] rounded-full shadow-[inset_0_0_18px_rgba(0,0,0,0.32)]"
+            className="relative h-[74px] w-[74px] rounded-full shadow-[inset_0_0_18px_color-mix(in_srgb,var(--text-primary)_24%,transparent)]"
             style={{ background: donutGradient }}
             aria-label="设备状态分布"
           >
@@ -442,6 +511,7 @@ export function LiveVisualizationPage({
   const alarmFeed = useMemo(() => toAlarmFeed(alarmCenterItems), [alarmCenterItems]);
   const metrics = useMemo(() => toMetricData(overview.devices, alarmFeed), [alarmFeed, overview.devices]);
   const zones = useMemo(() => toZones(spatialModel, overview.devices), [overview.devices, spatialModel]);
+  const drawingScenes = useMemo(() => toPublishedDrawingScenes(spatialModel, overview.devices), [overview.devices, spatialModel]);
   const deviceOverview = useMemo(() => toDeviceOverview(overview.devices), [overview.devices]);
   const alarmTypeStats = useMemo(() => toAlarmTypes(alarmFeed), [alarmFeed]);
   const alarmTrendData = useMemo(() => toTrendData(alarmFeed), [alarmFeed]);
@@ -461,7 +531,7 @@ export function LiveVisualizationPage({
         style={{ gap: "var(--tenant-page-gap, 6px)" }}
       >
         <DashboardStatusRail overview={deviceOverview} alarms={alarmFeed} />
-        <InteractiveMapPanel zones={zones} />
+        <InteractiveMapPanel zones={zones} drawingScenes={drawingScenes} />
         <aside className="grid min-h-0 xl:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]" style={{ gap: "var(--tenant-page-gap, 6px)" }}>
           <AlarmRealtimePanel alarms={alarmFeed} realtimeStatus={realtimeStatus} onRefresh={refresh} />
           <DashboardChartsPanel trendData={alarmTrendData} overview={deviceOverview} typeStats={alarmTypeStats} variant="stack" />
@@ -470,3 +540,4 @@ export function LiveVisualizationPage({
     </div>
   );
 }
+

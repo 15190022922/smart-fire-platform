@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
+import { normalizeLegacyStatusText } from "@/packages/shared/src/legacy-text";
 import { useSaaSDemo } from "./saas-demo-provider";
 import { LogoutButton } from "@/components/layout/logout-button";
 
@@ -12,22 +13,17 @@ const adminNavigationLinks = [
   { href: "/admin/plans", label: "套餐管理" },
   { href: "/admin/subscriptions", label: "订阅管理" },
   { href: "/admin/features", label: "功能开关" },
+  { href: "/admin/platform-notices", label: "平台通知" },
   { href: "/admin/profile", label: "我的" },
 ];
 
 function isEnabledStatus(status?: string | null) {
-  return status === "启用" || status === "鍚敤" || status === "閸氼垳鏁?";
+  return normalizeLegacyStatusText(status) === "启用";
 }
 
 function isActiveSubscription(status?: string | null) {
-  return (
-    status === "已生效" ||
-    status === "试用中" ||
-    status === "宸茬敓鏁?" ||
-    status === "璇曠敤涓?" ||
-    status === "瀹歌尙鏁撻弫?" ||
-    status === "鐠囨洜鏁ゆ稉?"
-  );
+  const normalized = normalizeLegacyStatusText(status);
+  return normalized === "已生效" || normalized === "试用中";
 }
 
 export function SaaSShell({ children }: { children: React.ReactNode }) {
@@ -39,10 +35,10 @@ export function SaaSShell({ children }: { children: React.ReactNode }) {
   const enterprisePlanCount = plans.length;
 
   return (
-    <div className="flex min-h-screen bg-[linear-gradient(180deg,#f6f9fc_0%,#eef3f8_100%)] xl:h-screen xl:overflow-hidden">
-      <aside className="hidden min-h-0 w-72 shrink-0 border-r border-[color:var(--border-soft)] bg-[linear-gradient(180deg,#f8fbfe_0%,#f3f7fb_100%)] px-4 py-4 lg:flex lg:flex-col">
+    <div className="sf-admin-shell flex min-h-screen bg-[linear-gradient(180deg,var(--page-gradient-top)_0%,var(--page-gradient-bottom)_100%)] xl:h-screen xl:overflow-hidden">
+      <aside className="hidden min-h-0 w-72 shrink-0 border-r border-[color:var(--border-soft)] bg-[var(--surface-admin)] px-4 py-4 lg:flex lg:flex-col">
         <div className="relative shrink-0 overflow-hidden rounded-[20px] border border-[color:var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--panel-shadow)]">
-          <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(72,106,141,0.18),transparent)]" />
+          <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--glass-highlight),transparent)]" />
           <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[color:var(--text-faint)]">Platform SaaS</p>
           <h1 className="mt-3 text-[1.15rem] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">平台管理端</h1>
           <p className="mt-2 text-[13px] leading-6 text-[color:var(--text-muted)]">
@@ -78,12 +74,12 @@ export function SaaSShell({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "flex items-center justify-between rounded-[14px] border px-4 py-2.5 text-[13px] font-medium transition",
                     active
-                      ? "border-[rgba(72,106,141,0.18)] bg-[var(--accent-soft)] text-[var(--accent-strong)] shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]"
-                      : "border-transparent bg-transparent text-[color:var(--text-secondary)] hover:border-[color:var(--border)] hover:bg-[rgba(255,255,255,0.64)]",
+                      ? "border-[color:var(--border-soft)] bg-[var(--accent-soft)] text-[color:var(--accent-strong)] shadow-[var(--panel-inset)]"
+                      : "border-transparent bg-transparent text-[color:var(--text-secondary)] hover:border-[color:var(--border)] hover:bg-[var(--surface-muted)] hover:text-[color:var(--text-primary)]",
                   )}
                 >
                   <span>{link.label}</span>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--text-faint)]">
+                  <span className={cn("text-[10px] font-semibold uppercase tracking-[0.16em]", active ? "text-[color:var(--accent-strong)]" : "text-[color:var(--text-muted)]")}>
                     管理
                   </span>
                 </Link>
@@ -101,7 +97,7 @@ export function SaaSShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-b border-[color:var(--border-soft)] bg-[rgba(248,251,254,0.9)] px-4 py-2.5 backdrop-blur-xl sm:px-6">
+        <header className="border-b border-[color:var(--border-soft)] bg-[var(--surface-overlay)] px-4 py-2.5 backdrop-blur-xl sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--text-faint)]">
@@ -127,7 +123,7 @@ export function SaaSShell({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "sf-button shrink-0 rounded-full px-3 py-2 text-[13px] font-medium transition",
                     active
-                      ? "border-[rgba(72,106,141,0.18)] bg-[var(--accent-soft)] text-[var(--accent-strong)]"
+                      ? "border-[color:var(--border-soft)] bg-[var(--accent-soft)] text-[var(--accent-strong)]"
                       : "border-[color:var(--border)] bg-[var(--surface-strong)] text-[color:var(--text-secondary)]",
                   )}
                 >

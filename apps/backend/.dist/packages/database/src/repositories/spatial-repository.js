@@ -10,14 +10,26 @@ async function getTenantSpatialModelData(tenantId) {
     (0, errors_1.assertTenantId)(tenantId);
     const [sites, buildings, floors, drawings, gateways, devicePoints, statusSnapshots, recentEvents, devices] = await Promise.all([
         (0, client_1.queryDb)("SELECT * FROM tenant_sites WHERE tenant_id = $1 ORDER BY name ASC", [tenantId]),
-        (0, client_1.queryDb)("SELECT * FROM tenant_buildings WHERE tenant_id = $1 ORDER BY name ASC", [tenantId]),
-        (0, client_1.queryDb)("SELECT * FROM tenant_floors WHERE tenant_id = $1 ORDER BY level_index ASC", [tenantId]),
+        (0, client_1.queryDb)("SELECT * FROM tenant_buildings WHERE tenant_id = $1 ORDER BY sort_order ASC, name ASC", [tenantId]),
+        (0, client_1.queryDb)("SELECT * FROM tenant_floors WHERE tenant_id = $1 ORDER BY sort_order ASC, level_index ASC", [tenantId]),
         (0, client_1.queryDb)("SELECT * FROM tenant_drawings WHERE tenant_id = $1 ORDER BY updated_at DESC", [tenantId]),
         (0, client_1.queryDb)("SELECT * FROM tenant_gateways WHERE tenant_id = $1 ORDER BY name ASC", [tenantId]),
-        (0, client_1.queryDb)("SELECT * FROM tenant_device_points WHERE tenant_id = $1 ORDER BY updated_at DESC", [tenantId]),
-        (0, client_1.queryDb)("SELECT * FROM device_status_snapshots WHERE tenant_id = $1 ORDER BY updated_at DESC", [tenantId]),
-        (0, client_1.queryDb)("SELECT * FROM raw_device_events WHERE tenant_id = $1 ORDER BY reported_at DESC LIMIT 12", [tenantId]),
-        (0, client_1.queryDb)("SELECT id FROM tenant_devices WHERE tenant_id = $1", [tenantId]),
+        (0, client_1.queryDb)(`SELECT p.*
+       FROM tenant_device_points p
+       JOIN tenant_devices d ON d.tenant_id = p.tenant_id AND d.id = p.device_id
+       WHERE p.tenant_id = $1 AND COALESCE(d.lifecycle_status, 'active') = 'active'
+       ORDER BY p.updated_at DESC`, [tenantId]),
+        (0, client_1.queryDb)(`SELECT s.*
+       FROM device_status_snapshots s
+       JOIN tenant_devices d ON d.tenant_id = s.tenant_id AND d.id = s.device_id
+       WHERE s.tenant_id = $1 AND COALESCE(d.lifecycle_status, 'active') = 'active'
+       ORDER BY s.updated_at DESC`, [tenantId]),
+        (0, client_1.queryDb)(`SELECT e.*
+       FROM raw_device_events e
+       JOIN tenant_devices d ON d.tenant_id = e.tenant_id AND d.id = e.device_id
+       WHERE e.tenant_id = $1 AND COALESCE(d.lifecycle_status, 'active') = 'active'
+       ORDER BY e.reported_at DESC LIMIT 12`, [tenantId]),
+        (0, client_1.queryDb)("SELECT id FROM tenant_devices WHERE tenant_id = $1 AND COALESCE(lifecycle_status, 'active') = 'active'", [tenantId]),
     ]);
     const totalDeviceCount = devices.rows.length;
     const mappedDeviceCount = new Set(devicePoints.rows.map((item) => item.device_id)).size;

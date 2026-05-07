@@ -2,7 +2,9 @@ import { queryDb } from "../client";
 import { assertTenantId } from "../errors";
 import { withTransaction } from "../transaction";
 import {
+  ISSUE_STATUS_RESOLVED,
   ISSUE_STATUS_PENDING,
+  ISSUE_STATUS_REVIEWED,
   createId,
   formatLocalDate,
   formatLocalTimestamp,
@@ -145,10 +147,10 @@ export async function updateIssueStatus(
       `UPDATE issues
        SET status = $1,
            note = $2,
-           rectified_at = CASE WHEN $1 = '宸叉暣鏀?' THEN COALESCE(rectified_at, $3) ELSE rectified_at END,
-           reviewed_at = CASE WHEN $1 = '宸插鏌?' THEN COALESCE(reviewed_at, $3) ELSE reviewed_at END
+           rectified_at = CASE WHEN $1 = $6 THEN COALESCE(rectified_at, $3) ELSE rectified_at END,
+           reviewed_at = CASE WHEN $1 = $7 THEN COALESCE(reviewed_at, $3) ELSE reviewed_at END
        WHERE tenant_id = $4 AND id = $5`,
-      [input.status, input.note, createdAt, tenantId, input.issueId],
+      [input.status, input.note, createdAt, tenantId, input.issueId, ISSUE_STATUS_RESOLVED, ISSUE_STATUS_REVIEWED],
     );
 
     await insertAuditLog(client, {

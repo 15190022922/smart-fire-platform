@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tenantSceneRepository = exports.simulatorRepository = exports.platformRepository = exports.historyRepository = exports.authRepository = exports.adminRepository = exports.tenantUserRepository = exports.tenantOverviewRepository = exports.tenantNotificationRepository = exports.tenantDrawingRepository = exports.tenantInspectionRepository = exports.inspectionRepository = exports.tenantDutyRepository = exports.dutyRepository = exports.tenantDeviceRepository = exports.tenantDevicePointRepository = exports.tenantAuditRepository = exports.tenantAlarmRepository = void 0;
+exports.tenantSceneRepository = exports.simulatorRepository = exports.platformRepository = exports.platformNoticeRepository = exports.historyRepository = exports.authRepository = exports.adminRepository = exports.tenantUserRepository = exports.tenantSpatialAreaRepository = exports.tenantOverviewRepository = exports.tenantNotificationRepository = exports.tenantFloorRepository = exports.tenantDrawingRepository = exports.tenantInspectionRepository = exports.inspectionRepository = exports.tenantDutyRepository = exports.dutyRepository = exports.tenantDeviceRepository = exports.tenantDevicePointRepository = exports.tenantAuditRepository = exports.tenantAlarmRepository = void 0;
 var tenant_repositories_1 = require("./tenant-repositories");
 Object.defineProperty(exports, "tenantAlarmRepository", { enumerable: true, get: function () { return tenant_repositories_1.tenantAlarmRepository; } });
 Object.defineProperty(exports, "tenantAuditRepository", { enumerable: true, get: function () { return tenant_repositories_1.tenantAuditRepository; } });
@@ -44,12 +44,15 @@ Object.defineProperty(exports, "tenantDutyRepository", { enumerable: true, get: 
 Object.defineProperty(exports, "inspectionRepository", { enumerable: true, get: function () { return tenant_repositories_1.tenantInspectionRepository; } });
 Object.defineProperty(exports, "tenantInspectionRepository", { enumerable: true, get: function () { return tenant_repositories_1.tenantInspectionRepository; } });
 Object.defineProperty(exports, "tenantDrawingRepository", { enumerable: true, get: function () { return tenant_repositories_1.tenantDrawingRepository; } });
+Object.defineProperty(exports, "tenantFloorRepository", { enumerable: true, get: function () { return tenant_repositories_1.tenantFloorRepository; } });
 Object.defineProperty(exports, "tenantNotificationRepository", { enumerable: true, get: function () { return tenant_repositories_1.tenantNotificationRepository; } });
 Object.defineProperty(exports, "tenantOverviewRepository", { enumerable: true, get: function () { return tenant_repositories_1.tenantOverviewRepository; } });
+Object.defineProperty(exports, "tenantSpatialAreaRepository", { enumerable: true, get: function () { return tenant_repositories_1.tenantSpatialAreaRepository; } });
 Object.defineProperty(exports, "tenantUserRepository", { enumerable: true, get: function () { return tenant_repositories_1.tenantUserRepository; } });
 exports.adminRepository = __importStar(require("./repositories/admin-repository"));
 exports.authRepository = __importStar(require("./repositories/auth-repository"));
 exports.historyRepository = __importStar(require("./repositories/history-repository"));
+exports.platformNoticeRepository = __importStar(require("./repositories/platform-notices-repository"));
 exports.platformRepository = __importStar(require("./repositories/platform-repository"));
 exports.simulatorRepository = __importStar(require("./repositories/simulator-repository"));
 exports.tenantSceneRepository = __importStar(require("./repositories/tenant-scene-repository"));

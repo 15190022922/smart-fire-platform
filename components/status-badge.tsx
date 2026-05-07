@@ -1,41 +1,122 @@
-const badgeStyles: Record<string, string> = {
-  正常: "border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] text-[var(--success-strong)]",
-  在线: "border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] text-[var(--success-strong)]",
-  启用: "border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] text-[var(--success-strong)]",
-  报警: "border-[rgba(176,72,79,0.18)] bg-[var(--danger-soft)] text-[var(--danger-strong)]",
-  未处理: "border-[rgba(176,72,79,0.18)] bg-[var(--danger-soft)] text-[var(--danger-strong)]",
-  故障: "border-[rgba(169,107,34,0.2)] bg-[var(--warning-soft)] text-[var(--warning-strong)]",
-  处理中: "border-[rgba(169,107,34,0.2)] bg-[var(--warning-soft)] text-[var(--warning-strong)]",
-  离线: "border-[rgba(107,125,145,0.18)] bg-[var(--neutral-soft)] text-[color:var(--text-secondary)]",
-  维修中: "border-[rgba(58,100,141,0.18)] bg-[var(--info-soft)] text-[var(--accent-strong)]",
-  停用: "border-[rgba(107,125,145,0.18)] bg-[var(--neutral-soft)] text-[color:var(--text-secondary)]",
-  已处理: "border-[rgba(72,106,141,0.18)] bg-[var(--info-soft)] text-[var(--accent-strong)]",
-  已确认: "border-[rgba(72,106,141,0.18)] bg-[var(--info-soft)] text-[var(--accent-strong)]",
-  已完成: "border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] text-[var(--success-strong)]",
-  已关闭: "border-[rgba(107,125,145,0.18)] bg-[var(--neutral-soft)] text-[color:var(--text-secondary)]",
+import { cn } from "@/lib/cn";
+import { normalizeLegacyStatusText } from "@/packages/shared/src/legacy-text";
 
-  "姝ｅ父": "border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] text-[var(--success-strong)]",
-  "鍦ㄧ嚎": "border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] text-[var(--success-strong)]",
-  "鍚敤": "border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] text-[var(--success-strong)]",
-  "鎶ヨ": "border-[rgba(176,72,79,0.18)] bg-[var(--danger-soft)] text-[var(--danger-strong)]",
-  "鏈鐞?": "border-[rgba(176,72,79,0.18)] bg-[var(--danger-soft)] text-[var(--danger-strong)]",
-  "鏁呴殰": "border-[rgba(169,107,34,0.2)] bg-[var(--warning-soft)] text-[var(--warning-strong)]",
-  "澶勭悊涓?": "border-[rgba(169,107,34,0.2)] bg-[var(--warning-soft)] text-[var(--warning-strong)]",
-  "绂荤嚎": "border-[rgba(107,125,145,0.18)] bg-[var(--neutral-soft)] text-[color:var(--text-secondary)]",
-  "缁翠慨涓?": "border-[rgba(58,100,141,0.18)] bg-[var(--info-soft)] text-[var(--accent-strong)]",
-  "鍋滅敤": "border-[rgba(107,125,145,0.18)] bg-[var(--neutral-soft)] text-[color:var(--text-secondary)]",
-  "宸插鐞?": "border-[rgba(72,106,141,0.18)] bg-[var(--info-soft)] text-[var(--accent-strong)]",
+type BadgeTone = "success" | "danger" | "warning" | "info" | "neutral" | "purple";
+
+const toneClassMap: Record<BadgeTone, string> = {
+  success: "border-[color:var(--border-soft)] bg-[var(--success-soft)] text-[var(--success-strong)]",
+  danger: "border-[color:var(--border-soft)] bg-[var(--danger-soft)] text-[var(--danger-strong)]",
+  warning: "border-[color:var(--border-soft)] bg-[var(--warning-soft)] text-[var(--warning-strong)]",
+  info: "border-[color:var(--border-soft)] bg-[var(--info-soft)] text-[var(--accent-strong)]",
+  neutral: "border-[color:var(--border-soft)] bg-[var(--neutral-soft)] text-[color:var(--text-secondary)]",
+  purple: "border-[color:var(--border-soft)] bg-[var(--accent-soft)] text-[color:var(--accent-strong)]",
 };
 
-export function StatusBadge({ status }: { status: string }) {
+const statusToneMap: Record<string, BadgeTone> = {
+  // 设备状态
+  正常: "success",
+  在线: "success",
+  报警: "danger",
+  故障: "warning",
+  离线: "neutral",
+  维修中: "info",
+  维保中: "info",
+
+  // 报警状态
+  未处理: "danger",
+  已确认: "info",
+  已处理: "info",
+  处理中: "warning",
+  已完成: "success",
+  已关闭: "neutral",
+  误报: "purple",
+  跨日: "purple",
+
+  // 订阅 / 企业 / 功能状态
+  启用: "success",
+  开启: "success",
+  生效: "success",
+  已生效: "success",
+  试用: "info",
+  试用中: "info",
+  正式订阅: "success",
+  即将到期: "warning",
+  已过期: "neutral",
+  过期: "neutral",
+  停用: "neutral",
+  已停用: "neutral",
+  已关闭功能: "neutral",
+  未分配: "neutral",
+
+  // 通知 / 审计 / 通用状态
+  已发送: "success",
+  发送成功: "success",
+  成功: "success",
+  失败: "danger",
+  发送失败: "danger",
+  排队中: "warning",
+  待发送: "warning",
+  已开启: "success",
+  已开通: "success",
+  已禁用: "neutral",
+  未开通: "neutral",
+  已禁用通知: "neutral",
+  短信: "info",
+  站内通知: "info",
+  报警信息: "danger",
+  故障信息: "warning",
+  系统通知: "info",
+  导入完成: "success",
+  导入中: "warning",
+  正在处理: "warning",
+  可显示: "success",
+  转换失败: "danger",
+  草稿: "warning",
+  已发布: "success",
+  已归档: "neutral",
+  active: "success",
+  inactive: "neutral",
+  published: "success",
+  draft: "warning",
+  archived: "neutral",
+  ready: "success",
+  processing: "warning",
+  disabled: "neutral",
+  alarm: "danger",
+  fault: "warning",
+  offline: "neutral",
+  normal: "success",
+  sent: "success",
+  failed: "danger",
+  queued: "warning",
+  success: "success",
+  error: "danger",
+  info: "info",
+  warn: "warning",
+  warning: "warning",
+};
+
+export function StatusBadge({
+  status,
+  tone,
+  className,
+}: {
+  status: string;
+  tone?: BadgeTone;
+  className?: string;
+}) {
+  const displayStatus = normalizeLegacyStatusText(status);
+  const resolvedTone = tone ?? statusToneMap[displayStatus] ?? statusToneMap[status] ?? "neutral";
+
   return (
     <span
-      className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-[0.01em] ${
-        badgeStyles[status] ??
-        "border-[color:var(--border)] bg-[var(--surface-muted)] text-[color:var(--text-secondary)]"
-      }`}
+      className={cn(
+        "inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-[0.01em]",
+        toneClassMap[resolvedTone],
+        className,
+      )}
     >
-      {status}
+      {displayStatus}
     </span>
   );
 }

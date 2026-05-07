@@ -1,0 +1,29 @@
+
+> smart-fire-platform@0.1.0 dev
+> concurrently "npm run dev:web" "npm run dev:backend"
+
+[0] 
+[0] > smart-fire-platform@0.1.0 dev:web
+[0] > next dev --webpack
+[0] 
+[1] 
+[1] > smart-fire-platform@0.1.0 dev:backend
+[1] > tsx watch apps/backend/src/server.ts
+[1] 
+[1] [backend] listening on http://localhost:4001
+[0] ▲ Next.js 16.2.4 (webpack)
+[0] - Local:         http://localhost:3000
+[0] - Network:       http://192.168.1.4:3000
+[0] - Environments: .env
+[0] ✓ Ready in 1647ms
+[0] 
+[0] ○ Compiling / ...
+[0]  GET / 200 in 5.1s (next.js: 3.8s, proxy.ts: 858ms, application-code: 434ms)
+[0]  GET /spaces 200 in 983ms (next.js: 854ms, proxy.ts: 6ms, application-code: 122ms)
+[0]  GET /alarm-center 200 in 582ms (next.js: 443ms, proxy.ts: 5ms, application-code: 134ms)
+[0]  GET /devices 200 in 432ms (next.js: 354ms, proxy.ts: 6ms, application-code: 72ms)
+[0]  GET /duty-center 200 in 434ms (next.js: 350ms, proxy.ts: 3ms, application-code: 81ms)
+[0]  GET /inspection 200 in 518ms (next.js: 427ms, proxy.ts: 3ms, application-code: 88ms)
+[0]  GET /notification-center 200 in 474ms (next.js: 387ms, proxy.ts: 3ms, application-code: 84ms)
+[0]  GET /audit-log 200 in 320ms (next.js: 230ms, proxy.ts: 3ms, application-code: 88ms)
+[0]  GET /system-health 200 in 496ms (next.js: 378ms, proxy.ts: 3ms, application-code: 116ms)

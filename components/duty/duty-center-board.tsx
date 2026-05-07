@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
+import { AlertMessage } from "@/components/ui/alert-message";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { getTenantEventBus } from "@/lib/realtime/event-bus";
+import { normalizeLegacyText } from "@/packages/shared/src/legacy-text";
 import type { DutyCenterPayload, DutyLogRecord, DutyScheduleRecord } from "@/types/duty";
 
 const inputClassName = "sf-input h-10 px-3 text-sm";
@@ -126,7 +128,7 @@ export function DutyCenterBoard({ initialData }: { initialData: DutyCenterPayloa
       />
 
       {message ? (
-        <div className="rounded-[14px] border border-[color:rgba(72,106,141,0.18)] bg-[color:var(--accent-soft)] px-4 py-3 text-sm text-[color:var(--accent-strong)]">{message}</div>
+        <AlertMessage>{message}</AlertMessage>
       ) : null}
 
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
@@ -286,7 +288,7 @@ export function DutyCenterBoard({ initialData }: { initialData: DutyCenterPayloa
                   </p>
                   <span className="text-xs text-[color:var(--text-muted)]">{item.createdAt}</span>
                 </div>
-                <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{item.content}</p>
+                <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{normalizeLegacyText(item.content)}</p>
                 <p className="mt-1 text-xs text-[color:var(--text-muted)]">操作人：{item.operatorName}</p>
               </div>
             ))}

@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-type ThemePreference = "black" | "blue" | "white";
+import {
+  DEFAULT_THEME_PREFERENCE,
+  THEME_COOKIE_NAME,
+  normalizeThemePreference,
+  serializeThemeCookie,
+  type ThemePreference,
+} from "@/lib/theme";
 
 type ThemeOption = {
   id: ThemePreference;
@@ -28,28 +33,35 @@ const themeOptions: ThemeOption[] = [
   },
 ];
 
-function normalizeStoredTheme(value: string | null): ThemePreference {
-  if (value === "blue") return "blue";
-  if (value === "white" || value === "mist") return "white";
-  return "black";
+type ThemeSwitcherProps = {
+  initialTheme?: ThemePreference;
+};
+
+function persistTheme(theme: ThemePreference) {
+  document.documentElement.dataset.theme = theme;
+  try {
+    window.localStorage.setItem(THEME_COOKIE_NAME, theme);
+  } catch {
+    // Ignore storage failures so the in-page theme can still switch.
+  }
+  try {
+    document.cookie = serializeThemeCookie(theme);
+  } catch {
+    // Ignore cookie failures; localStorage and the live DOM still keep the current theme.
+  }
 }
 
-export function ThemeSwitcher() {
-  const [themePreference, setThemePreference] = useState<ThemePreference>("black");
+export function ThemeSwitcher({ initialTheme = DEFAULT_THEME_PREFERENCE }: ThemeSwitcherProps) {
+  const [themePreference, setThemePreference] = useState<ThemePreference>(initialTheme);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const nextPreference = normalizeStoredTheme(window.localStorage.getItem("smart-fire-theme"));
-    setThemePreference(nextPreference);
-    document.documentElement.dataset.theme = nextPreference;
-    window.localStorage.setItem("smart-fire-theme", nextPreference);
+    const nextPreference = normalizeThemePreference(document.documentElement.dataset.theme);
+    persistTheme(nextPreference);
+    const frame = window.requestAnimationFrame(() => setThemePreference(nextPreference));
+    return () => window.cancelAnimationFrame(frame);
   }, []);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = themePreference;
-    window.localStorage.setItem("smart-fire-theme", themePreference);
-  }, [themePreference]);
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
@@ -63,6 +75,7 @@ export function ThemeSwitcher() {
   }, []);
 
   function applyTheme(themeId: ThemePreference) {
+    persistTheme(themeId);
     setThemePreference(themeId);
     setOpen(false);
   }

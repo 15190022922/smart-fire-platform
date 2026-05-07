@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Dialog } from "@/components/ui/dialog";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
@@ -15,6 +16,7 @@ const inputClassName =
 type PlanFormState = Omit<PlanRecord, "id">;
 
 export function PlanManager() {
+  const { confirmDialog } = useConfirmDialog();
   const { plans, setPlans, features } = useSaaSDemo();
   const [dialogMode, setDialogMode] = useState<"create" | "edit" | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanRecord | null>(null);
@@ -98,8 +100,14 @@ export function PlanManager() {
     closeDialog();
   }
 
-  function removePlan(plan: PlanRecord) {
-    if (!window.confirm(`确认删除套餐“${plan.name}”吗？`)) {
+  async function removePlan(plan: PlanRecord) {
+    const result = await confirmDialog({
+      title: "删除套餐",
+      description: `确认删除套餐“${plan.name}”吗？`,
+      confirmLabel: "删除",
+      tone: "danger",
+    });
+    if (result !== "confirm") {
       return;
     }
     setPlans((current) => current.filter((item) => item.id !== plan.id));
@@ -125,7 +133,7 @@ export function PlanManager() {
                 key={plan.id}
                 className="sf-panel-subtle relative overflow-hidden p-4 transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-[var(--panel-shadow)]"
               >
-                <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent_0%,rgba(72,106,141,0.32)_48%,transparent_100%)]" />
+                <div className="absolute inset-x-0 top-0 h-px bg-[var(--glass-highlight)]" />
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="sf-label">Service Plan</p>
@@ -158,12 +166,7 @@ export function PlanManager() {
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {planFeatureMap[plan.id].map((name) => (
-                    <span
-                      key={name}
-                      className="rounded-full border border-[color:var(--border-soft)] bg-[color:rgba(255,255,255,0.8)] px-3 py-1 text-xs text-[color:var(--text-secondary)]"
-                    >
-                      {name}
-                    </span>
+                    <StatusBadge key={name} status={name} tone="info" />
                   ))}
                 </div>
 

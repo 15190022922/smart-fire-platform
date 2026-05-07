@@ -1,13 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { StatusBadge } from "@/components/status-badge";
 import { alarmWorkflowStatuses } from "@/packages/shared/src/contracts";
 import type { AlarmRecord } from "@/types/platform";
 import type { AlarmWorkflowStatus } from "@/types/ops";
 
 type RealtimeStatus = "connecting" | "connected" | "reconnecting" | "stale";
 
-const PAGE_SIZE = 5;
+const MAX_PAGE_SIZE = 5;
+const MIN_PAGE_SIZE = 1;
+const TABLE_BODY_VERTICAL_CHROME = 18;
+const TABLE_HEADER_HEIGHT = 36;
+const TABLE_ROW_HEIGHT = 58;
 const pendingStatus = alarmWorkflowStatuses[0] as AlarmWorkflowStatus;
 const processingStatus = alarmWorkflowStatuses[2] as AlarmWorkflowStatus;
 const completedStatus = alarmWorkflowStatuses[3] as AlarmWorkflowStatus;
@@ -24,10 +29,10 @@ const statusLabels = new Map<string, string>([
 ]);
 
 const realtimeStatusStyle: Record<RealtimeStatus, string> = {
-  connecting: "border-[rgba(169,107,34,0.18)] bg-[var(--warning-soft)] text-[var(--warning-strong)]",
-  connected: "border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] text-[var(--success-strong)]",
-  reconnecting: "border-[rgba(176,72,79,0.18)] bg-[var(--danger-soft)] text-[var(--danger-strong)]",
-  stale: "border-[rgba(107,125,145,0.18)] bg-[var(--neutral-soft)] text-[color:var(--text-secondary)]",
+  connecting: "border-[color:var(--border-soft)] bg-[var(--warning-soft)] text-[var(--warning-strong)]",
+  connected: "border-[color:var(--border-soft)] bg-[var(--success-soft)] text-[var(--success-strong)]",
+  reconnecting: "border-[color:var(--border-soft)] bg-[var(--danger-soft)] text-[var(--danger-strong)]",
+  stale: "border-[color:var(--border-soft)] bg-[var(--neutral-soft)] text-[color:var(--text-secondary)]",
 };
 
 const realtimeStatusLabel: Record<RealtimeStatus, string> = {
@@ -50,9 +55,9 @@ function displayStatus(status: string) {
 
 function statusClass(status: string) {
   const label = displayStatus(status);
-  if (label === "未处理") return "border-[rgba(176,72,79,0.18)] bg-[var(--danger-soft)] text-[var(--danger-strong)]";
-  if (label === "处理中") return "border-[rgba(169,107,34,0.2)] bg-[var(--warning-soft)] text-[var(--warning-strong)]";
-  return "border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] text-[var(--success-strong)]";
+  if (label === "未处理") return "border-[color:var(--border-soft)] bg-[var(--danger-soft)] text-[var(--danger-strong)]";
+  if (label === "处理中") return "border-[color:var(--border-soft)] bg-[var(--warning-soft)] text-[var(--warning-strong)]";
+  return "border-[color:var(--border-soft)] bg-[var(--success-soft)] text-[var(--success-strong)]";
 }
 
 function parseLocalDateTime(value: string) {
@@ -69,6 +74,15 @@ function displayDateTime(value: string) {
   return `${datePart} ${timePart.slice(0, 8)}`;
 }
 
+function clampPageSize(value: number) {
+  return Math.min(MAX_PAGE_SIZE, Math.max(MIN_PAGE_SIZE, value));
+}
+
+function pageSizeFromBodyHeight(height: number) {
+  const availableRowHeight = height - TABLE_BODY_VERTICAL_CHROME - TABLE_HEADER_HEIGHT;
+  return clampPageSize(Math.floor(availableRowHeight / TABLE_ROW_HEIGHT));
+}
+
 export function AlarmRealtimePanel({
   alarms,
   realtimeStatus,
@@ -82,6 +96,9 @@ export function AlarmRealtimePanel({
   const [openStatusMenuId, setOpenStatusMenuId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(MAX_PAGE_SIZE);
+  const [measuredBodyHeight, setMeasuredBodyHeight] = useState(0);
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   const panelStats = useMemo(() => {
     const activeCount = alarms.filter((alarm) => alarm.isActive).length;
@@ -103,9 +120,50 @@ export function AlarmRealtimePanel({
     });
   }, [alarms]);
 
-  const totalPages = Math.max(1, Math.ceil(sortedAlarms.length / PAGE_SIZE));
+  const effectivePageSize = measuredBodyHeight > 0 ? pageSize : MAX_PAGE_SIZE;
+  const totalPages = Math.max(1, Math.ceil(sortedAlarms.length / effectivePageSize));
   const safePage = Math.min(page, totalPages);
-  const visibleAlarms = sortedAlarms.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const visibleAlarms = sortedAlarms.slice((safePage - 1) * effectivePageSize, safePage * effectivePageSize);
+
+  useEffect(() => {
+    const target = bodyRef.current;
+    if (!target) return;
+
+    let frame = 0;
+    const updateHeight = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const nextHeight = Math.max(0, Math.floor(target.getBoundingClientRect().height));
+        setMeasuredBodyHeight((current) => (current === nextHeight ? current : nextHeight));
+        const nextPageSize = pageSizeFromBodyHeight(nextHeight);
+        setPageSize((current) => (current === nextPageSize ? current : nextPageSize));
+      });
+    };
+
+    updateHeight();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updateHeight);
+      return () => {
+        window.cancelAnimationFrame(frame);
+        window.removeEventListener("resize", updateHeight);
+      };
+    }
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(target);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (page <= totalPages) return;
+    const frame = window.requestAnimationFrame(() => setPage(totalPages));
+    return () => window.cancelAnimationFrame(frame);
+  }, [page, totalPages]);
 
   async function handleStatusChange(alarmId: string, processStatus: AlarmWorkflowStatus) {
     setUpdatingAlarmId(alarmId);
@@ -146,17 +204,15 @@ export function AlarmRealtimePanel({
             </span>
           </div>
           {panelStats.carryoverCount > 0 ? (
-            <span className="shrink-0 rounded-full border border-[rgba(117,74,160,0.18)] bg-[rgba(247,242,255,0.95)] px-2 py-0.5 text-[10px] font-semibold text-[rgb(108,57,151)]">
-              跨日 {panelStats.carryoverCount}
-            </span>
+            <StatusBadge status={`跨日 ${panelStats.carryoverCount}`} tone="purple" className="shrink-0 py-0.5 text-[10px]" />
           ) : null}
         </div>
-        {errorMessage ? <p className="mt-1 truncate text-[11px] font-medium text-rose-600">{errorMessage}</p> : null}
+        {errorMessage ? <p className="mt-1 truncate text-[11px] font-medium text-[color:var(--danger-strong)]">{errorMessage}</p> : null}
       </div>
 
-      <div className="relative z-10 min-h-0 bg-[var(--panel-body-bg)] px-2 py-2">
+      <div ref={bodyRef} className="relative z-10 min-h-0 bg-[var(--panel-body-bg)] px-2 py-2">
         {visibleAlarms.length > 0 ? (
-          <div className="overflow-visible rounded-[12px] border border-[color:var(--panel-divider)] bg-[var(--panel-cell-bg)] shadow-[var(--panel-inset)] backdrop-blur-xl">
+          <div className="h-full min-h-0 overflow-visible rounded-[12px] border border-[color:var(--panel-divider)] bg-[var(--panel-cell-bg)] shadow-[var(--panel-inset)] backdrop-blur-xl">
             <table className="w-full table-fixed border-separate border-spacing-0 text-left text-[11px]">
               <thead className="bg-[var(--table-head)] text-[color:var(--text-muted)]">
                 <tr>
@@ -183,7 +239,7 @@ export function AlarmRealtimePanel({
                       </td>
                       <td className="border-r border-[color:var(--panel-divider-strong)] px-2.5 py-2">
                         <div className="truncate text-[color:var(--text-secondary)]">{alarm.alarmType}</div>
-                        {alarm.isCarryover ? <div className="mt-0.5 text-[10px] font-semibold text-[rgb(108,57,151)]">跨日</div> : null}
+                        {alarm.isCarryover ? <div className="mt-1"><StatusBadge status="跨日" className="px-2 py-0.5 text-[10px]" /></div> : null}
                       </td>
                       <td className="px-2.5 py-2">
                         <div
@@ -201,7 +257,7 @@ export function AlarmRealtimePanel({
                             aria-haspopup="listbox"
                             aria-expanded={isStatusMenuOpen}
                             onClick={() => setOpenStatusMenuId((current) => (current === alarm.id ? null : alarm.id))}
-                            className={`flex h-8 w-full items-center justify-between gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold outline-none shadow-[var(--panel-inset)] transition focus:ring-2 focus:ring-zinc-500/20 disabled:cursor-not-allowed disabled:opacity-60 ${statusClass(normalizedStatus)}`}
+                            className={`flex h-8 w-full items-center justify-between gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold outline-none shadow-[var(--panel-inset)] transition focus:ring-2 focus:ring-[color:var(--field-ring)] disabled:cursor-not-allowed disabled:opacity-60 ${statusClass(normalizedStatus)}`}
                           >
                             <span className="truncate">{displayStatus(normalizedStatus)}</span>
                             <span className="text-[10px] font-bold text-[color:var(--text-muted)]">v</span>
@@ -248,7 +304,7 @@ export function AlarmRealtimePanel({
             </table>
           </div>
         ) : (
-          <div className="rounded-[10px] border border-dashed border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-6 text-center text-sm text-[color:var(--text-muted)]">
+          <div className="flex h-full min-h-0 items-center justify-center rounded-[10px] border border-dashed border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4 text-center text-sm text-[color:var(--text-muted)]">
             当前没有需要值守的警情
           </div>
         )}
@@ -256,7 +312,7 @@ export function AlarmRealtimePanel({
 
       <div className="relative z-10 flex items-center justify-between border-t border-[color:var(--panel-divider)] bg-[var(--panel-header-bg)] px-3 py-2 text-[11px] text-[color:var(--text-secondary)]">
         <span>
-          {sortedAlarms.length} 条，{safePage}/{totalPages} 页
+          {sortedAlarms.length} 条，{safePage}/{totalPages} 页，每页 {effectivePageSize} 条
         </span>
         <div className="flex items-center gap-1.5">
           <button

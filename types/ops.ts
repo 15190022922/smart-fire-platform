@@ -64,6 +64,54 @@ export type NotificationRecord = {
   updatedAt: string;
 };
 
+export type PlatformNoticeLevel = "info" | "warning" | "critical";
+export type PlatformNoticeTargetMode = "all" | "selected";
+export type PlatformNoticeStatus = "draft" | "sent" | "revoked" | "deleted";
+export type PlatformNoticeAttachmentStatus = "uploaded" | "bound" | "deleted";
+export type PlatformNoticeReadState = "all" | "unread" | "read" | "archived";
+
+export type PlatformNoticeAttachment = {
+  id: string;
+  name: string;
+  url: string;
+  size: number;
+  contentType: string;
+  noticeId?: string;
+  status?: PlatformNoticeAttachmentStatus;
+  createdAt?: string;
+  boundAt?: string;
+};
+
+export type PlatformNoticeRecord = {
+  id: string;
+  title: string;
+  content: string;
+  level: PlatformNoticeLevel;
+  targetMode: PlatformNoticeTargetMode;
+  status: PlatformNoticeStatus;
+  senderName: string;
+  senderRole: string;
+  targetTenantCount: number;
+  targetTenantIds: string[];
+  attachments: PlatformNoticeAttachment[];
+  createdAt: string;
+  updatedAt?: string;
+  publishedAt?: string;
+  revokedAt?: string;
+  deletedAt?: string;
+  revokeReason?: string;
+  requestId?: string;
+};
+
+export type PlatformNoticeDeliveryRecord = PlatformNoticeRecord & {
+  deliveryId: string;
+  tenantId: string;
+  tenantName: string;
+  deliveredAt: string;
+  readAt?: string;
+  archivedAt?: string;
+};
+
 export type AuditLogRecord = {
   id: string;
   tenantId?: string;

@@ -1,10 +1,10 @@
 import { DashboardMetric } from "@/types/platform";
 
 const toneClassMap = {
-  danger: "border-[rgba(176,72,79,0.18)] bg-[var(--danger-soft)] text-[var(--danger-strong)]",
-  warning: "border-[rgba(169,107,34,0.18)] bg-[var(--warning-soft)] text-[var(--warning-strong)]",
-  success: "border-[rgba(57,118,91,0.16)] bg-[var(--success-soft)] text-[var(--success-strong)]",
-  info: "border-[rgba(220,220,226,0.18)] bg-[var(--info-soft)] text-[var(--accent-strong)]",
+  danger: "border-[color:var(--border-soft)] bg-[var(--danger-soft)] text-[var(--danger-strong)]",
+  warning: "border-[color:var(--border-soft)] bg-[var(--warning-soft)] text-[var(--warning-strong)]",
+  success: "border-[color:var(--border-soft)] bg-[var(--success-soft)] text-[var(--success-strong)]",
+  info: "border-[color:var(--border-soft)] bg-[var(--info-soft)] text-[var(--accent-strong)]",
 } as const;
 
 export function DashboardTopMetrics({
@@ -18,12 +18,12 @@ export function DashboardTopMetrics({
   const layoutClass =
     isSide
       ? "grid h-full min-h-0 auto-rows-fr grid-cols-1 gap-1.5"
-      : "sf-metal-metric-belt grid h-full grid-cols-2 overflow-hidden rounded-[16px] xl:grid-cols-5";
+      : "sf-toolbar grid h-full grid-cols-2 overflow-hidden rounded-[16px] p-0 xl:grid-cols-5";
   const valueClass = isSide ? "text-[1.15rem]" : "text-[1.55rem]";
   const itemClass =
     isSide
       ? "relative flex min-w-0 items-center justify-between gap-2 overflow-hidden rounded-[12px] border border-[color:var(--panel-divider)] bg-[var(--panel-cell-bg)] px-3 py-2 shadow-[var(--panel-inset)] backdrop-blur-xl"
-      : "relative flex min-w-0 items-center justify-between gap-3 border-b border-r border-[color:var(--panel-divider)] bg-[var(--metric-cell-bg)] px-3 py-2.5 last:border-r-0 xl:border-b-0";
+      : "relative flex min-w-0 items-center justify-between gap-3 border-b border-r border-[color:var(--panel-divider)] bg-[var(--panel-cell-bg)] px-3 py-2.5 last:border-r-0 xl:border-b-0";
 
   return (
     <section className={layoutClass}>

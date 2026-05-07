@@ -31,11 +31,7 @@ export type AlarmPointStatus =
   | "正常"
   | "报警"
   | "故障"
-  | "离线"
-  | "濮濓絽鐖?"
-  | "閹躱儴顒?"
-  | "閺佸懘娈?"
-  | "缁傝崵鍤?";
+  | "离线";
 
 export type AlarmPoint = {
   id: string;
@@ -75,25 +71,43 @@ export type DeviceStatus =
   | "报警"
   | "故障"
   | "离线"
-  | "维修中"
-  | "濮濓絽鐖?"
-  | "閹躱儴顒?"
-  | "閺佸懘娈?"
-  | "缁傝崵鍤?"
-  | "缂佺繝鎱ㄦ稉?";
+  | "维修中";
 
 export type DeviceStatusFilter = DeviceStatus | "全部";
+export type DeviceInstallationStatus = "已安装" | "未安装" | "停用" | "未知" | string;
+export type DeviceAttributeType = "auto" | "text" | "number" | "date" | "boolean";
+export type DeviceLifecycleStatus = "active" | "disabled";
+export type DeviceLifecycleFilter = DeviceLifecycleStatus | "all";
+export type DeviceLifecycleAction = "disable" | "restore";
 
 export type DeviceRecord = {
   id: string;
+  deviceCode?: string;
   name: string;
   type: string;
   area: string;
   installationLocation: string;
   location: string;
   status: DeviceStatus;
+  installationStatus?: DeviceInstallationStatus;
   lastReportAt: string;
   notes: string;
+  customAttributes?: Record<string, string | number | boolean | null>;
+  lifecycleStatus?: DeviceLifecycleStatus;
+  disabledAt?: string;
+  disabledReason?: string;
+};
+
+export type DeviceAttributeDefinition = {
+  tenantId: string;
+  fieldKey: string;
+  label: string;
+  fieldType: DeviceAttributeType;
+  required: boolean;
+  enabled: boolean;
+  showInList: boolean;
+  sortOrder: number;
+  isCore: boolean;
 };
 
 export type DeviceOverviewItem = {
@@ -126,21 +140,16 @@ export type StatusSummaryItem = {
   tone: "success" | "danger" | "warning" | "muted" | "info";
 };
 
-export type UserStatus = "启用" | "停用" | "閸氼垳鏁?" | "閸嬫粎鏁?";
+export type UserStatus = "启用" | "停用";
 
 export type UserLevel =
   | "一级用户"
   | "二级用户"
-  | "三级用户"
-  | "娑撯偓缁狙呮暏閹?"
-  | "娴滃瞼楠囬悽銊﹀煕"
-  | "娑撳楠囬悽銊﹀煕";
+  | "三级用户";
 
 export type NotificationMessageType =
   | "报警信息"
-  | "故障信息"
-  | "閹躱儴顒熸穱鈩冧紖"
-  | "閺佸懘娈版穱鈩冧紖";
+  | "故障信息";
 
 export type UserRecord = {
   id: string;

@@ -1,0 +1,8 @@
+*CUTLEFT,G41 ----\----\----\----
+A,5.08,[LRIGHT_ARROW,qcadshp.shx,S=2.54,R=180],5.08
+*CUTLEFT2,G41 reversed----/----/----/----
+A,5.08,[LRIGHT_ARROW,qcadshp.shx,S=2.54],5.08
+*CUTRIGHT,G42 ----/----/-----/---
+A,5.08,[HRIGHT_ARROW,qcadshp.shx,S=2.54,R=180],5.08
+*CUTRIGHT2,G42 reversed----\----\----\----
+A,5.08,[HRIGHT_ARROW,qcadshp.shx,S=2.54],5.08

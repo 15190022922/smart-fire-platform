@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
+import { ActionButton } from "@/components/ui/action-button";
 import { deviceStatusFilters } from "@/data/platform-data";
-import { cn } from "@/lib/cn";
 import { DeviceRecord, DeviceStatusFilter } from "@/types/platform";
 
 export function DeviceTable({ devices }: { devices: DeviceRecord[] }) {
@@ -25,19 +25,13 @@ export function DeviceTable({ devices }: { devices: DeviceRecord[] }) {
       extra={
         <div className="flex flex-wrap gap-2">
           {deviceStatusFilters.map((filter) => (
-            <button
+            <ActionButton
               key={filter}
-              type="button"
               onClick={() => setActiveFilter(filter)}
-              className={cn(
-                "rounded-full border px-4 py-2 text-sm transition",
-                activeFilter === filter
-                  ? "border-[color:var(--accent)] bg-[var(--accent-soft)] text-[color:var(--accent-strong)]"
-                  : "border-[color:var(--border-soft)] bg-[var(--panel-cell-bg)] text-[color:var(--text-secondary)] hover:border-[color:var(--border)]",
-              )}
+              active={activeFilter === filter}
             >
               {filter}
-            </button>
+            </ActionButton>
           ))}
         </div>
       }

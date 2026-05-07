@@ -5,9 +5,11 @@ import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
 import { useSaaSDemo } from "@/components/saas/saas-demo-provider";
+import { StatusBadge } from "@/components/status-badge";
+import { ActionButton } from "@/components/ui/action-button";
+import { checkRowClassName, fieldClassName } from "@/components/ui/form-controls";
 
-const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+const inputClassName = fieldClassName;
 
 export function WorkspaceSettingsManager() {
   const { currentPlan, currentSubscription, currentNotificationSetting, currentQuotaUsage, setNotificationSettings, currentTenant } =
@@ -44,9 +46,7 @@ export function WorkspaceSettingsManager() {
           subtitle="企业设置页按租户隔离保存，当前展示的是本企业的通知与地图配置。"
           aside={
             savedAt ? (
-              <div className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
-                最近保存：{savedAt}
-              </div>
+              <StatusBadge status={`最近保存：${savedAt}`} tone="success" className="px-4 py-2 text-sm" />
             ) : null
           }
         />
@@ -78,34 +78,34 @@ export function WorkspaceSettingsManager() {
                   className={`${inputClassName} min-h-28`}
                 />
               </label>
-              <label className="flex items-center gap-3 rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+              <label className={checkRowClassName}>
                 <input type="checkbox" checked={setting?.notificationEnabled ?? false} onChange={toggleNotificationEnabled} />
                 <span className="text-sm text-[color:var(--text-primary)]">开启企业通知</span>
               </label>
               <div className="flex justify-end">
-                <button type="button" onClick={() => setSavedAt("刚刚")} className="rounded-full border border-sky-200 bg-sky-50 px-5 py-2.5 text-sm text-sky-700">
+                <ActionButton onClick={() => setSavedAt("刚刚")} variant="primary">
                   保存设置
-                </button>
+                </ActionButton>
               </div>
             </div>
           </SectionCard>
 
           <SectionCard title="订阅与配额" description="套餐和订阅决定本企业当前可见功能与资源上限。">
             <div className="space-y-4">
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4">
+              <div className="sf-metric-block px-4 py-4">
                 <p className="text-sm text-[color:var(--text-muted)]">当前套餐</p>
                 <p className="mt-2 text-lg font-semibold text-[color:var(--text-primary)]">{currentPlan?.name ?? "-"}</p>
                 <p className="mt-1 text-sm text-[color:var(--text-secondary)]">订阅状态：{currentSubscription?.status ?? "-"}</p>
               </div>
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4">
+              <div className="sf-metric-block px-4 py-4">
                 <p className="text-sm text-[color:var(--text-muted)]">设备配额</p>
                 <p className="mt-2 text-base text-[color:var(--text-primary)]">{currentQuotaUsage?.deviceCount ?? 0} / {currentPlan?.maxDevices ?? 0}</p>
               </div>
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4">
+              <div className="sf-metric-block px-4 py-4">
                 <p className="text-sm text-[color:var(--text-muted)]">用户配额</p>
                 <p className="mt-2 text-base text-[color:var(--text-primary)]">{currentQuotaUsage?.userCount ?? 0} / {currentPlan?.maxUsers ?? 0}</p>
               </div>
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4">
+              <div className="sf-metric-block px-4 py-4">
                 <p className="text-sm text-[color:var(--text-muted)]">短信额度</p>
                 <p className="mt-2 text-base text-[color:var(--text-primary)]">{currentQuotaUsage?.smsUsed ?? 0} / {currentPlan?.smsQuota ?? 0}</p>
               </div>

@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
+import { ActionButton } from "@/components/ui/action-button";
+import { AlertMessage } from "@/components/ui/alert-message";
+import { fieldClassName as baseFieldClassName, fieldErrorClassName } from "@/components/ui/form-controls";
 import { useToast } from "@/components/ui/toast-center";
 import type { TenantSpatialModel } from "@/types/hardware";
 import type { AlarmCenterItem, NotificationRecord } from "@/types/ops";
@@ -49,8 +52,7 @@ const eventOptions = [
   { key: "heartbeat", label: "\u53d1\u9001\u5fc3\u8df3", eventType: "heartbeat" },
 ] as const;
 
-const inputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
+const inputClassName = baseFieldClassName;
 
 async function fetchScene(tenantId: string) {
   let response: Response | null = null;
@@ -83,15 +85,13 @@ function requiredLabel(label: string) {
   return (
     <span className="flex items-center gap-1 text-sm text-[color:var(--text-secondary)]">
       {label}
-      <span className="text-rose-500">*</span>
+      <span className="text-[color:var(--danger-strong)]">*</span>
     </span>
   );
 }
 
 function fieldClassName(hasError: boolean) {
-  return `${inputClassName} ${
-    hasError ? "border-rose-300 text-rose-700 focus:border-rose-300 focus:ring-rose-100" : ""
-  }`;
+  return `${inputClassName} ${hasError ? fieldErrorClassName : ""}`;
 }
 
 export function DeviceSimulatorConsole({
@@ -159,9 +159,10 @@ export function DeviceSimulatorConsole({
     });
   }, [scene]);
   const latestAlarms = useMemo(() => scene?.alarms?.slice(0, 5) ?? [], [scene?.alarms]);
+  const lastResultAlarmId = lastResult?.alarmId;
   const latestNotificationRecords = useMemo(
-    () => scene?.notificationRecords?.filter((record) => !lastResult?.alarmId || record.alarmId === lastResult.alarmId) ?? [],
-    [lastResult?.alarmId, scene?.notificationRecords],
+    () => scene?.notificationRecords?.filter((record) => !lastResultAlarmId || record.alarmId === lastResultAlarmId) ?? [],
+    [lastResultAlarmId, scene?.notificationRecords],
   );
 
   async function sendEvent(option: (typeof eventOptions)[number]) {
@@ -299,21 +300,21 @@ export function DeviceSimulatorConsole({
   return (
     <div className={embedded ? "space-y-5" : "mx-auto min-h-screen max-w-[1800px] space-y-6 px-4 py-6"}>
       {!embedded ? (
-        <section className="rounded-[28px] border border-[color:var(--border)] bg-[var(--surface)] p-6 shadow-[var(--panel-shadow)]">
+        <section className="sf-panel p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-4xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-700">Device Test Console</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[color:var(--danger-strong)]">Device Test Console</p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[color:var(--text-primary)]">设备模拟测试台</h1>
               <p className="mt-3 text-sm leading-7 text-[color:var(--text-muted)]">
                 页面只负责发事件，不直接改报警和设备状态。所有模拟信号统一进入设备接入链路，再由报警引擎、通知、实时推送和审计日志承接。
               </p>
             </div>
             <div className="grid min-w-[320px] grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+              <div className="sf-metric-block px-4 py-3">
                 <p className="text-xs text-[color:var(--text-muted)]">测试企业</p>
                 <p className="mt-2 text-lg font-semibold text-[color:var(--text-primary)]">{scene?.tenant.name ?? "未选择"}</p>
               </div>
-              <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+              <div className="sf-metric-block px-4 py-3">
                 <p className="text-xs text-[color:var(--text-muted)]">图纸点位</p>
                 <p className="mt-2 text-lg font-semibold text-[color:var(--text-primary)]">{pointsForDrawing.length}</p>
               </div>
@@ -323,7 +324,7 @@ export function DeviceSimulatorConsole({
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[0.82fr_1.3fr_0.88fr]">
-        <section className="rounded-[28px] border border-[color:var(--border)] bg-[var(--surface)] p-5 shadow-[var(--panel-shadow)]">
+        <section className="sf-panel p-5">
           <h2 className="text-lg font-semibold text-[color:var(--text-primary)]">控制面板</h2>
           <div className="mt-4 space-y-4">
             <label className="block space-y-2">
@@ -342,7 +343,7 @@ export function DeviceSimulatorConsole({
                   </option>
                 ))}
               </select>
-              {fieldErrors.tenantId ? <span className="text-xs font-medium text-rose-600">{fieldErrors.tenantId}</span> : null}
+              {fieldErrors.tenantId ? <span className="text-xs font-medium text-[color:var(--danger-strong)]">{fieldErrors.tenantId}</span> : null}
             </label>
 
             <label className="block space-y-2">
@@ -378,32 +379,32 @@ export function DeviceSimulatorConsole({
                   </option>
                 ))}
               </select>
-              {fieldErrors.deviceId ? <span className="text-xs font-medium text-rose-600">{fieldErrors.deviceId}</span> : null}
+              {fieldErrors.deviceId ? <span className="text-xs font-medium text-[color:var(--danger-strong)]">{fieldErrors.deviceId}</span> : null}
             </label>
 
             <div className="grid gap-3">
               {eventOptions.map((option) => (
-                <button
+                <ActionButton
                   key={option.key}
-                  type="button"
                   disabled={sending}
                   onClick={() => void sendEvent(option)}
-                  className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  variant="danger"
+                  className="disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {option.label}
-                </button>
+                </ActionButton>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="rounded-[28px] border border-[color:var(--border)] bg-[var(--surface)] p-5 shadow-[var(--panel-shadow)]">
+        <section className="sf-panel p-5">
           <h2 className="text-lg font-semibold text-[color:var(--text-primary)]">
             {selectedDrawing ? "设备图纸模拟区" : "无图纸设备模拟区"}
           </h2>
           {selectedDrawing ? (
             <div
-              className="relative mt-4 min-h-[640px] overflow-hidden rounded-[28px] border border-[color:var(--border)] bg-slate-100"
+              className="relative mt-4 min-h-[640px] overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--border)] bg-[var(--surface-muted)]"
               style={{
                 backgroundImage: `url(${selectedDrawing.fileUrl})`,
                 backgroundSize: "contain",
@@ -416,12 +417,12 @@ export function DeviceSimulatorConsole({
                 const snapshot = scene?.spatialModel.statusSnapshots.find((item) => item.deviceId === point.deviceId);
                 const colorClass =
                   snapshot?.status === "alarm"
-                    ? "bg-rose-500"
+                    ? "bg-[var(--danger)]"
                     : snapshot?.status === "fault"
-                      ? "bg-amber-500"
+                      ? "bg-[var(--warning)]"
                       : snapshot?.status === "offline"
-                        ? "bg-slate-500"
-                        : "bg-emerald-500";
+                        ? "bg-[var(--text-faint)]"
+                        : "bg-[var(--success)]";
 
                 return (
                   <button
@@ -431,12 +432,12 @@ export function DeviceSimulatorConsole({
                       setSelectedDeviceId(point.deviceId);
                       setFieldErrors((current) => ({ ...current, deviceId: "" }));
                     }}
-                    className={`group absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-lg ${colorClass}`}
+                    className={`group absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[color:var(--surface)] shadow-lg ${colorClass}`}
                     style={{ left: `${point.x * 100}%`, top: `${point.y * 100}%` }}
                     title={device?.name ?? point.deviceId}
                   >
-                    <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-44 -translate-x-1/2 rounded-xl border border-[color:var(--border)] bg-white px-3 py-2 text-left text-xs text-slate-700 shadow-xl group-hover:block">
-                      <span className="block font-semibold text-slate-900">{device?.name ?? point.deviceId}</span>
+                    <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-44 -translate-x-1/2 rounded-[12px] border border-[color:var(--border)] bg-[var(--panel-menu-bg)] px-3 py-2 text-left text-xs text-[color:var(--text-secondary)] shadow-[var(--panel-shadow-strong)] backdrop-blur-xl group-hover:block">
+                      <span className="block font-semibold text-[color:var(--text-primary)]">{device?.name ?? point.deviceId}</span>
                       <span className="mt-1 block">{normalizeSnapshotStatus(snapshot?.status)}</span>
                     </span>
                   </button>
@@ -444,10 +445,10 @@ export function DeviceSimulatorConsole({
               })}
             </div>
           ) : (
-            <div className="mt-4 rounded-[28px] border border-[color:var(--border)] bg-[var(--surface-muted)] p-5">
-              <div className="rounded-2xl border border-dashed border-[color:var(--border)] bg-white/70 px-4 py-3 text-sm text-[color:var(--text-muted)]">
+            <div className="mt-4 rounded-[var(--radius-panel)] border border-[color:var(--border)] bg-[var(--surface-muted)] p-5">
+              <AlertMessage>
                 当前企业还没有上传图纸。这里会自动切换为无图纸测试模式，仍然可以直接选择设备并发送火警、故障、离线、恢复、心跳事件。
-              </div>
+              </AlertMessage>
               <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {fallbackDevices.map((device) => {
                   const snapshot = scene?.spatialModel.statusSnapshots.find((item) => item.deviceId === device.id);
@@ -459,9 +460,9 @@ export function DeviceSimulatorConsole({
                         setSelectedDeviceId(device.id);
                         setFieldErrors((current) => ({ ...current, deviceId: "" }));
                       }}
-                      className={`rounded-2xl border px-4 py-4 text-left transition ${
+                      className={`rounded-[var(--radius-card)] border px-4 py-4 text-left transition ${
                         selectedDeviceId === device.id
-                          ? "border-sky-200 bg-sky-50"
+                          ? "border-[color:var(--accent)] bg-[var(--accent-soft)]"
                           : "border-[color:var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-muted)]"
                       }`}
                     >
@@ -472,9 +473,7 @@ export function DeviceSimulatorConsole({
                             {device.area} / {device.installationLocation ?? device.location}
                           </p>
                         </div>
-                        <span className="rounded-full border border-[color:var(--border)] bg-[var(--surface-muted)] px-2.5 py-1 text-[11px] text-[color:var(--text-secondary)]">
-                          {normalizeSnapshotStatus(snapshot?.status)}
-                        </span>
+                        <StatusBadge status={normalizeSnapshotStatus(snapshot?.status)} />
                       </div>
                     </button>
                   );
@@ -484,10 +483,10 @@ export function DeviceSimulatorConsole({
           )}
         </section>
 
-        <section className="rounded-[28px] border border-[color:var(--border)] bg-[var(--surface)] p-5 shadow-[var(--panel-shadow)]">
+        <section className="sf-panel p-5">
           <h2 className="text-lg font-semibold text-[color:var(--text-primary)]">当前选中设备</h2>
           {selectedDevice ? (
-            <div className="mt-4 space-y-3 rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="sf-metric-block mt-4 space-y-3 p-4">
               <div>
                 <p className="text-xs text-[color:var(--text-muted)]">设备名称</p>
                 <p className="mt-1 text-base font-semibold text-[color:var(--text-primary)]">{selectedDevice.name}</p>
@@ -520,13 +519,13 @@ export function DeviceSimulatorConsole({
               </div>
             </div>
           ) : (
-            <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-8 text-center text-sm text-[color:var(--text-muted)]">
+            <div className="mt-4 rounded-[var(--radius-card)] border border-dashed border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-8 text-center text-sm text-[color:var(--text-muted)]">
               先从左侧选择一台设备，再发送测试事件。
             </div>
           )}
 
           {lastResult ? (
-            <div className="mt-4 rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="sf-metric-block mt-4 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs text-[color:var(--text-muted)]">最近发送结果</p>
@@ -534,30 +533,22 @@ export function DeviceSimulatorConsole({
                     {lastResult.deviceName} / {lastResult.eventLabel}
                   </p>
                 </div>
-                <span
-                  className={`rounded-full border px-2.5 py-1 text-xs ${
-                    lastResult.realtimePublished
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                      : "border-amber-200 bg-amber-50 text-amber-700"
-                  }`}
-                >
-                  {lastResult.realtimePublished ? "已推送实时事件" : "实时推送未确认"}
-                </span>
+                <StatusBadge status={lastResult.realtimePublished ? "已推送实时事件" : "实时推送未确认"} tone={lastResult.realtimePublished ? "success" : "warning"} />
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-xl border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
+                <div className="rounded-[12px] border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
                   <p className="text-[color:var(--text-muted)]">报警写入</p>
                   <p className="mt-1 font-semibold text-[color:var(--text-primary)]">
                     {lastResult.alarmCreated ? "新增报警" : lastResult.duplicateSuppressed ? "原始事件已去重" : "设备状态更新"}
                   </p>
                 </div>
-                <div className="rounded-xl border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
+                <div className="rounded-[12px] border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
                   <p className="text-[color:var(--text-muted)]">通知记录</p>
                   <p className="mt-1 font-semibold text-[color:var(--text-primary)]">
                     {latestNotificationRecords.length > 0 || lastResult.notificationCreated ? `${latestNotificationRecords.length} 条` : "未生成"}
                   </p>
                 </div>
-                <div className="col-span-2 rounded-xl border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
+                <div className="col-span-2 rounded-[12px] border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
                   <p className="text-[color:var(--text-muted)]">报警 ID</p>
                   <p className="mt-1 break-all font-semibold text-[color:var(--text-primary)]">
                     {lastResult.alarmId ?? "无"}
@@ -568,7 +559,7 @@ export function DeviceSimulatorConsole({
             </div>
           ) : null}
 
-          <div className="mt-4 rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] p-4">
+          <div className="sf-metric-block mt-4 p-4">
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-sm font-semibold text-[color:var(--text-primary)]">该企业最新报警中心记录</h3>
               <span className="text-xs text-[color:var(--text-muted)]">{latestAlarms.length} 条</span>
@@ -576,7 +567,7 @@ export function DeviceSimulatorConsole({
             <div className="mt-3 space-y-2">
               {latestAlarms.length > 0 ? (
                 latestAlarms.map((alarm) => (
-                  <div key={alarm.id} className="rounded-xl border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
+                  <div key={alarm.id} className="rounded-[12px] border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-[color:var(--text-primary)]">{alarm.alarmType}</p>
@@ -588,7 +579,7 @@ export function DeviceSimulatorConsole({
                   </div>
                 ))
               ) : (
-                <div className="rounded-xl border border-dashed border-[color:var(--border)] px-3 py-4 text-center text-xs text-[color:var(--text-muted)]">
+                <div className="rounded-[12px] border border-dashed border-[color:var(--border)] px-3 py-4 text-center text-xs text-[color:var(--text-muted)]">
                   当前企业暂无报警中心记录。
                 </div>
               )}

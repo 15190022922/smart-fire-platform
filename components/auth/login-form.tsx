@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { AlertMessage } from "@/components/ui/alert-message";
+import { fieldClassName } from "@/components/ui/form-controls";
 
 const demoAccounts = [
   { scope: "平台管理端", username: "platform_admin", password: "Admin123456" },
@@ -51,7 +53,7 @@ export function LoginForm() {
   return (
     <div className="mx-auto grid min-h-screen max-w-6xl items-center gap-8 px-4 py-10 lg:grid-cols-[1fr_420px]">
       <section className="rounded-[32px] border border-[color:var(--border)] bg-[var(--surface)] p-8 shadow-[var(--panel-shadow)]">
-        <p className="text-xs uppercase tracking-[0.32em] text-sky-700">Smart Fire SaaS</p>
+        <p className="text-xs uppercase tracking-[0.32em] text-[color:var(--accent-strong)]">Smart Fire SaaS</p>
         <h1 className="mt-4 text-4xl font-semibold tracking-tight text-[color:var(--text-primary)]">
           智慧消防平台登录
         </h1>
@@ -94,7 +96,7 @@ export function LoginForm() {
             <input
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+              className={fieldClassName}
             />
           </label>
 
@@ -104,20 +106,18 @@ export function LoginForm() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+              className={fieldClassName}
             />
           </label>
 
           {error ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {error}
-            </div>
+            <AlertMessage tone="danger">{error}</AlertMessage>
           ) : null}
 
           <button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100 disabled:opacity-60"
+            className="sf-button sf-button-primary h-11 w-full px-4 text-sm disabled:opacity-60"
           >
             {isPending ? "登录中..." : "登录"}
           </button>

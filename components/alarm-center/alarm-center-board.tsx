@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
+import { AlertMessage } from "@/components/ui/alert-message";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { getTenantEventBus } from "@/lib/realtime/event-bus";
+import { normalizeWorkflowStatusText } from "@/packages/shared/src/legacy-text";
 import type { AlarmCenterItem, AlarmWorkflowStatus } from "@/types/ops";
 
 const PAGE_SIZE = 8;
@@ -13,8 +15,21 @@ const PAGE_SIZE = 8;
 const workflowOptions: AlarmWorkflowStatus[] = ["未处理", "已确认", "处理中", "已完成", "已关闭"];
 const inputClassName = "sf-input h-10 px-3 text-sm";
 
+function normalizeAlarmItem(alarm: AlarmCenterItem): AlarmCenterItem {
+  return {
+    ...alarm,
+    processStatus: normalizeWorkflowStatusText(alarm.processStatus),
+    workflowStatus: normalizeWorkflowStatusText(alarm.workflowStatus),
+    timeline: alarm.timeline.map((item) => ({
+      ...item,
+      fromStatus: normalizeWorkflowStatusText(item.fromStatus),
+      toStatus: normalizeWorkflowStatusText(item.toStatus),
+    })),
+  };
+}
+
 export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenterItem[] }) {
-  const safeInitialAlarms = Array.isArray(initialAlarms) ? initialAlarms : [];
+  const safeInitialAlarms = Array.isArray(initialAlarms) ? initialAlarms.map(normalizeAlarmItem) : [];
   const firstAlarm = safeInitialAlarms[0] ?? null;
   const [alarms, setAlarms] = useState(safeInitialAlarms);
   const [selectedAlarmId, setSelectedAlarmId] = useState(safeInitialAlarms[0]?.id ?? "");
@@ -61,7 +76,7 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
         const refreshed = await fetch("/api/tenant/alarm-center", { cache: "no-store" });
         if (!refreshed.ok) return;
         const data = (await refreshed.json()) as { alarms?: AlarmCenterItem[] };
-        setAlarms(Array.isArray(data.alarms) ? data.alarms : []);
+        setAlarms(Array.isArray(data.alarms) ? data.alarms.map(normalizeAlarmItem) : []);
       } while (pendingRefreshRef.current);
     } finally {
       isRefreshingRef.current = false;
@@ -307,9 +322,7 @@ export function AlarmCenterBoard({ initialAlarms }: { initialAlarms: AlarmCenter
                 </label>
 
                 {errorMessage ? (
-                  <p className="mt-3 rounded-[14px] border border-[color:rgba(176,72,79,0.18)] bg-[color:var(--danger-soft)] px-3 py-2 text-sm text-[color:var(--danger-strong)]">
-                    {errorMessage}
-                  </p>
+                  <AlertMessage tone="danger" className="mt-3 px-3 py-2">{errorMessage}</AlertMessage>
                 ) : null}
               </div>
 

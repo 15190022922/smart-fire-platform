@@ -14,24 +14,56 @@ import { getAlarmCenter, patchAlarmCenter } from "./modules/alarm/alarm-controll
 import { getAuditLogs } from "./modules/audit/audit-controller";
 import { getAuthSessionHandler } from "./modules/auth/auth-controller";
 import { resolveRequestContext } from "./modules/auth/auth-context";
-import { getDevices, postDevice, deleteDevice } from "./modules/devices/device-controller";
+import {
+  commitDeviceImport,
+  deleteDevice,
+  deleteDeviceAttribute,
+  getDeviceAttributes,
+  getDevices,
+  postDevice,
+  postDeviceAttribute,
+  previewDeviceLifecycle,
+  previewDeviceImport,
+  updateDeviceLifecycle,
+} from "./modules/devices/device-controller";
 import { getDutyCenter, patchDutyCenter, postDutySchedule } from "./modules/duty/duty-controller";
 import { getSystemHealth, getBackendHealth } from "./modules/health/health-controller";
 import { getTenantHistory } from "./modules/history/history-controller";
 import { getInspectionCenter, patchInspection, postInspection } from "./modules/inspection/inspection-controller";
 import { postIngestionEvent } from "./modules/ingestion/ingestion-controller";
 import { getNotificationCenter, patchNotificationCenter } from "./modules/notification/notification-controller";
+import {
+  deleteAdminPlatformNotice,
+  getAdminPlatformNotices,
+  getTenantPlatformNoticeDetail,
+  getTenantPlatformNotices,
+  patchTenantPlatformNoticeState,
+  patchAdminPlatformNotice,
+  postAdminPlatformNotice,
+  postAdminPlatformNoticeDraft,
+  publishAdminPlatformNoticeDraft,
+  reeditAdminPlatformNoticeDraft,
+  revokeAdminPlatformNotice,
+} from "./modules/platform-notices/platform-notice-controller";
 import { getPlatformOverview, getPlatformTenantScene, getPlatformTenants } from "./modules/platform/platform-controller";
 import { openRealtimeStream } from "./modules/realtime/realtime-controller";
 import {
   deleteTenantDevicePoint,
   deleteTenantDrawing,
+  deleteTenantFloor,
+  deleteTenantSpatialArea,
+  archiveTenantDrawing,
   getTenantDevicePoints,
   getTenantDrawings,
   getTenantOverview,
   getTenantSpatialModel,
+  patchTenantFloor,
+  patchTenantSpatialArea,
+  publishTenantDrawing,
   postTenantDevicePoint,
   postTenantDrawing,
+  postTenantFloor,
+  postTenantSpatialArea,
 } from "./modules/spatial/spatial-controller";
 import { getUsers, postUser, deleteUser } from "./modules/users/user-controller";
 
@@ -113,6 +145,43 @@ export function createBackendServer() {
         return;
       }
 
+      if (req.method === "GET" && url.pathname === "/api/admin/platform-notices") {
+        await getAdminPlatformNotices(res, context);
+        return;
+      }
+      if (req.method === "POST" && url.pathname === "/api/admin/platform-notices") {
+        await postAdminPlatformNotice(req, res, context);
+        return;
+      }
+      if (req.method === "POST" && url.pathname === "/api/admin/platform-notices/drafts") {
+        await postAdminPlatformNoticeDraft(req, res, context);
+        return;
+      }
+      const adminPlatformNoticePublishMatch = url.pathname.match(/^\/api\/admin\/platform-notices\/([^/]+)\/publish$/);
+      if (req.method === "POST" && adminPlatformNoticePublishMatch) {
+        await publishAdminPlatformNoticeDraft(req, res, context, decodeURIComponent(adminPlatformNoticePublishMatch[1]));
+        return;
+      }
+      const adminPlatformNoticeReeditMatch = url.pathname.match(/^\/api\/admin\/platform-notices\/([^/]+)\/reedit-draft$/);
+      if (req.method === "POST" && adminPlatformNoticeReeditMatch) {
+        await reeditAdminPlatformNoticeDraft(res, context, decodeURIComponent(adminPlatformNoticeReeditMatch[1]));
+        return;
+      }
+      const adminPlatformNoticeRevokeMatch = url.pathname.match(/^\/api\/admin\/platform-notices\/([^/]+)\/revoke$/);
+      if (req.method === "POST" && adminPlatformNoticeRevokeMatch) {
+        await revokeAdminPlatformNotice(req, res, context, decodeURIComponent(adminPlatformNoticeRevokeMatch[1]));
+        return;
+      }
+      const adminPlatformNoticeMatch = url.pathname.match(/^\/api\/admin\/platform-notices\/([^/]+)$/);
+      if (req.method === "PATCH" && adminPlatformNoticeMatch) {
+        await patchAdminPlatformNotice(req, res, context, decodeURIComponent(adminPlatformNoticeMatch[1]));
+        return;
+      }
+      if (req.method === "DELETE" && adminPlatformNoticeMatch) {
+        await deleteAdminPlatformNotice(res, context, decodeURIComponent(adminPlatformNoticeMatch[1]));
+        return;
+      }
+
       if (req.method === "POST" && url.pathname === "/api/ingestion/event") {
         await postIngestionEvent(req, res, context);
         return;
@@ -136,6 +205,21 @@ export function createBackendServer() {
         return;
       }
 
+      if (req.method === "GET" && url.pathname === "/api/tenant/platform-notices") {
+        await getTenantPlatformNotices(url, res, context);
+        return;
+      }
+      const tenantPlatformNoticeStateMatch = url.pathname.match(/^\/api\/tenant\/platform-notices\/([^/]+)\/state$/);
+      if (req.method === "PATCH" && tenantPlatformNoticeStateMatch) {
+        await patchTenantPlatformNoticeState(req, res, context, decodeURIComponent(tenantPlatformNoticeStateMatch[1]));
+        return;
+      }
+      const tenantPlatformNoticeMatch = url.pathname.match(/^\/api\/tenant\/platform-notices\/([^/]+)$/);
+      if (req.method === "GET" && tenantPlatformNoticeMatch) {
+        await getTenantPlatformNoticeDetail(res, context, decodeURIComponent(tenantPlatformNoticeMatch[1]));
+        return;
+      }
+
       if (req.method === "GET" && url.pathname === "/api/tenant/audit-log") {
         await getAuditLogs(res, context);
         return;
@@ -156,6 +240,32 @@ export function createBackendServer() {
         return;
       }
 
+      if (req.method === "POST" && url.pathname === "/api/tenant/spatial-areas") {
+        await postTenantSpatialArea(req, res, context);
+        return;
+      }
+      if (req.method === "PATCH" && /^\/api\/tenant\/spatial-areas\/[^/]+$/.test(url.pathname)) {
+        await patchTenantSpatialArea(req, res, context, url);
+        return;
+      }
+      if (req.method === "DELETE" && /^\/api\/tenant\/spatial-areas\/[^/]+$/.test(url.pathname)) {
+        await deleteTenantSpatialArea(res, context, url);
+        return;
+      }
+
+      if (req.method === "POST" && url.pathname === "/api/tenant/floors") {
+        await postTenantFloor(req, res, context);
+        return;
+      }
+      if (req.method === "PATCH" && /^\/api\/tenant\/floors\/[^/]+$/.test(url.pathname)) {
+        await patchTenantFloor(req, res, context, url);
+        return;
+      }
+      if (req.method === "DELETE" && /^\/api\/tenant\/floors\/[^/]+$/.test(url.pathname)) {
+        await deleteTenantFloor(res, context, url);
+        return;
+      }
+
       if (req.method === "GET" && url.pathname === "/api/tenant/history") {
         await getTenantHistory(res, context);
         return;
@@ -167,6 +277,14 @@ export function createBackendServer() {
       }
       if (req.method === "POST" && url.pathname === "/api/tenant/drawings") {
         await postTenantDrawing(req, res, context);
+        return;
+      }
+      if (req.method === "POST" && /^\/api\/tenant\/drawings\/[^/]+\/publish$/.test(url.pathname)) {
+        await publishTenantDrawing(url, res, context);
+        return;
+      }
+      if (req.method === "POST" && /^\/api\/tenant\/drawings\/[^/]+\/archive$/.test(url.pathname)) {
+        await archiveTenantDrawing(url, res, context);
         return;
       }
       if (req.method === "DELETE" && url.pathname === "/api/tenant/drawings") {
@@ -188,7 +306,15 @@ export function createBackendServer() {
       }
 
       if (req.method === "GET" && url.pathname === "/api/tenant/devices") {
-        await getDevices(res, context);
+        await getDevices(res, context, url);
+        return;
+      }
+      if (req.method === "POST" && url.pathname === "/api/tenant/devices/lifecycle/preview") {
+        await previewDeviceLifecycle(req, res, context);
+        return;
+      }
+      if (req.method === "PATCH" && url.pathname === "/api/tenant/devices/lifecycle") {
+        await updateDeviceLifecycle(req, res, context);
         return;
       }
       if (req.method === "POST" && url.pathname === "/api/tenant/devices") {
@@ -197,6 +323,28 @@ export function createBackendServer() {
       }
       if (req.method === "DELETE" && url.pathname === "/api/tenant/devices") {
         await deleteDevice(req, res, context, url);
+        return;
+      }
+
+      if (req.method === "GET" && url.pathname === "/api/tenant/device-attributes") {
+        await getDeviceAttributes(res, context);
+        return;
+      }
+      if (req.method === "POST" && url.pathname === "/api/tenant/device-attributes") {
+        await postDeviceAttribute(req, res, context);
+        return;
+      }
+      if (req.method === "DELETE" && url.pathname === "/api/tenant/device-attributes") {
+        await deleteDeviceAttribute(res, context, url);
+        return;
+      }
+
+      if (req.method === "POST" && url.pathname === "/api/tenant/device-import/preview") {
+        await previewDeviceImport(req, res, context);
+        return;
+      }
+      if (req.method === "POST" && url.pathname === "/api/tenant/device-import/commit") {
+        await commitDeviceImport(req, res, context);
         return;
       }
 

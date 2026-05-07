@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
+import { StatusBadge } from "@/components/status-badge";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { getTenantEventBus } from "@/lib/realtime/event-bus";
 import type { NotificationRecord, NotificationTemplateRecord } from "@/types/ops";
@@ -81,7 +82,7 @@ export function NotificationCenterBoard({
   return (
     <div className="space-y-2.5">
       <PageHeader
-        title="通知中心"
+        title="通知管理"
         subtitle="统一管理短信和站内通知模板、发送记录、通知等级、通知对象和失败重试。"
       />
 
@@ -96,12 +97,8 @@ export function NotificationCenterBoard({
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-[color:var(--text-primary)]">{template.name}</p>
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-sky-700">
-                      {template.channel === "sms" ? "短信" : "站内通知"}
-                    </span>
-                    <span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-rose-700">
-                      {template.level === "alarm" ? "报警" : "故障"}
-                    </span>
+                    <StatusBadge status={template.channel === "sms" ? "短信" : "站内通知"} />
+                    <StatusBadge status={template.level === "alarm" ? "报警" : "故障"} />
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-[color:var(--text-secondary)]">{template.templateText}</p>
@@ -126,9 +123,7 @@ export function NotificationCenterBoard({
           description="值守期间重点关注失败通知，必要时可手动重试。"
           extra={
             errorMessage ? (
-              <span className="rounded-full border border-[color:rgba(176,72,79,0.18)] bg-[color:var(--danger-soft)] px-3 py-1 text-xs text-[color:var(--danger-strong)]">
-                {errorMessage}
-              </span>
+              <StatusBadge status={errorMessage} tone="danger" />
             ) : null
           }
         >
@@ -147,17 +142,7 @@ export function NotificationCenterBoard({
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span
-                      className={`rounded-full border px-2.5 py-1 text-xs ${
-                        record.status === "sent"
-                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                          : record.status === "failed"
-                            ? "border-rose-200 bg-rose-50 text-rose-700"
-                            : "border-amber-200 bg-amber-50 text-amber-700"
-                      }`}
-                    >
-                      {record.status === "sent" ? "已发送" : record.status === "failed" ? "失败" : "排队中"}
-                    </span>
+                    <StatusBadge status={record.status === "sent" ? "已发送" : record.status === "failed" ? "失败" : "排队中"} />
                     {record.status === "failed" ? (
                       <button
                         type="button"

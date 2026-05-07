@@ -16,6 +16,25 @@ async function seedDemoCoreData(client) {
     ('tenant-anhe', '安和商业中心', 'AH-002', '商业综合体', '刘晓敏', '13800110002', '启用', '2026-02-15', '重点关注报警中心与大屏态势。')
     ON CONFLICT (id) DO NOTHING;
 
+    INSERT INTO tenant_device_attribute_definitions (
+      tenant_id, field_key, label, field_type, required, enabled, show_in_list, sort_order, is_core
+    )
+    SELECT t.id, d.field_key, d.label, d.field_type, d.required, d.enabled, d.show_in_list, d.sort_order, d.is_core
+    FROM tenants t
+    CROSS JOIN (
+      VALUES
+        ('deviceCode', '设备编码', 'text', TRUE, TRUE, TRUE, 10, TRUE),
+        ('name', '设备名称', 'text', TRUE, TRUE, TRUE, 20, TRUE),
+        ('type', '设备类型', 'text', TRUE, TRUE, TRUE, 30, TRUE),
+        ('area', '所属区域/楼层', 'text', TRUE, TRUE, TRUE, 40, TRUE),
+        ('installationLocation', '安装位置', 'text', TRUE, TRUE, TRUE, 50, TRUE),
+        ('installationStatus', '安装状态', 'text', FALSE, TRUE, TRUE, 60, TRUE),
+        ('status', '实时状态', 'text', FALSE, TRUE, TRUE, 70, TRUE),
+        ('lastReportAt', '最近上报时间', 'date', FALSE, TRUE, FALSE, 80, TRUE),
+        ('notes', '备注', 'text', FALSE, TRUE, FALSE, 90, TRUE)
+    ) AS d(field_key, label, field_type, required, enabled, show_in_list, sort_order, is_core)
+    ON CONFLICT (tenant_id, field_key) DO NOTHING;
+
     INSERT INTO plans (id, name, code, status, price_monthly, max_devices, max_users, sms_quota, feature_keys, description) VALUES
     ('plan-basic', '基础版', 'basic', '启用', 1999, 100, 20, 500, '["dashboard","alarm_center","device_management","user_management","settings"]'::jsonb, '适合中小型企业，覆盖基础监控、报警与设备管理能力。'),
     ('plan-pro', '专业版', 'pro', '启用', 4999, 500, 80, 3000, '["dashboard","alarm_center","device_management","user_management","settings","advanced_reports","maintenance"]'::jsonb, '提供高级报表与巡检维保，适合多园区、多班组企业。'),
@@ -127,6 +146,17 @@ async function seedDemoSpatialData(client) {
     ('point-ah-1', 'tenant-anhe', 'device-ah-1', 'floor-ah-main-1', 'drawing-ah-main-1', 0.51, 0.35, 0, 'smoke', 'normal', '2026-04-22 15:08:00'),
     ('point-ah-2', 'tenant-anhe', 'device-ah-2', 'floor-ah-g-2', 'drawing-ah-g-2', 0.68, 0.62, 0, 'button', 'offline', '2026-04-22 14:40:00')
     ON CONFLICT (id) DO NOTHING;
+
+    UPDATE tenant_drawings d
+    SET building_id = f.building_id
+    FROM tenant_floors f
+    WHERE d.tenant_id = f.tenant_id AND d.floor_id = f.id AND d.building_id = '';
+
+    UPDATE tenant_device_points p
+    SET building_id = COALESCE(NULLIF(d.building_id, ''), f.building_id, '')
+    FROM tenant_drawings d
+    LEFT JOIN tenant_floors f ON f.tenant_id = d.tenant_id AND f.id = d.floor_id
+    WHERE p.tenant_id = d.tenant_id AND p.drawing_id = d.id AND p.building_id = '';
 
     INSERT INTO raw_device_events (id, tenant_id, device_id, gateway_id, event_type, event_code, event_level, payload, reported_at) VALUES
     ('event-hx-1', 'tenant-huaxing', 'device-hx-1', 'gateway-hx-1', 'alarm', 'SMOKE_HIGH', 'critical', '{"smokeDensity": 86, "unit": "ppm"}'::jsonb, '2026-04-22 15:05:12'),

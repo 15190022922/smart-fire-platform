@@ -26,6 +26,7 @@ export type PermissionKey =
   | "platform.subscriptions.manage"
   | "platform.features.manage"
   | "platform.users.manage"
+  | "platform.notices.manage"
   | "platform.finance.view"
   | "tenant.dashboard.view"
   | "tenant.alarms.view"
@@ -37,43 +38,38 @@ export type PermissionKey =
   | "tenant.settings.manage"
   | "tenant.notifications.manage";
 
-export type TenantStatus = "启用" | "停用" | "鍚敤" | "鍋滅敤";
-export type PlanStatus = "启用" | "停用" | "鍚敤" | "鍋滅敤";
+export type TenantStatus = "启用" | "停用";
+export type PlanStatus = "启用" | "停用";
 export type SubscriptionStatus =
   | "试用中"
   | "已生效"
   | "已过期"
-  | "已停用"
-  | "璇曠敤涓?"
-  | "宸茬敓鏁?"
-  | "宸茶繃鏈?"
-  | "宸插仠鐢?";
-export type UserStatus = "启用" | "停用" | "鍚敤" | "鍋滅敤";
+  | "已停用";
+export type UserStatus = "启用" | "停用";
 export type DeviceStatus =
   | "正常"
   | "报警"
   | "故障"
   | "离线"
-  | "维修中"
-  | "姝ｅ父"
-  | "鎶ヨ"
-  | "鏁呴殰"
-  | "绂荤嚎"
-  | "缁翠慨涓?";
+  | "维修中";
+export type DeviceInstallationStatus = "已安装" | "未安装" | "停用" | "未知" | string;
+export type DeviceAttributeType = "auto" | "text" | "number" | "date" | "boolean";
+export type DeviceDuplicatePolicy = "skip" | "update" | "error";
+export type DeviceLifecycleStatus = "active" | "disabled";
+export type DeviceLifecycleFilter = DeviceLifecycleStatus | "all";
+export type DeviceLifecycleAction = "disable" | "restore";
+
 export type AlarmProcessStatus =
   | "未处理"
   | "处理中"
-  | "已处理"
-  | "鏈鐞?"
-  | "澶勭悊涓?"
-  | "宸插鐞?";
-export type NotificationType = "报警信息" | "故障信息" | "鎶ヨ淇℃伅" | "鏁呴殰淇℃伅";
+  | "已处理";
+export type NotificationType = "报警信息" | "故障信息";
 
 export type FeatureDefinition = {
   key: FeatureKey;
   name: string;
   description: string;
-  category: "基础能力" | "增值能力" | "鍩虹鑳藉姏" | "澧炲€艰兘鍔?";
+  category: "基础能力" | "增值能力";
 };
 
 export type RoleDefinition = {
@@ -144,14 +140,20 @@ export type TenantUserRecord = {
 export type TenantDeviceRecord = {
   id: string;
   tenantId: string;
+  deviceCode?: string;
   name: string;
   type: string;
   area: string;
   location: string;
   status: DeviceStatus;
+  installationStatus?: DeviceInstallationStatus;
   lastReportAt: string;
   installationLocation?: string;
   notes?: string;
+  customAttributes?: Record<string, string | number | boolean | null>;
+  lifecycleStatus?: DeviceLifecycleStatus;
+  disabledAt?: string;
+  disabledReason?: string;
   siteId?: string;
   buildingId?: string;
   floorId?: string;
@@ -159,6 +161,73 @@ export type TenantDeviceRecord = {
   modelCode?: string;
   protocolType?: string;
   serialNumber?: string;
+};
+
+export type TenantDeviceAttributeDefinition = {
+  tenantId: string;
+  fieldKey: string;
+  label: string;
+  fieldType: DeviceAttributeType;
+  required: boolean;
+  enabled: boolean;
+  showInList: boolean;
+  sortOrder: number;
+  isCore: boolean;
+};
+
+export type DeviceImportRow = {
+  rowNumber: number;
+  values: Record<string, string>;
+};
+
+export type DeviceImportError = {
+  rowNumber: number;
+  message: string;
+};
+
+export type DeviceImportPreview = {
+  fileName: string;
+  headers: string[];
+  rows: DeviceImportRow[];
+  previewRows: DeviceImportRow[];
+  totalRows: number;
+  importableRows: number;
+  duplicateRows: number;
+  errors: DeviceImportError[];
+  missingHeaders: string[];
+  unknownHeaders: string[];
+};
+
+export type DeviceLifecyclePreviewItem = {
+  deviceId: string;
+  deviceCode: string;
+  name: string;
+  lifecycleStatus: DeviceLifecycleStatus;
+  pointCount: number;
+  openAlarmCount: number;
+  rawEventCount: number;
+  maintenanceRecordCount: number;
+  canUpdate: boolean;
+  message: string;
+};
+
+export type DeviceLifecyclePreview = {
+  action: DeviceLifecycleAction;
+  total: number;
+  updateable: number;
+  skipped: number;
+  missing: number;
+  pointCount: number;
+  openAlarmCount: number;
+  rawEventCount: number;
+  maintenanceRecordCount: number;
+  devices: DeviceLifecyclePreviewItem[];
+};
+
+export type DeviceLifecycleCommitResult = DeviceLifecyclePreview & {
+  updated: number;
+  failed: number;
+  results: { deviceId: string; status: "updated" | "skipped" | "failed"; message: string }[];
 };
 
 export type TenantAlarmRecord = {

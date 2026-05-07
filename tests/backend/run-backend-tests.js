@@ -26,9 +26,11 @@ const {
   tenantDevicePointRepository,
   tenantDutyRepository,
   tenantDrawingRepository,
+  tenantFloorRepository,
   tenantInspectionRepository,
   tenantNotificationRepository,
   tenantOverviewRepository,
+  tenantSpatialAreaRepository,
   tenantUserRepository,
   tenantSceneRepository,
 } = require("../../apps/backend/.dist/packages/database/src/ops-repositories.js");
@@ -41,7 +43,7 @@ const projectRoot = path.resolve(__dirname, "..", "..");
 function encodeSession(session) {
   return Buffer.from(JSON.stringify(session), "utf8").toString("base64url");
 }
-const ISSUE_REVIEWED = "宸插鏌?";
+const ISSUE_REVIEWED = "已复查";
 
 async function runCase(name, fn) {
   try {
@@ -82,6 +84,7 @@ async function main() {
       const compatRoutes = [
         "app/api/admin/state/route.ts",
         "app/api/admin/tenants/route.ts",
+        "app/api/admin/platform-notices/route.ts",
         "app/api/platform/overview/route.ts",
         "app/api/platform/tenant-scene/route.ts",
         "app/api/platform/tenants/route.ts",
@@ -94,6 +97,7 @@ async function main() {
         "app/api/tenant/duty-center/route.ts",
         "app/api/tenant/inspection/route.ts",
         "app/api/tenant/notification-center/route.ts",
+        "app/api/tenant/platform-notices/route.ts",
         "app/api/tenant/overview/route.ts",
         "app/api/tenant/realtime-events/route.ts",
         "app/api/tenant/spatial-model/route.ts",
@@ -223,13 +227,16 @@ async function main() {
         method: "POST",
         body: JSON.stringify({
           id: deviceId,
+          deviceCode: deviceId,
           name: "itest-device-crud",
           type: "烟感探测器",
           area: "测试区域",
           installationLocation: "测试点位",
           status: "正常",
+          installationStatus: "已安装",
           lastReportAt: "",
           notes: "integration",
+          customAttributes: { alarmType: "火警" },
         }),
       });
       assert.equal(createDeviceResponse.status, 200);
@@ -237,6 +244,7 @@ async function main() {
       const listDevices = await apiFetch(harness.baseUrl, "/api/tenant/devices", { tenantId: "tenant-huaxing" });
       const devicesPayload = await listDevices.json();
       assert.ok(devicesPayload.devices.some((item) => item.id === deviceId));
+      assert.ok(devicesPayload.devices.some((item) => item.id === deviceId && item.deviceCode === deviceId));
       const snapshotRows = await readRows(
         "SELECT status, last_reported_at FROM device_status_snapshots WHERE tenant_id = $1 AND device_id = $2",
         ["tenant-huaxing", deviceId],
@@ -265,6 +273,203 @@ async function main() {
       assert.ok(usersPayload.users.some((item) => item.username === userName));
     });
 
+    await runCase("device lifecycle disable and restore hides realtime surfaces but preserves history", async () => {
+      const deviceId = "itest-device-lifecycle";
+      const pointId = "itest-point-lifecycle";
+      const eventId = "itest-disabled-event-1";
+
+      const createDeviceResponse = await apiFetch(harness.baseUrl, "/api/tenant/devices", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({
+          id: deviceId,
+          deviceCode: deviceId,
+          name: "itest-device-lifecycle",
+          type: "烟感探测器",
+          area: "测试区域",
+          installationLocation: "测试点位",
+          status: "正常",
+          installationStatus: "已安装",
+          lastReportAt: "",
+          notes: "integration",
+          customAttributes: {},
+        }),
+      });
+      assert.equal(createDeviceResponse.status, 200);
+
+      const drawingRows = await readRows(
+        "SELECT id, building_id, floor_id FROM tenant_drawings WHERE tenant_id = $1 AND building_id <> '' AND floor_id <> '' ORDER BY updated_at DESC LIMIT 1",
+        ["tenant-huaxing"],
+      );
+      assert.ok(drawingRows.length > 0);
+      const pointResponse = await apiFetch(harness.baseUrl, "/api/tenant/device-points", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({
+          id: pointId,
+          deviceId,
+          buildingId: drawingRows[0].building_id,
+          floorId: drawingRows[0].floor_id,
+          drawingId: drawingRows[0].id,
+          x: 0.21,
+          y: 0.34,
+          icon: "smoke",
+          statusStyle: "normal",
+        }),
+      });
+      assert.equal(pointResponse.status, 200);
+
+      const previewResponse = await apiFetch(harness.baseUrl, "/api/tenant/devices/lifecycle/preview", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({ action: "disable", deviceIds: [deviceId] }),
+      });
+      assert.equal(previewResponse.status, 200);
+      const preview = await previewResponse.json();
+      assert.equal(preview.updateable, 1);
+      assert.equal(preview.pointCount, 1);
+
+      const disableResponse = await apiFetch(harness.baseUrl, "/api/tenant/devices/lifecycle", {
+        tenantId: "tenant-huaxing",
+        method: "PATCH",
+        body: JSON.stringify({ action: "disable", deviceIds: [deviceId], reason: "integration disable" }),
+      });
+      assert.equal(disableResponse.status, 200);
+      const disablePayload = await disableResponse.json();
+      assert.equal(disablePayload.updated, 1);
+
+      const activeDevices = await (await apiFetch(harness.baseUrl, "/api/tenant/devices", { tenantId: "tenant-huaxing" })).json();
+      const disabledDevices = await (await apiFetch(harness.baseUrl, "/api/tenant/devices?lifecycle=disabled", { tenantId: "tenant-huaxing" })).json();
+      const allDevices = await (await apiFetch(harness.baseUrl, "/api/tenant/devices?lifecycle=all", { tenantId: "tenant-huaxing" })).json();
+      assert.ok(!activeDevices.devices.some((item) => item.id === deviceId));
+      assert.ok(disabledDevices.devices.some((item) => item.id === deviceId && item.lifecycleStatus === "disabled"));
+      assert.ok(allDevices.devices.some((item) => item.id === deviceId));
+
+      const overview = await tenantOverviewRepository.getOverview("tenant-huaxing");
+      const spatial = await tenantOverviewRepository.getSpatialModel("tenant-huaxing");
+      assert.ok(!overview.devices.some((item) => item.id === deviceId));
+      assert.ok(!spatial.devicePoints.some((item) => item.deviceId === deviceId));
+
+      const ingestResponse = await apiFetch(harness.baseUrl, "/api/ingestion/event", {
+        tenantId: "tenant-huaxing",
+        scope: "platform",
+        role: "platform_super_admin",
+        method: "POST",
+        body: JSON.stringify({
+          event_id: eventId,
+          tenant_id: "tenant-huaxing",
+          device_id: deviceId,
+          event_type: "alarm",
+          event_value: { smokeDensity: 96 },
+          event_time: new Date().toISOString(),
+        }),
+      });
+      assert.equal(ingestResponse.status, 200);
+      const ingestPayload = await ingestResponse.json();
+      assert.equal(ingestPayload.device_status, "ignored");
+      assert.equal(ingestPayload.workflow.ignored_due_to_disabled, true);
+      const ignoredRows = await readRows("SELECT processing_status, event_code FROM raw_device_events WHERE tenant_id = $1 AND device_id = $2 AND id = $3", [
+        "tenant-huaxing",
+        deviceId,
+        ingestPayload.raw_event_id,
+      ]);
+      assert.equal(ignoredRows.length, 1);
+      assert.equal(ignoredRows[0].processing_status, "ignored");
+      assert.equal(ignoredRows[0].event_code, "DEVICE_DISABLED_IGNORED");
+      const alarmRows = await readRows("SELECT id FROM tenant_alarms WHERE tenant_id = $1 AND device_id = $2", ["tenant-huaxing", deviceId]);
+      assert.equal(alarmRows.length, 0);
+
+      const restoreResponse = await apiFetch(harness.baseUrl, "/api/tenant/devices/lifecycle", {
+        tenantId: "tenant-huaxing",
+        method: "PATCH",
+        body: JSON.stringify({ action: "restore", deviceIds: [deviceId] }),
+      });
+      assert.equal(restoreResponse.status, 200);
+      const restorePayload = await restoreResponse.json();
+      assert.equal(restorePayload.updated, 1);
+
+      const restoredDevices = await (await apiFetch(harness.baseUrl, "/api/tenant/devices", { tenantId: "tenant-huaxing" })).json();
+      const restoredSpatial = await tenantOverviewRepository.getSpatialModel("tenant-huaxing");
+      assert.ok(restoredDevices.devices.some((item) => item.id === deviceId && item.lifecycleStatus === "active"));
+      assert.ok(restoredSpatial.devicePoints.some((item) => item.deviceId === deviceId));
+    });
+
+    await runCase("device attributes and import APIs support configured custom fields", async () => {
+      const attributesResponse = await apiFetch(harness.baseUrl, "/api/tenant/device-attributes", { tenantId: "tenant-huaxing" });
+      assert.equal(attributesResponse.status, 200);
+      const attributesPayload = await attributesResponse.json();
+      assert.ok(attributesPayload.attributes.some((item) => item.fieldKey === "deviceCode"));
+
+      const unknownPreviewResponse = await apiFetch(harness.baseUrl, "/api/tenant/device-import/preview", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({
+          fileName: "itest.xlsx",
+          headers: ["设备编码", "设备名称", "未配置字段"],
+          rows: [{ rowNumber: 2, values: { 设备编码: "itest-import-unknown", 设备名称: "itest-import-unknown", 未配置字段: "x" } }],
+        }),
+      });
+      assert.equal(unknownPreviewResponse.status, 200);
+      const unknownPreviewPayload = await unknownPreviewResponse.json();
+      assert.ok(unknownPreviewPayload.unknownHeaders.includes("未配置字段"));
+      assert.equal(unknownPreviewPayload.importableRows, 0);
+
+      const addAttributeResponse = await apiFetch(harness.baseUrl, "/api/tenant/device-attributes", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({ label: "itest-报警类型", fieldType: "text", required: false, showInList: true, sortOrder: 120 }),
+      });
+      assert.equal(addAttributeResponse.status, 200);
+      const addedAttributePayload = await addAttributeResponse.json();
+
+      const importRows = [
+        {
+          rowNumber: 2,
+          values: {
+            设备编码: "itest-import-device-1",
+            设备名称: "itest-import-device-1",
+            设备类型: "烟感探测器",
+            "所属区域/楼层": "导入测试区",
+            安装位置: "导入点位",
+            "itest-报警类型": "火警",
+          },
+        },
+      ];
+
+      const commitResponse = await apiFetch(harness.baseUrl, "/api/tenant/device-import/commit", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({ fileName: "itest.xlsx", headers: Object.keys(importRows[0].values), rows: importRows, duplicatePolicy: "error" }),
+      });
+      assert.equal(commitResponse.status, 200);
+      const commitPayload = await commitResponse.json();
+      assert.equal(commitPayload.created, 1);
+
+      const duplicateErrorPayload = await (
+        await apiFetch(harness.baseUrl, "/api/tenant/device-import/commit", {
+          tenantId: "tenant-huaxing",
+          method: "POST",
+          body: JSON.stringify({ fileName: "itest.xlsx", headers: Object.keys(importRows[0].values), rows: importRows, duplicatePolicy: "error" }),
+        })
+      ).json();
+      assert.ok(duplicateErrorPayload.errors.some((item) => item.message.includes("已存在")));
+
+      const updateRows = [{ rowNumber: 2, values: { ...importRows[0].values, 设备名称: "itest-import-device-1-updated", "itest-报警类型": "监管" } }];
+      const updatePayload = await (
+        await apiFetch(harness.baseUrl, "/api/tenant/device-import/commit", {
+          tenantId: "tenant-huaxing",
+          method: "POST",
+          body: JSON.stringify({ fileName: "itest.xlsx", headers: Object.keys(updateRows[0].values), rows: updateRows, duplicatePolicy: "update" }),
+        })
+      ).json();
+      assert.equal(updatePayload.updated, 1);
+
+      const devicesPayload = await (await apiFetch(harness.baseUrl, "/api/tenant/devices", { tenantId: "tenant-huaxing" })).json();
+      const imported = devicesPayload.devices.find((item) => item.deviceCode === "itest-import-device-1");
+      assert.equal(imported.name, "itest-import-device-1-updated");
+      assert.equal(imported.customAttributes[addedAttributePayload.attribute.fieldKey], "监管");
+    });
+
     await runCase("repositories enforce tenant isolation for devices and users", async () => {
       await ensureTestDevice({ tenantId: "tenant-huaxing", deviceId: "itest-device-tenant-a", name: "itest-device-tenant-a" });
       await ensureTestDevice({ tenantId: "tenant-anhe", deviceId: "itest-device-tenant-b", name: "itest-device-tenant-b" });
@@ -274,7 +479,7 @@ async function main() {
         username: "itest_user_tenant_a",
         phone: "13900000011",
         roleKey: "tenant_level_2",
-        status: "鍚敤",
+        status: "启用",
         smsEnabled: false,
         messageTypes: [],
         note: "repository-test",
@@ -284,7 +489,7 @@ async function main() {
         username: "itest_user_tenant_b",
         phone: "13900000012",
         roleKey: "tenant_level_2",
-        status: "鍚敤",
+        status: "启用",
         smsEnabled: false,
         messageTypes: [],
         note: "repository-test",
@@ -517,14 +722,62 @@ async function main() {
       const createdDrawing = await tenantDrawingRepository.create("tenant-huaxing", {
         floorId: "floor-hx-a-1",
         name: "itest-drawing-crud",
-        fileUrl: "/drawings/itest-drawing-crud.png",
+        fileUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/itest-drawing-crud.png",
+        fileType: "image",
+        sourceFileUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/itest-drawing-crud.png",
+        previewUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/itest-drawing-crud.png",
+        originalFileName: "itest-drawing-crud.png",
+        fileSize: 128,
         width: 1280,
         height: 720,
         version: "v2.0",
+        status: "draft",
         operatorName: "itest_operator",
         operatorRole: "tenant_level_1",
       });
       assert.equal(createdDrawing.tenantId, "tenant-huaxing");
+      assert.equal(createdDrawing.status, "draft");
+      assert.equal(createdDrawing.fileType, "image");
+      assert.equal(createdDrawing.previewUrl, createdDrawing.fileUrl);
+      assert.equal(createdDrawing.processingStatus, "ready");
+      assert.equal(createdDrawing.sceneUrl, createdDrawing.fileUrl);
+
+      const publishedDrawing = await tenantDrawingRepository.updateStatus("tenant-huaxing", createdDrawing.id, "published", {
+        operatorName: "itest_operator",
+        operatorRole: "tenant_level_1",
+      });
+      assert.equal(publishedDrawing.status, "published");
+      assert.ok(publishedDrawing.publishedAt);
+
+      const archivedDrawing = await tenantDrawingRepository.updateStatus("tenant-huaxing", createdDrawing.id, "archived", {
+        operatorName: "itest_operator",
+        operatorRole: "tenant_level_1",
+      });
+      assert.equal(archivedDrawing.status, "archived");
+
+      const failedPdfDrawing = await tenantDrawingRepository.create("tenant-huaxing", {
+        floorId: "floor-hx-a-1",
+        name: "itest-drawing-pdf-failed",
+        fileUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/itest-broken.pdf",
+        fileType: "pdf",
+        sourceFileUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/itest-broken.pdf",
+        previewUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/itest-broken.pdf",
+        sceneUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/itest-broken.pdf",
+        originalFileName: "itest-broken.pdf",
+        fileSize: 512,
+        processingStatus: "failed",
+        processingMessage: "itest pdf preview unavailable",
+        conversionLog: ["uploaded", "pdf preview missing"],
+        width: 1600,
+        height: 900,
+        version: "v1.0",
+        status: "draft",
+        operatorName: "itest_operator",
+        operatorRole: "tenant_level_1",
+      });
+      assert.equal(failedPdfDrawing.fileType, "pdf");
+      assert.equal(failedPdfDrawing.processingStatus, "failed");
+      assert.ok(failedPdfDrawing.conversionLog.includes("pdf preview missing"));
 
       const createdPoint = await tenantDevicePointRepository.upsert("tenant-huaxing", {
         deviceId: "itest-device-point-crud",
@@ -547,6 +800,43 @@ async function main() {
     });
 
     await runCase("drawings and device-points backend endpoints return tenant-scoped data", async () => {
+      const endpointDrawingResponse = await apiFetch(harness.baseUrl, "/api/tenant/drawings", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({
+          floorId: "floor-hx-a-1",
+          name: "itest-drawing-endpoint-status",
+          fileUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/endpoint.pdf",
+          fileType: "pdf",
+          sourceFileUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/endpoint.pdf",
+          previewUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/endpoint.pdf",
+          originalFileName: "endpoint.pdf",
+          fileSize: 256,
+          width: 1000,
+          height: 1414,
+          version: "v1.0",
+          status: "draft",
+        }),
+      });
+      assert.equal(endpointDrawingResponse.status, 200);
+      const endpointDrawing = (await endpointDrawingResponse.json()).drawing;
+      assert.equal(endpointDrawing.fileType, "pdf");
+      assert.equal(endpointDrawing.status, "draft");
+
+      const publishResponse = await apiFetch(harness.baseUrl, `/api/tenant/drawings/${endpointDrawing.id}/publish`, {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+      });
+      assert.equal(publishResponse.status, 200);
+      assert.equal((await publishResponse.json()).drawing.status, "published");
+
+      const archiveResponse = await apiFetch(harness.baseUrl, `/api/tenant/drawings/${endpointDrawing.id}/archive`, {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+      });
+      assert.equal(archiveResponse.status, 200);
+      assert.equal((await archiveResponse.json()).drawing.status, "archived");
+
       const drawingsResponse = await apiFetch(harness.baseUrl, "/api/tenant/drawings", { tenantId: "tenant-huaxing" });
       const drawingsPayload = await drawingsResponse.json();
       assert.equal(drawingsResponse.status, 200);
@@ -558,6 +848,221 @@ async function main() {
       assert.equal(pointsResponse.status, 200);
       assert.ok(Array.isArray(pointsPayload.points));
       assert.ok(pointsPayload.points.every((item) => item.tenantId === "tenant-huaxing"));
+    });
+
+    await runCase("spatial area and floor endpoints support no-floor drawings and delete guards", async () => {
+      const floorAreaResponse = await apiFetch(harness.baseUrl, "/api/tenant/spatial-areas", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({
+          name: "itest-floor-area",
+          code: "ITEST-F",
+          areaType: "factory",
+          hasFloors: true,
+          sortOrder: 98,
+          status: "active",
+        }),
+      });
+      assert.equal(floorAreaResponse.status, 200);
+      const floorArea = (await floorAreaResponse.json()).area;
+
+      const floorResponse = await apiFetch(harness.baseUrl, "/api/tenant/floors", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({
+          buildingId: floorArea.id,
+          name: "itest-1F",
+          code: "ITEST-1F",
+          levelIndex: 1,
+          sortOrder: 1,
+          status: "active",
+        }),
+      });
+      assert.equal(floorResponse.status, 200);
+      const floor = (await floorResponse.json()).floor;
+      assert.equal(floor.buildingId, floorArea.id);
+
+      const patchFloorResponse = await apiFetch(harness.baseUrl, `/api/tenant/floors/${floor.id}`, {
+        tenantId: "tenant-huaxing",
+        method: "PATCH",
+        body: JSON.stringify({ name: "itest-1F-renamed", sortOrder: 2 }),
+      });
+      assert.equal(patchFloorResponse.status, 200);
+      assert.equal((await patchFloorResponse.json()).floor.name, "itest-1F-renamed");
+
+      const deleteFloorResponse = await apiFetch(harness.baseUrl, `/api/tenant/floors/${floor.id}`, {
+        tenantId: "tenant-huaxing",
+        method: "DELETE",
+      });
+      assert.equal(deleteFloorResponse.status, 200);
+      const deleteFloorAreaResponse = await apiFetch(harness.baseUrl, `/api/tenant/spatial-areas/${floorArea.id}`, {
+        tenantId: "tenant-huaxing",
+        method: "DELETE",
+      });
+      assert.equal(deleteFloorAreaResponse.status, 200);
+
+      const areaResponse = await apiFetch(harness.baseUrl, "/api/tenant/spatial-areas", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({
+          name: "itest-no-floor-area",
+          code: "ITEST-NF",
+          areaType: "outdoor",
+          hasFloors: false,
+          sortOrder: 99,
+          status: "active",
+          description: "integration no-floor area",
+        }),
+      });
+      assert.equal(areaResponse.status, 200);
+      const area = (await areaResponse.json()).area;
+      assert.equal(area.hasFloors, false);
+
+      const deviceId = "itest-device-no-floor-point";
+      await ensureTestDevice({ tenantId: "tenant-huaxing", deviceId, name: "itest-device-no-floor-point" });
+
+      const drawing = await tenantDrawingRepository.create("tenant-huaxing", {
+        buildingId: area.id,
+        name: "itest-area-plane",
+        fileUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/area-plane.png",
+        fileType: "image",
+        width: 1200,
+        height: 800,
+        version: "v1.0",
+        status: "draft",
+        operatorName: "itest_operator",
+        operatorRole: "tenant_level_1",
+      });
+      assert.equal(drawing.buildingId, area.id);
+      assert.equal(drawing.floorId, "");
+
+      const point = await tenantDevicePointRepository.upsert("tenant-huaxing", {
+        deviceId,
+        buildingId: area.id,
+        drawingId: drawing.id,
+        x: 0.25,
+        y: 0.75,
+        icon: "sensor",
+        operatorName: "itest_operator",
+        operatorRole: "tenant_level_1",
+      });
+      assert.equal(point.buildingId, area.id);
+      assert.equal(point.floorId, "");
+
+      const guardedDelete = await apiFetch(harness.baseUrl, `/api/tenant/spatial-areas/${area.id}`, {
+        tenantId: "tenant-huaxing",
+        method: "DELETE",
+      });
+      assert.equal(guardedDelete.status, 400);
+
+      await tenantDrawingRepository.remove("tenant-huaxing", drawing.id, {
+        operatorName: "itest_operator",
+        operatorRole: "tenant_level_1",
+      });
+      const finalDelete = await apiFetch(harness.baseUrl, `/api/tenant/spatial-areas/${area.id}`, {
+        tenantId: "tenant-huaxing",
+        method: "DELETE",
+      });
+      assert.equal(finalDelete.status, 200);
+    });
+
+    await runCase("spatial area endpoint can save floor configuration transactionally", async () => {
+      const areaResponse = await apiFetch(harness.baseUrl, "/api/tenant/spatial-areas", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({
+          name: "itest-bundled-floor-area",
+          code: "ITEST-BF",
+          areaType: "factory",
+          hasFloors: true,
+          sortOrder: 97,
+          status: "active",
+          floors: [
+            { name: "itest-bundled-1F", code: "ITEST-BF-1", levelIndex: 1, sortOrder: 1, status: "active" },
+            { name: "itest-bundled-2F", code: "ITEST-BF-2", levelIndex: 2, sortOrder: 2, status: "inactive" },
+          ],
+        }),
+      });
+      assert.equal(areaResponse.status, 200);
+      const areaPayload = await areaResponse.json();
+      const area = areaPayload.area;
+      assert.equal(area.hasFloors, true);
+      assert.equal(areaPayload.floors.length, 2);
+
+      const firstFloor = areaPayload.floors.find((floor) => floor.name === "itest-bundled-1F");
+      const secondFloor = areaPayload.floors.find((floor) => floor.name === "itest-bundled-2F");
+      assert.ok(firstFloor?.id);
+      assert.ok(secondFloor?.id);
+
+      const patchResponse = await apiFetch(harness.baseUrl, `/api/tenant/spatial-areas/${area.id}`, {
+        tenantId: "tenant-huaxing",
+        method: "PATCH",
+        body: JSON.stringify({
+          name: "itest-bundled-floor-area-renamed",
+          hasFloors: true,
+          floors: [
+            {
+              id: firstFloor.id,
+              name: "itest-bundled-1F-renamed",
+              code: firstFloor.code,
+              levelIndex: 1,
+              sortOrder: 1,
+              status: "active",
+            },
+          ],
+          deletedFloorIds: [secondFloor.id],
+        }),
+      });
+      assert.equal(patchResponse.status, 200);
+      const patchPayload = await patchResponse.json();
+      assert.equal(patchPayload.area.name, "itest-bundled-floor-area-renamed");
+      assert.equal(patchPayload.floors.length, 1);
+      assert.equal(patchPayload.floors[0].name, "itest-bundled-1F-renamed");
+
+      const guardedDrawing = await tenantDrawingRepository.create("tenant-huaxing", {
+        floorId: firstFloor.id,
+        name: "itest-bundled-floor-guard",
+        fileUrl: "/api/tenant/drawing-files/tenant-huaxing/itest/bundled-floor-guard.png",
+        fileType: "image",
+        width: 800,
+        height: 600,
+        version: "v1.0",
+        status: "draft",
+        operatorName: "itest_operator",
+        operatorRole: "tenant_level_1",
+      });
+      const guardedPatch = await apiFetch(harness.baseUrl, `/api/tenant/spatial-areas/${area.id}`, {
+        tenantId: "tenant-huaxing",
+        method: "PATCH",
+        body: JSON.stringify({
+          hasFloors: false,
+          deletedFloorIds: [firstFloor.id],
+        }),
+      });
+      assert.equal(guardedPatch.status, 400);
+
+      await tenantDrawingRepository.remove("tenant-huaxing", guardedDrawing.id, {
+        operatorName: "itest_operator",
+        operatorRole: "tenant_level_1",
+      });
+      const noFloorPatch = await apiFetch(harness.baseUrl, `/api/tenant/spatial-areas/${area.id}`, {
+        tenantId: "tenant-huaxing",
+        method: "PATCH",
+        body: JSON.stringify({
+          hasFloors: false,
+          deletedFloorIds: [firstFloor.id],
+        }),
+      });
+      assert.equal(noFloorPatch.status, 200);
+      const noFloorPayload = await noFloorPatch.json();
+      assert.equal(noFloorPayload.area.hasFloors, false);
+      assert.equal(noFloorPayload.floors.length, 0);
+
+      const deleteAreaResponse = await apiFetch(harness.baseUrl, `/api/tenant/spatial-areas/${area.id}`, {
+        tenantId: "tenant-huaxing",
+        method: "DELETE",
+      });
+      assert.equal(deleteAreaResponse.status, 200);
     });
 
     await runCase("deleting a drawing cascades device-point deletion transactionally", async () => {
@@ -872,6 +1377,207 @@ async function main() {
 
       const centerData = await tenantNotificationRepository.getCenterData("tenant-huaxing");
       assert.ok(centerData.records.some((item) => item.id === failedRecord.id && item.status === "sent"));
+    });
+
+    await runCase("platform notices publish to all or selected tenants without touching alarm notifications", async () => {
+      const beforeNotificationRecords = await readRows("SELECT COUNT(*)::int AS count FROM notification_records");
+      const beforeNotificationTemplates = await readRows("SELECT COUNT(*)::int AS count FROM notification_templates");
+
+      const allTitle = `itest-platform-notice-all-${Date.now()}`;
+      const allResponse = await apiFetch(harness.baseUrl, "/api/admin/platform-notices", {
+        tenantId: "",
+        scope: "platform",
+        role: "platform_super_admin",
+        method: "POST",
+        body: JSON.stringify({
+          title: allTitle,
+          content: "integration all tenants",
+          level: "warning",
+          targetMode: "all",
+          attachments: [
+            {
+              id: "itest-platform-notice-attachment",
+              name: "itest-platform-notice.pdf",
+              url: "/api/platform-notice-files/itest/itest-platform-notice.pdf",
+              size: 2048,
+              contentType: "application/pdf",
+            },
+          ],
+        }),
+      });
+      assert.equal(allResponse.status, 200);
+      const allPayload = await allResponse.json();
+      assert.ok(allPayload.notice);
+      assert.ok(allPayload.notice.targetTenantCount >= 2);
+      assert.equal(allPayload.notice.attachments.length, 1);
+
+      const tenantCountRows = await readRows("SELECT COUNT(*)::int AS count FROM tenants");
+      const allDeliveryRows = await readRows(
+        `SELECT delivery.tenant_id
+         FROM platform_notice_deliveries delivery
+         INNER JOIN platform_notices notice ON notice.id = delivery.notice_id
+         WHERE notice.title = $1`,
+        [allTitle],
+      );
+      assert.equal(allDeliveryRows.length, tenantCountRows[0].count);
+
+      const selectedTitle = `itest-platform-notice-selected-${Date.now()}`;
+      const selectedResponse = await apiFetch(harness.baseUrl, "/api/admin/platform-notices", {
+        tenantId: "",
+        scope: "platform",
+        role: "platform_super_admin",
+        method: "POST",
+        body: JSON.stringify({
+          title: selectedTitle,
+          content: "integration selected tenant",
+          level: "critical",
+          targetMode: "selected",
+          tenantIds: ["tenant-anhe"],
+        }),
+      });
+      assert.equal(selectedResponse.status, 200);
+      const selectedPayload = await selectedResponse.json();
+      assert.equal(selectedPayload.notice.targetTenantCount, 1);
+
+      const huaxingNotices = await (
+        await apiFetch(harness.baseUrl, "/api/tenant/platform-notices", { tenantId: "tenant-huaxing" })
+      ).json();
+      assert.ok(huaxingNotices.notices.some((item) => item.title === allTitle));
+      assert.ok(
+        huaxingNotices.notices.some(
+          (item) =>
+            item.title === allTitle &&
+            item.attachments.some((attachment) => attachment.name === "itest-platform-notice.pdf"),
+        ),
+      );
+      assert.ok(!huaxingNotices.notices.some((item) => item.title === selectedTitle));
+
+      const anheNotices = await (
+        await apiFetch(harness.baseUrl, "/api/tenant/platform-notices", { tenantId: "tenant-anhe" })
+      ).json();
+      assert.ok(anheNotices.notices.some((item) => item.title === selectedTitle));
+
+      const draftTitle = `itest-platform-notice-draft-${Date.now()}`;
+      const draftResponse = await apiFetch(harness.baseUrl, "/api/admin/platform-notices/drafts", {
+        tenantId: "",
+        scope: "platform",
+        role: "platform_super_admin",
+        method: "POST",
+        body: JSON.stringify({
+          title: draftTitle,
+          content: "draft before publish",
+          level: "info",
+          targetMode: "selected",
+          tenantIds: ["tenant-huaxing"],
+          attachments: [
+            {
+              id: `itest-platform-notice-draft-attachment-${Date.now()}`,
+              name: "itest-platform-notice-draft.pdf",
+              url: "/api/platform-notice-files/itest/itest-platform-notice-draft.pdf",
+              size: 4096,
+              contentType: "application/pdf",
+            },
+          ],
+        }),
+      });
+      assert.equal(draftResponse.status, 200);
+      const draftPayload = await draftResponse.json();
+      assert.equal(draftPayload.notice.status, "draft");
+      assert.equal(draftPayload.notice.attachments.length, 1);
+      assert.deepEqual(draftPayload.notice.targetTenantIds, ["tenant-huaxing"]);
+
+      const draftDeliveryRows = await readRows("SELECT * FROM platform_notice_deliveries WHERE notice_id = $1", [
+        draftPayload.notice.id,
+      ]);
+      assert.equal(draftDeliveryRows.length, 0);
+      const huaxingBeforeDraftPublish = await (
+        await apiFetch(harness.baseUrl, "/api/tenant/platform-notices", { tenantId: "tenant-huaxing" })
+      ).json();
+      assert.ok(!huaxingBeforeDraftPublish.notices.some((item) => item.title === draftTitle));
+
+      const updatedDraftResponse = await apiFetch(
+        harness.baseUrl,
+        `/api/admin/platform-notices/${encodeURIComponent(draftPayload.notice.id)}`,
+        {
+          tenantId: "",
+          scope: "platform",
+          role: "platform_super_admin",
+          method: "PATCH",
+          body: JSON.stringify({
+            title: `${draftTitle}-updated`,
+            content: "draft updated before publish",
+            level: "warning",
+            targetMode: "selected",
+            tenantIds: ["tenant-huaxing"],
+            attachmentIds: draftPayload.notice.attachments.map((item) => item.id),
+          }),
+        },
+      );
+      assert.equal(updatedDraftResponse.status, 200);
+      const updatedDraftPayload = await updatedDraftResponse.json();
+      assert.equal(updatedDraftPayload.notice.status, "draft");
+      assert.equal(updatedDraftPayload.notice.attachments[0].name, "itest-platform-notice-draft.pdf");
+
+      const publishDraftResponse = await apiFetch(
+        harness.baseUrl,
+        `/api/admin/platform-notices/${encodeURIComponent(draftPayload.notice.id)}/publish`,
+        {
+          tenantId: "",
+          scope: "platform",
+          role: "platform_super_admin",
+          method: "POST",
+          body: JSON.stringify({ requestId: `itest-draft-publish-${Date.now()}` }),
+        },
+      );
+      assert.equal(publishDraftResponse.status, 200);
+      const publishDraftPayload = await publishDraftResponse.json();
+      assert.equal(publishDraftPayload.notice.status, "sent");
+      assert.equal(publishDraftPayload.notice.targetTenantCount, 1);
+      const huaxingAfterDraftPublish = await (
+        await apiFetch(harness.baseUrl, "/api/tenant/platform-notices", { tenantId: "tenant-huaxing" })
+      ).json();
+      assert.ok(huaxingAfterDraftPublish.notices.some((item) => item.title === `${draftTitle}-updated`));
+
+      const reeditResponse = await apiFetch(
+        harness.baseUrl,
+        `/api/admin/platform-notices/${encodeURIComponent(selectedPayload.notice.id)}/reedit-draft`,
+        {
+          tenantId: "",
+          scope: "platform",
+          role: "platform_super_admin",
+          method: "POST",
+        },
+      );
+      assert.equal(reeditResponse.status, 200);
+      const reeditPayload = await reeditResponse.json();
+      assert.equal(reeditPayload.notice.status, "draft");
+      assert.equal(reeditPayload.notice.title, selectedTitle);
+      assert.deepEqual(reeditPayload.notice.targetTenantIds, ["tenant-anhe"]);
+
+      const selectedAfterReeditRows = await readRows("SELECT status FROM platform_notices WHERE id = $1", [
+        selectedPayload.notice.id,
+      ]);
+      assert.equal(selectedAfterReeditRows[0].status, "revoked");
+      const anheAfterReedit = await (
+        await apiFetch(harness.baseUrl, "/api/tenant/platform-notices", { tenantId: "tenant-anhe" })
+      ).json();
+      assert.ok(!anheAfterReedit.notices.some((item) => item.title === selectedTitle));
+
+      const forbiddenResponse = await apiFetch(harness.baseUrl, "/api/admin/platform-notices", {
+        tenantId: "tenant-huaxing",
+        method: "POST",
+        body: JSON.stringify({
+          title: "itest-platform-notice-forbidden",
+          content: "should not publish",
+          targetMode: "all",
+        }),
+      });
+      assert.equal(forbiddenResponse.status, 403);
+
+      const afterNotificationRecords = await readRows("SELECT COUNT(*)::int AS count FROM notification_records");
+      const afterNotificationTemplates = await readRows("SELECT COUNT(*)::int AS count FROM notification_templates");
+      assert.equal(afterNotificationRecords[0].count, beforeNotificationRecords[0].count);
+      assert.equal(afterNotificationTemplates[0].count, beforeNotificationTemplates[0].count);
     });
 
     await runCase("duty-center and inspection endpoints are backend-driven", async () => {

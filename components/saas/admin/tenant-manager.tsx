@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { Dialog } from "@/components/ui/dialog";
+import { AlertMessage } from "@/components/ui/alert-message";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
@@ -41,6 +43,7 @@ const emptyForm: TenantFormState = {
 };
 
 export function TenantManager() {
+  const { confirmDialog } = useConfirmDialog();
   const {
     tenants,
     setTenants,
@@ -207,7 +210,13 @@ export function TenantManager() {
   }
 
   async function removeTenant(tenant: TenantRecord) {
-    if (!window.confirm(`确认删除企业“${tenant.name}”吗？该企业下的账号和数据也会一并删除。`)) {
+    const result = await confirmDialog({
+      title: "删除企业",
+      description: `确认删除企业“${tenant.name}”吗？该企业下的账号和数据也会一并删除。`,
+      confirmLabel: "删除",
+      tone: "danger",
+    });
+    if (result !== "confirm") {
       return;
     }
 
@@ -478,9 +487,9 @@ export function TenantManager() {
             ) : null}
 
             {error ? (
-              <div className="rounded-[14px] border border-[color:rgba(176,72,79,0.18)] bg-[color:var(--danger-soft)] px-4 py-3 text-sm text-[color:var(--danger-strong)] md:col-span-2">
+              <AlertMessage tone="danger" className="md:col-span-2">
                 {error}
-              </div>
+              </AlertMessage>
             ) : null}
           </div>
         </Dialog>

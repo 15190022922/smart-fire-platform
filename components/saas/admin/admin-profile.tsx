@@ -3,10 +3,8 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
+import { fieldClassName as baseFieldClassName } from "@/components/ui/form-controls";
 import { useToast } from "@/components/ui/toast-center";
-
-const baseInputClassName =
-  "w-full rounded-2xl border border-[color:var(--field-border)] bg-[var(--field-bg)] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100";
 
 type PasswordErrors = Partial<Record<"currentPassword" | "nextPassword" | "confirmPassword", string>>;
 
@@ -14,13 +12,13 @@ function requiredLabel(label: string) {
   return (
     <span className="flex items-center gap-1 text-sm text-[color:var(--text-secondary)]">
       {label}
-      <span className="text-rose-500">*</span>
+      <span className="text-[color:var(--danger-strong)]">*</span>
     </span>
   );
 }
 
 function inputClassName(hasError: boolean) {
-  return `${baseInputClassName} ${hasError ? "border-rose-300 text-rose-700 focus:border-rose-300 focus:ring-rose-100" : ""}`;
+  return `${baseFieldClassName} ${hasError ? "border-[color:var(--danger)] text-[color:var(--danger-strong)] focus:border-[color:var(--danger)]" : ""}`;
 }
 
 export function AdminProfile() {
@@ -74,15 +72,15 @@ export function AdminProfile() {
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <SectionCard title="管理员信息" description="当前平台只有唯一管理员账号，不再支持多管理员切换。">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4">
+            <div className="sf-metric-block px-4 py-4">
               <p className="text-sm text-[color:var(--text-muted)]">账号类型</p>
               <p className="mt-2 text-base font-semibold text-[color:var(--text-primary)]">平台唯一超级管理员</p>
             </div>
-            <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4">
+            <div className="sf-metric-block px-4 py-4">
               <p className="text-sm text-[color:var(--text-muted)]">权限范围</p>
               <p className="mt-2 text-base font-semibold text-[color:var(--text-primary)]">全部企业、全部套餐、全部订阅</p>
             </div>
-            <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--surface-muted)] px-4 py-4 md:col-span-2">
+            <div className="sf-metric-block px-4 py-4 md:col-span-2">
               <p className="text-sm text-[color:var(--text-muted)]">说明</p>
               <p className="mt-2 text-base leading-7 text-[color:var(--text-primary)]">
                 管理端不是“每个企业一个管理员”，而是平台侧一个唯一总管理员，统一查看所有企业数据并执行全局管理。
@@ -104,7 +102,7 @@ export function AdminProfile() {
                 }}
                 className={inputClassName(Boolean(fieldErrors.currentPassword))}
               />
-              {fieldErrors.currentPassword ? <div className="text-xs font-medium text-rose-600">{fieldErrors.currentPassword}</div> : null}
+              {fieldErrors.currentPassword ? <div className="text-xs font-medium text-[color:var(--danger-strong)]">{fieldErrors.currentPassword}</div> : null}
             </label>
             <label className="space-y-2">
               {requiredLabel("新密码")}
@@ -117,7 +115,7 @@ export function AdminProfile() {
                 }}
                 className={inputClassName(Boolean(fieldErrors.nextPassword))}
               />
-              {fieldErrors.nextPassword ? <div className="text-xs font-medium text-rose-600">{fieldErrors.nextPassword}</div> : null}
+              {fieldErrors.nextPassword ? <div className="text-xs font-medium text-[color:var(--danger-strong)]">{fieldErrors.nextPassword}</div> : null}
             </label>
             <label className="space-y-2">
               {requiredLabel("确认新密码")}
@@ -130,16 +128,16 @@ export function AdminProfile() {
                 }}
                 className={inputClassName(Boolean(fieldErrors.confirmPassword))}
               />
-              {fieldErrors.confirmPassword ? <div className="text-xs font-medium text-rose-600">{fieldErrors.confirmPassword}</div> : null}
+              {fieldErrors.confirmPassword ? <div className="text-xs font-medium text-[color:var(--danger-strong)]">{fieldErrors.confirmPassword}</div> : null}
             </label>
 
-            {requestError ? <div className="text-sm font-medium text-rose-600">{requestError}</div> : null}
+            {requestError ? <div className="text-sm font-medium text-[color:var(--danger-strong)]">{requestError}</div> : null}
 
             <div>
               <button
                 type="button"
                 onClick={handleChangePassword}
-                className="rounded-full border border-sky-200 bg-sky-50 px-5 py-2.5 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
+                className="sf-button sf-button-primary h-10 px-5 text-sm"
               >
                 保存新密码
               </button>

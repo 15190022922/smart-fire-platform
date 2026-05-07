@@ -25,15 +25,15 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 function toneClassName(tone: ToastTone) {
   if (tone === "success") {
-    return "border-[rgba(57,118,91,0.18)] bg-[color:var(--success-soft)] text-[color:var(--success-strong)]";
+    return "border-[color:var(--border-soft)] bg-[color:var(--success-soft)] text-[color:var(--success-strong)]";
   }
   if (tone === "warning") {
-    return "border-[rgba(169,107,34,0.18)] bg-[color:var(--warning-soft)] text-[color:var(--warning-strong)]";
+    return "border-[color:var(--border-soft)] bg-[color:var(--warning-soft)] text-[color:var(--warning-strong)]";
   }
   if (tone === "error") {
-    return "border-[rgba(176,72,79,0.2)] bg-[color:var(--danger-soft)] text-[color:var(--danger-strong)]";
+    return "border-[color:var(--border-soft)] bg-[color:var(--danger-soft)] text-[color:var(--danger-strong)]";
   }
-  return "border-[rgba(72,106,141,0.18)] bg-[color:var(--info-soft)] text-[color:var(--accent-strong)]";
+  return "border-[color:var(--border-soft)] bg-[color:var(--info-soft)] text-[color:var(--accent-strong)]";
 }
 
 function ToastCard({

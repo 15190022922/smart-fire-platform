@@ -18,6 +18,7 @@ const history_controller_1 = require("./modules/history/history-controller");
 const inspection_controller_1 = require("./modules/inspection/inspection-controller");
 const ingestion_controller_1 = require("./modules/ingestion/ingestion-controller");
 const notification_controller_1 = require("./modules/notification/notification-controller");
+const platform_notice_controller_1 = require("./modules/platform-notices/platform-notice-controller");
 const platform_controller_1 = require("./modules/platform/platform-controller");
 const realtime_controller_1 = require("./modules/realtime/realtime-controller");
 const spatial_controller_1 = require("./modules/spatial/spatial-controller");
@@ -83,6 +84,42 @@ function createBackendServer() {
                 await (0, admin_controller_1.deleteAdminTenant)(url, res, context);
                 return;
             }
+            if (req.method === "GET" && url.pathname === "/api/admin/platform-notices") {
+                await (0, platform_notice_controller_1.getAdminPlatformNotices)(res, context);
+                return;
+            }
+            if (req.method === "POST" && url.pathname === "/api/admin/platform-notices") {
+                await (0, platform_notice_controller_1.postAdminPlatformNotice)(req, res, context);
+                return;
+            }
+            if (req.method === "POST" && url.pathname === "/api/admin/platform-notices/drafts") {
+                await (0, platform_notice_controller_1.postAdminPlatformNoticeDraft)(req, res, context);
+                return;
+            }
+            const adminPlatformNoticePublishMatch = url.pathname.match(/^\/api\/admin\/platform-notices\/([^/]+)\/publish$/);
+            if (req.method === "POST" && adminPlatformNoticePublishMatch) {
+                await (0, platform_notice_controller_1.publishAdminPlatformNoticeDraft)(req, res, context, decodeURIComponent(adminPlatformNoticePublishMatch[1]));
+                return;
+            }
+            const adminPlatformNoticeReeditMatch = url.pathname.match(/^\/api\/admin\/platform-notices\/([^/]+)\/reedit-draft$/);
+            if (req.method === "POST" && adminPlatformNoticeReeditMatch) {
+                await (0, platform_notice_controller_1.reeditAdminPlatformNoticeDraft)(res, context, decodeURIComponent(adminPlatformNoticeReeditMatch[1]));
+                return;
+            }
+            const adminPlatformNoticeRevokeMatch = url.pathname.match(/^\/api\/admin\/platform-notices\/([^/]+)\/revoke$/);
+            if (req.method === "POST" && adminPlatformNoticeRevokeMatch) {
+                await (0, platform_notice_controller_1.revokeAdminPlatformNotice)(req, res, context, decodeURIComponent(adminPlatformNoticeRevokeMatch[1]));
+                return;
+            }
+            const adminPlatformNoticeMatch = url.pathname.match(/^\/api\/admin\/platform-notices\/([^/]+)$/);
+            if (req.method === "PATCH" && adminPlatformNoticeMatch) {
+                await (0, platform_notice_controller_1.patchAdminPlatformNotice)(req, res, context, decodeURIComponent(adminPlatformNoticeMatch[1]));
+                return;
+            }
+            if (req.method === "DELETE" && adminPlatformNoticeMatch) {
+                await (0, platform_notice_controller_1.deleteAdminPlatformNotice)(res, context, decodeURIComponent(adminPlatformNoticeMatch[1]));
+                return;
+            }
             if (req.method === "POST" && url.pathname === "/api/ingestion/event") {
                 await (0, ingestion_controller_1.postIngestionEvent)(req, res, context);
                 return;
@@ -103,6 +140,20 @@ function createBackendServer() {
                 await (0, notification_controller_1.patchNotificationCenter)(req, res, context);
                 return;
             }
+            if (req.method === "GET" && url.pathname === "/api/tenant/platform-notices") {
+                await (0, platform_notice_controller_1.getTenantPlatformNotices)(url, res, context);
+                return;
+            }
+            const tenantPlatformNoticeStateMatch = url.pathname.match(/^\/api\/tenant\/platform-notices\/([^/]+)\/state$/);
+            if (req.method === "PATCH" && tenantPlatformNoticeStateMatch) {
+                await (0, platform_notice_controller_1.patchTenantPlatformNoticeState)(req, res, context, decodeURIComponent(tenantPlatformNoticeStateMatch[1]));
+                return;
+            }
+            const tenantPlatformNoticeMatch = url.pathname.match(/^\/api\/tenant\/platform-notices\/([^/]+)$/);
+            if (req.method === "GET" && tenantPlatformNoticeMatch) {
+                await (0, platform_notice_controller_1.getTenantPlatformNoticeDetail)(res, context, decodeURIComponent(tenantPlatformNoticeMatch[1]));
+                return;
+            }
             if (req.method === "GET" && url.pathname === "/api/tenant/audit-log") {
                 await (0, audit_controller_1.getAuditLogs)(res, context);
                 return;
@@ -119,6 +170,30 @@ function createBackendServer() {
                 await (0, spatial_controller_1.getTenantSpatialModel)(res, context);
                 return;
             }
+            if (req.method === "POST" && url.pathname === "/api/tenant/spatial-areas") {
+                await (0, spatial_controller_1.postTenantSpatialArea)(req, res, context);
+                return;
+            }
+            if (req.method === "PATCH" && /^\/api\/tenant\/spatial-areas\/[^/]+$/.test(url.pathname)) {
+                await (0, spatial_controller_1.patchTenantSpatialArea)(req, res, context, url);
+                return;
+            }
+            if (req.method === "DELETE" && /^\/api\/tenant\/spatial-areas\/[^/]+$/.test(url.pathname)) {
+                await (0, spatial_controller_1.deleteTenantSpatialArea)(res, context, url);
+                return;
+            }
+            if (req.method === "POST" && url.pathname === "/api/tenant/floors") {
+                await (0, spatial_controller_1.postTenantFloor)(req, res, context);
+                return;
+            }
+            if (req.method === "PATCH" && /^\/api\/tenant\/floors\/[^/]+$/.test(url.pathname)) {
+                await (0, spatial_controller_1.patchTenantFloor)(req, res, context, url);
+                return;
+            }
+            if (req.method === "DELETE" && /^\/api\/tenant\/floors\/[^/]+$/.test(url.pathname)) {
+                await (0, spatial_controller_1.deleteTenantFloor)(res, context, url);
+                return;
+            }
             if (req.method === "GET" && url.pathname === "/api/tenant/history") {
                 await (0, history_controller_1.getTenantHistory)(res, context);
                 return;
@@ -129,6 +204,14 @@ function createBackendServer() {
             }
             if (req.method === "POST" && url.pathname === "/api/tenant/drawings") {
                 await (0, spatial_controller_1.postTenantDrawing)(req, res, context);
+                return;
+            }
+            if (req.method === "POST" && /^\/api\/tenant\/drawings\/[^/]+\/publish$/.test(url.pathname)) {
+                await (0, spatial_controller_1.publishTenantDrawing)(url, res, context);
+                return;
+            }
+            if (req.method === "POST" && /^\/api\/tenant\/drawings\/[^/]+\/archive$/.test(url.pathname)) {
+                await (0, spatial_controller_1.archiveTenantDrawing)(url, res, context);
                 return;
             }
             if (req.method === "DELETE" && url.pathname === "/api/tenant/drawings") {
@@ -148,7 +231,15 @@ function createBackendServer() {
                 return;
             }
             if (req.method === "GET" && url.pathname === "/api/tenant/devices") {
-                await (0, device_controller_1.getDevices)(res, context);
+                await (0, device_controller_1.getDevices)(res, context, url);
+                return;
+            }
+            if (req.method === "POST" && url.pathname === "/api/tenant/devices/lifecycle/preview") {
+                await (0, device_controller_1.previewDeviceLifecycle)(req, res, context);
+                return;
+            }
+            if (req.method === "PATCH" && url.pathname === "/api/tenant/devices/lifecycle") {
+                await (0, device_controller_1.updateDeviceLifecycle)(req, res, context);
                 return;
             }
             if (req.method === "POST" && url.pathname === "/api/tenant/devices") {
@@ -157,6 +248,26 @@ function createBackendServer() {
             }
             if (req.method === "DELETE" && url.pathname === "/api/tenant/devices") {
                 await (0, device_controller_1.deleteDevice)(req, res, context, url);
+                return;
+            }
+            if (req.method === "GET" && url.pathname === "/api/tenant/device-attributes") {
+                await (0, device_controller_1.getDeviceAttributes)(res, context);
+                return;
+            }
+            if (req.method === "POST" && url.pathname === "/api/tenant/device-attributes") {
+                await (0, device_controller_1.postDeviceAttribute)(req, res, context);
+                return;
+            }
+            if (req.method === "DELETE" && url.pathname === "/api/tenant/device-attributes") {
+                await (0, device_controller_1.deleteDeviceAttribute)(res, context, url);
+                return;
+            }
+            if (req.method === "POST" && url.pathname === "/api/tenant/device-import/preview") {
+                await (0, device_controller_1.previewDeviceImport)(req, res, context);
+                return;
+            }
+            if (req.method === "POST" && url.pathname === "/api/tenant/device-import/commit") {
+                await (0, device_controller_1.commitDeviceImport)(req, res, context);
                 return;
             }
             if (req.method === "GET" && url.pathname === "/api/tenant/users") {

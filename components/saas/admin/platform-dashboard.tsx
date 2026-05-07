@@ -5,6 +5,8 @@ import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
 import { useSaaSDemo } from "@/components/saas/saas-demo-provider";
 import { DeviceSimulatorConsole } from "@/components/simulator/device-simulator-console";
+import { StatusBadge } from "@/components/status-badge";
+import { AlertMessage } from "@/components/ui/alert-message";
 
 export function PlatformDashboard() {
   const { tenants, plans, subscriptions, platformUsers, quotaUsage } = useSaaSDemo();
@@ -53,7 +55,7 @@ export function PlatformDashboard() {
               key={item.label}
               className="sf-kpi relative overflow-hidden px-4 py-4 sm:px-5"
               style={{
-                background: `linear-gradient(180deg, rgba(255,255,255,0.98) 0%, ${item.surface} 180%)`,
+                background: `linear-gradient(180deg, var(--surface) 0%, ${item.surface} 180%)`,
               }}
             >
               <div
@@ -78,13 +80,6 @@ export function PlatformDashboard() {
               {subscriptions.map((subscription) => {
                 const tenant = tenants.find((item) => item.id === subscription.tenantId);
                 const plan = plans.find((item) => item.id === subscription.planId);
-                const tone =
-                  subscription.status === "已生效"
-                    ? { text: "var(--success-strong)", bg: "var(--success-soft)" }
-                    : subscription.status === "试用中"
-                      ? { text: "var(--warning-strong)", bg: "var(--warning-soft)" }
-                      : { text: "var(--text-secondary)", bg: "var(--neutral-soft)" };
-
                 return (
                   <div key={subscription.id} className="sf-list-row flex flex-wrap items-center justify-between gap-3 px-4 py-3.5">
                     <div className="min-w-0">
@@ -95,16 +90,7 @@ export function PlatformDashboard() {
                         套餐：{plan?.name} / 有效期：{subscription.startDate} - {subscription.endDate}
                       </p>
                     </div>
-                    <div
-                      className="rounded-full border px-3 py-1.5 text-xs font-semibold"
-                      style={{
-                        color: tone.text,
-                        backgroundColor: tone.bg,
-                        borderColor: "var(--border-soft)",
-                      }}
-                    >
-                      {subscription.status}
-                    </div>
+                    <StatusBadge status={subscription.status} />
                   </div>
                 );
               })}
@@ -145,13 +131,13 @@ export function PlatformDashboard() {
           title="设备模拟测试台"
           description="这里直接内嵌平台侧测试控制台。你可以在平台首页直接选择企业、设备并发送火警、故障、离线、恢复、心跳事件，企业端首页和空间页会通过实时通道自动更新。"
         >
-          <div className="mb-4 rounded-[16px] border border-[color:rgba(169,107,34,0.18)] bg-[color:var(--warning-soft)] px-4 py-3">
+          <AlertMessage tone="warning" className="mb-4">
             <p className="sf-label text-[color:var(--warning-strong)]">Testing Notice</p>
-            <p className="mt-2 text-sm text-[color:var(--warning-strong)]">
+            <p className="mt-2 text-sm">
               测试注意：平台管理员和企业用户不能共用同一个浏览器会话。请用当前浏览器登录平台端，再用无痕窗口或另一浏览器登录企业端，否则同一个登录 cookie 会互相覆盖。
             </p>
-          </div>
-          <div className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-admin)] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+          </AlertMessage>
+          <div className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-admin)] p-2 shadow-[var(--panel-inset)]">
             <DeviceSimulatorConsole tenants={tenants} initialScene={null} embedded />
           </div>
         </SectionCard>

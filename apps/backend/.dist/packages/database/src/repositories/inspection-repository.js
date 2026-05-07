@@ -91,9 +91,9 @@ async function updateIssueStatus(tenantId, input) {
         await client.query(`UPDATE issues
        SET status = $1,
            note = $2,
-           rectified_at = CASE WHEN $1 = '宸叉暣鏀?' THEN COALESCE(rectified_at, $3) ELSE rectified_at END,
-           reviewed_at = CASE WHEN $1 = '宸插鏌?' THEN COALESCE(reviewed_at, $3) ELSE reviewed_at END
-       WHERE tenant_id = $4 AND id = $5`, [input.status, input.note, createdAt, tenantId, input.issueId]);
+           rectified_at = CASE WHEN $1 = $6 THEN COALESCE(rectified_at, $3) ELSE rectified_at END,
+           reviewed_at = CASE WHEN $1 = $7 THEN COALESCE(reviewed_at, $3) ELSE reviewed_at END
+       WHERE tenant_id = $4 AND id = $5`, [input.status, input.note, createdAt, tenantId, input.issueId, _shared_1.ISSUE_STATUS_RESOLVED, _shared_1.ISSUE_STATUS_REVIEWED]);
         await (0, audit_repository_1.insertAuditLog)(client, {
             id: (0, _shared_1.createId)("audit"),
             tenantId,

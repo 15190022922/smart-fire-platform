@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Dialog } from "@/components/ui/dialog";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
@@ -15,6 +16,7 @@ const inputClassName =
 type SubscriptionFormState = Omit<SubscriptionRecord, "id">;
 
 export function SubscriptionManager() {
+  const { confirmDialog } = useConfirmDialog();
   const { subscriptions, setSubscriptions, tenants, plans } = useSaaSDemo();
   const [dialogMode, setDialogMode] = useState<"create" | "edit" | null>(null);
   const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionRecord | null>(null);
@@ -60,8 +62,14 @@ export function SubscriptionManager() {
     closeDialog();
   }
 
-  function removeSubscription(subscription: SubscriptionRecord) {
-    if (!window.confirm("确认删除该订阅记录吗？")) {
+  async function removeSubscription(subscription: SubscriptionRecord) {
+    const result = await confirmDialog({
+      title: "删除订阅",
+      description: "确认删除该订阅记录吗？",
+      confirmLabel: "删除",
+      tone: "danger",
+    });
+    if (result !== "confirm") {
       return;
     }
     setSubscriptions((current) => current.filter((item) => item.id !== subscription.id));

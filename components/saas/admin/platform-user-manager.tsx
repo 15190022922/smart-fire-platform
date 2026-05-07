@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Dialog } from "@/components/ui/dialog";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { FeatureGuard } from "@/components/saas/feature-guard";
@@ -21,6 +22,7 @@ const roleOptions: PlatformRoleKey[] = [
 ];
 
 export function PlatformUserManager() {
+  const { confirmDialog } = useConfirmDialog();
   const { platformUsers, setPlatformUsers, roles } = useSaaSDemo();
   const [dialogMode, setDialogMode] = useState<"create" | "edit" | null>(null);
   const [selectedUser, setSelectedUser] = useState<PlatformUserRecord | null>(null);
@@ -66,8 +68,14 @@ export function PlatformUserManager() {
     closeDialog();
   }
 
-  function removeUser(user: PlatformUserRecord) {
-    if (!window.confirm(`确认删除平台用户“${user.username}”吗？`)) {
+  async function removeUser(user: PlatformUserRecord) {
+    const result = await confirmDialog({
+      title: "删除平台用户",
+      description: `确认删除平台用户“${user.username}”吗？`,
+      confirmLabel: "删除",
+      tone: "danger",
+    });
+    if (result !== "confirm") {
       return;
     }
     setPlatformUsers((current) => current.filter((item) => item.id !== user.id));

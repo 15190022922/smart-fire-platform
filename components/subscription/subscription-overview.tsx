@@ -1,5 +1,6 @@
 import { featureDefinitions, tenantQuotaUsage } from "@/data/saas-data";
 import { SectionCard } from "@/components/section-card";
+import { StatusBadge } from "@/components/status-badge";
 import { PlanRecord, SubscriptionRecord, TenantRecord } from "@/types/saas";
 
 function formatDateRange(startDate: string, endDate: string) {
@@ -52,7 +53,7 @@ export function SubscriptionOverview({
             </div>
           </div>
 
-          <div className="mt-5 rounded-[16px] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(248,251,254,0.98)_0%,rgba(255,255,255,0.98)_100%)] p-4">
+          <div className="sf-metric-block mt-5 p-4">
             <div className="grid gap-4 md:grid-cols-3">
               <div>
                 <p className="text-sm text-[color:var(--text-secondary)]">续费方式</p>
@@ -85,15 +86,7 @@ export function SubscriptionOverview({
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-base font-semibold text-[color:var(--text-primary)]">{feature.name}</p>
-                    <span
-                      className={
-                        enabled
-                          ? "rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700"
-                          : "rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-500"
-                      }
-                    >
-                      {enabled ? "已开通" : "未开通"}
-                    </span>
+                    <StatusBadge status={enabled ? "已开启" : "已关闭"} />
                   </div>
                   <p className="mt-3 text-sm leading-6 text-[color:var(--text-secondary)]">{feature.description}</p>
                   <p className="mt-3 text-xs uppercase tracking-[0.24em] text-[color:var(--text-muted)]">
@@ -110,9 +103,9 @@ export function SubscriptionOverview({
         <SectionCard title="配额使用" description="当前展示的是前端假数据，后续可以直接改成实时接口。">
           <div className="space-y-3">
             {[
-              { label: "设备数", value: usage?.deviceCount ?? 0, total: plan?.maxDevices ?? 0, ratio: deviceUsageRatio, tone: "bg-sky-500" },
-              { label: "用户数", value: usage?.userCount ?? 0, total: plan?.maxUsers ?? 0, ratio: userUsageRatio, tone: "bg-emerald-500" },
-              { label: "短信额度", value: usage?.smsUsed ?? 0, total: plan?.smsQuota ?? 0, ratio: smsUsageRatio, tone: "bg-amber-500" },
+              { label: "设备数", value: usage?.deviceCount ?? 0, total: plan?.maxDevices ?? 0, ratio: deviceUsageRatio, tone: "bg-[var(--info)]" },
+              { label: "用户数", value: usage?.userCount ?? 0, total: plan?.maxUsers ?? 0, ratio: userUsageRatio, tone: "bg-[var(--success)]" },
+              { label: "短信额度", value: usage?.smsUsed ?? 0, total: plan?.smsQuota ?? 0, ratio: smsUsageRatio, tone: "bg-[var(--warning)]" },
             ].map((item) => (
               <div key={item.label}>
                 <div className="flex items-center justify-between gap-3 text-sm">

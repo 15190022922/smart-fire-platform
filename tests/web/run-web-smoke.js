@@ -35,7 +35,7 @@ async function main() {
     defaultView: "/",
   });
 
-  const pages = ["/", "/alarm-center", "/devices", "/duty-center", "/inspection", "/notification-center", "/audit-log", "/system-health"];
+  const pages = ["/", "/spaces", "/alarm-center", "/devices", "/duty-center", "/inspection", "/notification-center", "/audit-log", "/system-health"];
   for (const path of pages) {
     await runCase(path, cookie);
   }
