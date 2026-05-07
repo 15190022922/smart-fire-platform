@@ -983,6 +983,31 @@ a {
   --neutral-soft: #f2f5f8;
 }
 
+.sf-admin-shell aside {
+  background: #f7fafd;
+  color: #102131;
+}
+
+.sf-admin-shell aside nav a {
+  color: #36506b;
+}
+
+.sf-admin-shell aside nav a span:last-child,
+.sf-admin-shell aside p {
+  color: #6b7d91;
+}
+
+.sf-admin-shell aside h1,
+.sf-admin-shell aside nav a:hover,
+.sf-admin-shell aside .sf-panel-subtle p:first-child + p {
+  color: #102131;
+}
+
+.sf-admin-shell aside nav a[class*="bg-[#eaf2f9]"],
+.sf-admin-shell aside nav a[class*="bg-[var(--accent-soft)]"] {
+  color: #2e4e6e;
+}
+
 @keyframes sfFadeIn {
   from {
     opacity: 0;

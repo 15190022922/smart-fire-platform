@@ -36,12 +36,12 @@ export function SaaSShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="sf-admin-shell flex min-h-screen bg-[linear-gradient(180deg,var(--page-gradient-top)_0%,var(--page-gradient-bottom)_100%)] xl:h-screen xl:overflow-hidden">
-      <aside className="hidden min-h-0 w-72 shrink-0 border-r border-[color:var(--border-soft)] bg-[var(--surface-admin)] px-4 py-4 lg:flex lg:flex-col">
+      <aside className="hidden min-h-0 w-72 shrink-0 border-r border-[#d6dfe9] bg-[#f7fafd] px-4 py-4 text-[#102131] lg:flex lg:flex-col">
         <div className="relative shrink-0 overflow-hidden rounded-[20px] border border-[color:var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--panel-shadow)]">
           <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--glass-highlight),transparent)]" />
-          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[color:var(--text-faint)]">Platform SaaS</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#90a0b3]">Platform SaaS</p>
           <h1 className="mt-3 text-[1.15rem] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">平台管理端</h1>
-          <p className="mt-2 text-[13px] leading-6 text-[color:var(--text-muted)]">
+          <p className="mt-2 text-[13px] leading-6 text-[#6b7d91]">
             平台端只有一个唯一超级管理员账号，默认拥有全部权限，可统一查看并管理所有企业数据。
           </p>
         </div>
@@ -56,8 +56,8 @@ export function SaaSShell({ children }: { children: React.ReactNode }) {
               key={item.label}
               className="sf-panel-subtle px-4 py-3"
             >
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[color:var(--text-faint)]">{item.label}</p>
-              <p className="mt-1.5 text-[1.55rem] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">{item.value}</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#90a0b3]">{item.label}</p>
+              <p className="mt-1.5 text-[1.55rem] font-semibold tracking-[-0.02em] text-[#102131]">{item.value}</p>
             </div>
           ))}
         </div>
@@ -74,12 +74,12 @@ export function SaaSShell({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "flex items-center justify-between rounded-[14px] border px-4 py-2.5 text-[13px] font-medium transition",
                     active
-                      ? "border-[color:var(--border-soft)] bg-[var(--accent-soft)] text-[color:var(--accent-strong)] shadow-[var(--panel-inset)]"
-                      : "border-transparent bg-transparent text-[color:var(--text-secondary)] hover:border-[color:var(--border)] hover:bg-[var(--surface-muted)] hover:text-[color:var(--text-primary)]",
+                      ? "border-[#d6dfe9] bg-[#eaf2f9] text-[#2e4e6e] shadow-[var(--panel-inset)]"
+                      : "border-transparent bg-transparent text-[#36506b] hover:border-[#d6dfe9] hover:bg-white/60 hover:text-[#102131]",
                   )}
                 >
                   <span>{link.label}</span>
-                  <span className={cn("text-[10px] font-semibold uppercase tracking-[0.16em]", active ? "text-[color:var(--accent-strong)]" : "text-[color:var(--text-muted)]")}>
+                  <span className={cn("text-[10px] font-semibold uppercase tracking-[0.16em]", active ? "text-[#2e4e6e]" : "text-[#6b7d91]")}>
                     管理
                   </span>
                 </Link>
